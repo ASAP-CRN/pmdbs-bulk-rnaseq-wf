@@ -80,19 +80,24 @@ workflow preprocess {
 
 		File fastqc_reports_tar_gz_output = select_first([fastqc_raw_reads.fastqc_reports_tar_gz, fastqc_raw_reads_reports_tar_gz]) #!FileCoercion
 
-		#String fastp_trimmed_fastq_R1 = "~{fastp_raw_data_path}/~{fastq_R1_basename}_trimmed.fastq.gz"
-		#String fastp_trimmed_fastq_R2 = "~{fastp_raw_data_path}/~{fastq_R2_basename}_trimmed.fastq.gz"
-		#String fastp_failed_paired_fastq = "~{fastp_raw_data_path}/~{fastq_basename}_failed.fastq.gz"
-		#String fastp_report_html = "~{fastp_raw_data_path}/~{fastq_basename}_fastp.html"
+		scatter (fastq_index in range(length(sample.fastq_R1s))) {
+			String fastq_R1_basename = sub(basename(sample.fastq_R1s[fastq_index]), "(\\.fastq|\\.fq)(\\.gz|)", "")
+			String fastq_R2_basename = sub(basename(sample.fastq_R2s[fastq_index]), "(\\.fastq|\\.fq)(\\.gz|)", "")
+			String fastq_basename = sub(basename(fastq_R1_basename), "(R1|r1)[_-]*$", "")
 
-		String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}_trimmed_fastqc_reports.tar.gz"
+			String fastp_trimmed_fastq_R1 = "~{fastp_raw_data_path}/~{fastq_R1_basename}_trimmed.fastq.gz"
+			String fastp_trimmed_fastq_R2 = "~{fastp_raw_data_path}/~{fastq_R2_basename}_trimmed.fastq.gz"
+			String fastp_failed_paired_fastq = "~{fastp_raw_data_path}/~{fastq_basename}_failed.fastq.gz"
+			String fastp_report_html = "~{fastp_raw_data_path}/~{fastq_basename}_fastp.html"
 
-		if (fastqc_trimmed_reads_complete == "false") {
-			scatter (fastq_index in range(length(sample.fastq_R1s))) {
+			if (fastqc_trimmed_reads_complete == "false") {
 				call trim_and_qc {
 					input:
 						fastq_R1 = sample.fastq_R1s[fastq_index],
 						fastq_R2 = sample.fastq_R2s[fastq_index],
+						fastq_R1_basename = fastq_R1_basename,
+						fastq_R2_basename = fastq_R2_basename,
+						fastq_basename = fastq_basename,
 						raw_data_path = fastp_raw_data_path,
 						workflow_info = workflow_info,
 						billing_project = billing_project,
@@ -101,14 +106,25 @@ workflow preprocess {
 				}
 			}
 
-			Array[File] trimmed_fastq_R1s = trim_and_qc.trimmed_fastq_R1 #!FileCoercion
-			Array[File] trimmed_fastq_R2s = trim_and_qc.trimmed_fastq_R2 #!FileCoercion
+			File selected_trimmed_fastq_R1 = select_first([trim_and_qc.trimmed_fastq_R1, fastp_trimmed_fastq_R1]) #!FileCoercion
+		    File selected_trimmed_fastq_R2 = select_first([trim_and_qc.trimmed_fastq_R2, fastp_trimmed_fastq_R2]) #!FileCoercion
+		    File selected_failed_paired_fastq = select_first([trim_and_qc.failed_paired_fastq, fastp_failed_paired_fastq]) #!FileCoercion
+		    File selected_report_html = select_first([trim_and_qc.report_html, fastp_report_html]) #!FileCoercion
+		}
 
+		Array[File] trimmed_fastq_R1s_output = selected_trimmed_fastq_R1
+		Array[File] trimmed_fastq_R2s_output = selected_trimmed_fastq_R2
+		Array[File] failed_paired_fastq_output = selected_failed_paired_fastq
+		Array[File] report_html_output = selected_report_html
+
+		String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}_trimmed_fastqc_reports.tar.gz"
+
+		if (fastqc_trimmed_reads_complete == "false") {
 			call Fastqc.fastqc as fastqc_trimmed_reads {
 				input:
 					sample_id = sample.sample_id,
-					fastq_R1s = trimmed_fastq_R1s,
-					fastq_R2s = trimmed_fastq_R2s,
+					fastq_R1s = trimmed_fastq_R1s_output,
+					fastq_R2s = trimmed_fastq_R2s_output,
 					raw_data_path = fastqc_trimmed_reads_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -117,12 +133,7 @@ workflow preprocess {
 			}
 		}
 
-		File trimmed_fastqc_reports_tar_gz_output = select_first([fastqc_raw_reads.trimmed_fastqc_reports_tar_gz, fastqc_trimmed_reads_reports_tar_gz]) #!FileCoercion
-
-		#File trimmed_fastq_R1_output = select_first([trim_and_qc.trimmed_fastq_R1, fastp_trimmed_fastq_R1]) #!FileCoercion
-		#File trimmed_fastq_R2_output = select_first([trim_and_qc.trimmed_fastq_R2, fastp_trimmed_fastq_R2]) #!FileCoercion
-		#File failed_paired_fastq_output = select_first([trim_and_qc.failed_paired_fastq, fastp_failed_paired_fastq]) #!FileCoercion
-		#File report_html_output = select_first([trim_and_qc.report_html, fastp_report_html]) #!FileCoercion
+		File trimmed_fastqc_reports_tar_gz_output = select_first([fastqc_trimmed_reads.trimmed_fastqc_reports_tar_gz, fastqc_trimmed_reads_reports_tar_gz]) #!FileCoercion
 
 		if (run_index_ref_genome) {
 			call index_ref_genome {
@@ -153,8 +164,8 @@ workflow preprocess {
 				input:
 					sample_id = sample.sample_id,
 					star_genome_dir_tar_gz = genome_dir_tar_gz,
-					trimmed_fastq_R1s = select_first([trimmed_fastq_R1s]),
-					trimmed_fastq_R2s = select_first([trimmed_fastq_R2s]),
+					trimmed_fastq_R1s = trimmed_fastq_R1s_output,
+					trimmed_fastq_R2s = trimmed_fastq_R2s_output,
 					raw_data_path = star_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -167,6 +178,7 @@ workflow preprocess {
 			"data": select_first([align.aligned_bam, star_aligned_bam]), #!FileCoercion
 			"data_index": select_first([align.aligned_bam_index, star_aligned_bam_index]) #!FileCoercion
 		}
+		
 		File unmapped_mate1_output = select_first([align.unmapped_mate1, star_unmapped_mate1]) #!FileCoercion
 		File unmapped_mate2_output = select_first([align.unmapped_mate2, star_unmapped_mate2]) #!FileCoercion
 		File log_output = select_first([align.log, star_log]) #!FileCoercion
@@ -183,10 +195,10 @@ workflow preprocess {
 		Array[File] fastqc_reports_tar_gz = fastqc_reports_tar_gz_output #!FileCoercion
 
 		# Trimmed reads
-		#Array[Array[File]] trimmed_fastq_R1s = _output #!FileCoercion
-		#Array[Array[File]] trimmed_fastq_R2s = _output #!FileCoercion
-		#Array[Array[File]] failed_paired_fastq = _output #!FileCoercion
-		#Array[Array[File]] report_html = _output #!FileCoercion
+		Array[Array[File]] trimmed_fastq_R1s = trimmed_fastq_R1s_output #!FileCoercion
+		Array[Array[File]] trimmed_fastq_R2s = trimmed_fastq_R2s_output #!FileCoercion
+		Array[Array[File]] failed_paired_fastq = failed_paired_fastq_output #!FileCoercion
+		Array[Array[File]] report_html = report_html_output #!FileCoercion
 
 		# FastQC reports on trimmed reads
 		Array[File] trimmed_fastqc_reports_tar_gz = trimmed_fastqc_reports_tar_gz_output #!FileCoercion
@@ -259,16 +271,16 @@ task trim_and_qc {
 		File fastq_R1
 		File fastq_R2
 
+		String fastq_R1_basename
+		String fastq_R2_basename
+		String fastq_basename
+
 		String raw_data_path
 		Array[Array[String]] workflow_info
 		String billing_project
 		String container_registry
 		String zones
 	}
-
-	String fastq_R1_basename = sub(basename(fastq_R1), "(\\.fastq|\\.fq)(\\.gz|)", "")
-	String fastq_R2_basename = sub(basename(fastq_R2), "(\\.fastq|\\.fq)(\\.gz|)", "")
-	String fastq_basename = sub(basename(fastq_R1_basename), "(R1|r1)[_-]*$", "")
 
 	Int threads = 8
 	Int mem_gb = ceil(threads * 2)
