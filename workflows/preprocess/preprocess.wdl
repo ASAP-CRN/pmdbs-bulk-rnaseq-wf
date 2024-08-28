@@ -1,19 +1,14 @@
 version 1.0
 
-# Perform QC, trim, and align reads
+# Perform QC and trim reads
 
 import "../pmdbs_bulk_rnaseq_analysis_structs.wdl"
 import "../wf-common/wdl/tasks/fastqc.wdl" as Fastqc
-import "alignment/alignment.wdl" as Alignment
 
 workflow preprocess {
 	input {
 		String project_id
 		Array[Sample] samples
-
-		Boolean run_index_ref_genome
-		ReferenceData reference
-		File? star_genome_dir_tar_gz
 
 		String workflow_name
 		String workflow_version
@@ -28,7 +23,6 @@ workflow preprocess {
 	# Task and subworkflow versions
 	String sub_workflow_name = "preprocess"
 	String sub_workflow_version = "1.0.0"
-	String align_task_version = "1.0.0"
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
@@ -36,20 +30,17 @@ workflow preprocess {
 	String fastqc_raw_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_raw_reads/~{sub_workflow_version}"
 	String fastp_raw_data_path = "~{workflow_raw_data_path_prefix}/trim_and_qc/~{sub_workflow_version}"
 	String fastqc_trimmed_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_trimmed_reads/~{sub_workflow_version}"
-	String star_raw_data_path = "~{workflow_raw_data_path_prefix}/align/~{align_task_version}"
 
 	scatter (sample_object in samples) {
 		String fastqc_raw_reads_output = "~{fastqc_raw_reads_raw_data_path}/~{sample_object.sample_id}_fastqc_reports.tar.gz"
 		String fastqc_trimmed_reads_output = "~{fastqc_trimmed_reads_raw_data_path}/~{sample_object.sample_id}_trimmed_fastqc_reports.tar.gz"
-		String align_output = "~{star_raw_data_path}/~{sample_object.sample_id}_Aligned.sortedByCoord.out.bam"
 	}
 
-	# For each sample, outputs an array of true/false: [fastqc_raw_reads_complete, fastqc_trimmed_reads_complete, align_complete]
+	# For each sample, outputs an array of true/false: [fastqc_raw_reads_complete, fastqc_trimmed_reads_complete]
 	call check_output_files_exist {
 		input:
 			fastqc_raw_reads_output_files = fastqc_raw_reads_output,
 			fastqc_trimmed_reads_output_files = fastqc_trimmed_reads_output,
-			align_output_files = align_output,
 			billing_project = billing_project,
 			zones = zones
 	}
@@ -61,7 +52,6 @@ workflow preprocess {
 
 		String fastqc_raw_reads_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String fastqc_trimmed_reads_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
-		String align_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][2]
 
 		String fastqc_raw_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}_fastqc_reports.tar.gz"
 
@@ -135,44 +125,6 @@ workflow preprocess {
 		}
 
 		File trimmed_fastqc_reports_tar_gz_output = select_first([fastqc_trimmed_reads.trimmed_fastqc_reports_tar_gz, fastqc_trimmed_reads_reports_tar_gz]) #!FileCoercion
-
-		String star_aligned_bam = "~{star_raw_data_path}/~{sample.sample_id}_Aligned.sortedByCoord.out.bam"
-		String star_aligned_bam_index = "~{star_raw_data_path}/~{sample.sample_id}_Aligned.sortedByCoord.out.bam.bai"
-		String star_unmapped_mate1 = "~{star_raw_data_path}/~{sample.sample_id}_Unmapped.out.mate1"
-		String star_unmapped_mate2 = "~{star_raw_data_path}/~{sample.sample_id}_Unmapped.out.mate2"
-		String star_log = "~{star_raw_data_path}/~{sample.sample_id}_Log.out"
-		String star_final_log = "~{star_raw_data_path}/~{sample.sample_id}_Log.final.out"
-		String star_progress_log = "~{star_raw_data_path}/~{sample.sample_id}_Log.progress.out"
-		String star_sj_out_tab = "~{star_raw_data_path}/~{sample.sample_id}_SJ.out.tab"
-
-		if (align_complete == "false") {
-			call Alignment.alignment {
-				input:
-					sample_id = sample.sample_id,
-					run_index_ref_genome = run_index_ref_genome,
-					reference = reference,
-					star_genome_dir_tar_gz = star_genome_dir_tar_gz,
-					trimmed_fastq_R1s = trimmed_fastq_R1s_output,
-					trimmed_fastq_R2s = trimmed_fastq_R2s_output,
-					raw_data_path = star_raw_data_path,
-					workflow_info = workflow_info,
-					billing_project = billing_project,
-					container_registry = container_registry,
-					zones = zones
-			}
-		}
-
-		IndexData aligned_bam_output = {
-			"data": select_first([alignment.aligned_bam, star_aligned_bam]), #!FileCoercion
-			"data_index": select_first([alignment.aligned_bam_index, star_aligned_bam_index]) #!FileCoercion
-		}
-
-		File unmapped_mate1_output = select_first([alignment.unmapped_mate1, star_unmapped_mate1]) #!FileCoercion
-		File unmapped_mate2_output = select_first([alignment.unmapped_mate2, star_unmapped_mate2]) #!FileCoercion
-		File log_output = select_first([alignment.log, star_log]) #!FileCoercion
-		File final_log_output = select_first([alignment.final_log, star_final_log]) #!FileCoercion
-		File progress_log_output = select_first([alignment.progress_log, star_progress_log]) #!FileCoercion
-		File sj_out_tab_output = select_first([alignment.sj_out_tab, star_sj_out_tab]) #!FileCoercion
 	}
 
 	output {
@@ -190,15 +142,6 @@ workflow preprocess {
 
 		# FastQC reports on trimmed reads
 		Array[File] trimmed_fastqc_reports_tar_gz = trimmed_fastqc_reports_tar_gz_output #!FileCoercion
-
-		# STAR align
-		Array[IndexData] aligned_bams = aligned_bam_output #!FileCoercion
-		Array[File] unmapped_mate1 = unmapped_mate1_output #!FileCoercion
-		Array[File] unmapped_mate2 = unmapped_mate2_output #!FileCoercion
-		Array[File] log = log_output #!FileCoercion
-		Array[File] final_log = final_log_output #!FileCoercion
-		Array[File] progress_log = progress_log_output #!FileCoercion
-		Array[File] sj_out_tab = sj_out_tab_output #!FileCoercion
 	}
 }
 
@@ -206,7 +149,6 @@ task check_output_files_exist {
 	input {
 		Array[String] fastqc_raw_reads_output_files
 		Array[String] fastqc_trimmed_reads_output_files
-		Array[String] align_output_files
 
 		String billing_project
 		String zones
@@ -218,26 +160,20 @@ task check_output_files_exist {
 		while read -r output_files || [[ -n "${output_files}" ]]; do
 			fastqc_raw_reads_reports_file=$(echo "${output_files}" | cut -f 1)
 			fastqc_trimmed_reads_reports_file=$(echo "${output_files}" | cut -f 2)
-			align_file=$(echo "${output_files}" | cut -f 3)
 
 			if gsutil -u ~{billing_project} ls "${fastqc_raw_reads_reports_file}"; then
 				if gsutil -u ~{billing_project} ls "${fastqc_trimmed_reads_reports_file}"; then
-					if gsutil -u ~{billing_project} ls "${align_file}"; then
-						# If we find all outputs, don't rerun anything
-						echo -e "true\ttrue\ttrue" >> sample_preprocessing_complete.tsv
-					else
-						# If we find fastqc outputs for both raw reads and trimmed reads, but don't find align outputs, just rerun align
-						echo -e "true\ttrue\tfalse" >> sample_preprocessing_complete.tsv
-					fi
+					# If we find all outputs, don't rerun anything
+					echo -e "true\ttrue" >> sample_preprocessing_complete.tsv
 				else
-					# If we find fastqc outputs for raw reads, but not trimmed reads, it does not matter if align objects exist, so run (or rerun) trim_and_qc, fastqc_trimmed_reads, and align
-					echo -e "true\tfalse\tfalse" >> sample_preprocessing_complete.tsv
+					# If we find fastqc outputs for raw reads, but not trimmed reads, then run (or rerun) trim_and_qc and fastqc_trimmed_reads
+					echo -e "true\tfalse" >> sample_preprocessing_complete.tsv
 				fi
 			else
 				# If we don't find fastqc output for raw reads, we must also need to run (or rerun) preprocessing
-				echo -e "false\tfalse\tfalse" >> sample_preprocessing_complete.tsv
+				echo -e "false\tfalse" >> sample_preprocessing_complete.tsv
 			fi
-		done < <(paste ~{write_lines(fastqc_raw_reads_output_files)} ~{write_lines(fastqc_trimmed_reads_output_files)} ~{write_lines(align_output_files)})
+		done < <(paste ~{write_lines(fastqc_raw_reads_output_files)} ~{write_lines(fastqc_trimmed_reads_output_files)})
 	>>>
 
 	output {
