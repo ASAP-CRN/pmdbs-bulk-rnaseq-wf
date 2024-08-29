@@ -99,7 +99,6 @@ workflow alignment_quantification {
 			"data": select_first([alignment.aligned_bam, star_aligned_bam]), #!FileCoercion
 			"data_index": select_first([alignment.aligned_bam_index, star_aligned_bam_index]) #!FileCoercion
 		}
-
 		File unmapped_mate1_output = select_first([alignment.unmapped_mate1, star_unmapped_mate1]) #!FileCoercion
 		File unmapped_mate2_output = select_first([alignment.unmapped_mate2, star_unmapped_mate2]) #!FileCoercion
 		File log_output = select_first([alignment.log, star_log]) #!FileCoercion

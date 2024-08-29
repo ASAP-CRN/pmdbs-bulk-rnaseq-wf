@@ -125,6 +125,15 @@ workflow preprocess {
 		}
 
 		File trimmed_fastqc_reports_tar_gz_output = select_first([fastqc_trimmed_reads.trimmed_fastqc_reports_tar_gz, fastqc_trimmed_reads_reports_tar_gz]) #!FileCoercion
+		
+		TrimmedSample trimmed_fastq_samples_output = {
+			"sample_id": sample.sample_id,
+			"batch": sample.batch,
+			"fastq_R1s": trimmed_fastq_R1s_output,
+			"fastq_R2s": trimmed_fastq_R2s_output,
+			"fastq_I1s": sample.fastq_I1s,
+			"fastq_I2s": sample.fastq_I2s
+		}
 	}
 
 	output {
