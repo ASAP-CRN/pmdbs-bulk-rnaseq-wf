@@ -50,26 +50,26 @@ workflow alignment_quantification {
 			zones = zones
 	}
 
+	if (run_index_ref_genome) {
+		call index_ref_genome {
+		input:
+			primary_assembly_fasta = reference.primary_assembly_fasta,
+			gene_annotation_gtf = reference.gene_annotation_gtf,
+			container_registry = container_registry,
+			zones = zones
+		}
+	}
+
+	File genome_dir_tar_gz = select_first([
+		index_ref_genome.star_genome_dir_tar_gz,
+		star_genome_dir_tar_gz
+	])
+
 	scatter (sample_index in range(length(samples))) {
 		Sample sample = samples[sample_index]
 
 		String alignment_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String quantification_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
-
-		if (run_index_ref_genome) {
-			call index_ref_genome {
-			input:
-				primary_assembly_fasta = reference.primary_assembly_fasta,
-				gene_annotation_gtf = reference.gene_annotation_gtf,
-				container_registry = container_registry,
-				zones = zones
-			}
-		}
-
-		File genome_dir_tar_gz = select_first([
-			index_ref_genome.star_genome_dir_tar_gz,
-			star_genome_dir_tar_gz
-		])
 
 		String star_aligned_bam = "~{star_raw_data_path}/~{sample.sample_id}.Aligned.sortedByCoord.out.bam"
 		String star_aligned_bam_index = "~{star_raw_data_path}/~{sample.sample_id}.Aligned.sortedByCoord.out.bam.bai"

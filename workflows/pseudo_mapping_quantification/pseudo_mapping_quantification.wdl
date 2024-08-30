@@ -46,33 +46,33 @@ workflow pseudo_mapping_quantification {
 			zones = zones
 	}
 
+	if (run_index_ref_genome) {
+		call generate_decoy {
+		input:
+			primary_assembly_fasta = reference.primary_assembly_fasta,
+			transcripts_fasta = reference.transcripts_fasta,
+			container_registry = container_registry,
+			zones = zones
+		}
+
+		call index_ref_genome {
+		input:
+			gentrome_fasta = generate_decoy.gentrome_fasta,
+			decoys_txt = generate_decoy.decoys_txt,
+			container_registry = container_registry,
+			zones = zones
+		}
+	}
+
+	File genome_dir_tar_gz = select_first([
+		index_ref_genome.salmon_genome_dir_tar_gz,
+		salmon_genome_dir_tar_gz
+	])
+
 	scatter (sample_index in range(length(samples))) {
 		Sample sample = samples[sample_index]
 
 		String mapping_quantification_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
-
-		if (run_index_ref_genome) {
-			call generate_decoy {
-			input:
-				primary_assembly_fasta = reference.primary_assembly_fasta,
-				transcripts_fasta = reference.transcripts_fasta,
-				container_registry = container_registry,
-				zones = zones
-			}
-
-			call index_ref_genome {
-			input:
-				gentrome_fasta = generate_decoy.gentrome_fasta,
-				decoys_txt = generate_decoy.decoys_txt,
-				container_registry = container_registry,
-				zones = zones
-			}
-		}
-
-		File genome_dir_tar_gz = select_first([
-			index_ref_genome.salmon_genome_dir_tar_gz,
-			salmon_genome_dir_tar_gz
-		])
 
 		String salmon_quant_file = "~{salmon_raw_data_path}/~{sample.sample_id}.mapping_mode.quant.sf"
 		String salmon_command_info_json = "~{salmon_raw_data_path}/~{sample.sample_id}.mapping_mode.cmd_info.json"
