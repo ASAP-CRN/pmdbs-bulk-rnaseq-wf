@@ -5,6 +5,7 @@ import "wf-common/wdl/structs.wdl"
 struct ReferenceData {
 	File primary_assembly_fasta
 	File gene_annotation_gtf
+	File transcripts_fasta
 }
 
 struct IndexData {
