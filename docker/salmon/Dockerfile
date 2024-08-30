@@ -14,6 +14,7 @@ RUN apt-get -qq update \
 	&& apt-get -qq install \
 		wget \
 		time \
+		gzip \
 		make \
 		gcc \
 		build-essential \

@@ -1,6 +1,6 @@
 version 1.0
 
-# Align reads
+# Align reads and quantify (alignment-based mode)
 
 import "../pmdbs_bulk_rnaseq_analysis_structs.wdl"
 
@@ -38,7 +38,7 @@ workflow alignment_quantification {
 
 	scatter (sample_object in samples) {
 		String alignment_output = "~{star_raw_data_path}/~{sample_object.sample_id}.Aligned.sortedByCoord.out.bam"
-		String quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id}.quant.sf"
+		String quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id}.alignment_mode.quant.sf"
 	}
 
 	# For each sample, outputs an array of true/false: [alignment_complete, quantification_complete]
@@ -106,9 +106,9 @@ workflow alignment_quantification {
 		File progress_log_output = select_first([alignment.progress_log, star_progress_log]) #!FileCoercion
 		File sj_out_tab_output = select_first([alignment.sj_out_tab, star_sj_out_tab]) #!FileCoercion
 
-		String salmon_quant_file = "~{salmon_raw_data_path}/~{sample.sample_id}.quant.sf"
-		String salmon_command_info_json = "~{salmon_raw_data_path}/~{sample.sample_id}.cmd_info.json"
-		String salmon_aux_info_tar_gz = "~{salmon_raw_data_path}/~{sample.sample_id}.aux_info.tar.gz"
+		String salmon_quant_file = "~{salmon_raw_data_path}/~{sample.sample_id}.alignment_mode.quant.sf"
+		String salmon_command_info_json = "~{salmon_raw_data_path}/~{sample.sample_id}.alignment_mode.cmd_info.json"
+		String salmon_aux_info_tar_gz = "~{salmon_raw_data_path}/~{sample.sample_id}.alignment_mode.aux_info.tar.gz"
 
 		if (quantification_complete == "false") {
 			call quantification {
@@ -334,31 +334,31 @@ task quantification {
 		set -euo pipefail
 
 		salmon quant \
-			-t ~{transcripts_fasta} \
-			-l A \
-			-a ~{aligned_bam} \
-			-o salmon_quant \
+			--transcripts ~{transcripts_fasta} \
+			--libType A \
+			--alignments ~{aligned_bam} \
+			--output salmon_quant \
 			--validateMappings \
 			--threads ~{threads}
 
 		cd salmon_quant
-		mv quant.sf ~{sample_id}.quant.sf
-		mv cmd_info.json ~{sample_id}.cmd_info.json
-		tar -czvf "~{sample_id}.aux_info.tar.gz" "aux_info"
+		mv quant.sf ~{sample_id}.alignment_mode.quant.sf
+		mv cmd_info.json ~{sample_id}.alignment_mode.cmd_info.json
+		tar -czvf "~{sample_id}.alignment_mode.aux_info.tar.gz" "aux_info"
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.quant.sf" \
-			-o "~{sample_id}.cmd_info.json" \
-			-o "~{sample_id}.aux_info.tar.gz"
+			-o "~{sample_id}.alignment_mode.quant.sf" \
+			-o "~{sample_id}.alignment_mode.cmd_info.json" \
+			-o "~{sample_id}.alignment_mode.aux_info.tar.gz"
 	>>>
 
 	output {
-		String quant_file = "~{raw_data_path}/~{sample_id}.quant.sf"
-		String command_info_json = "~{raw_data_path}/~{sample_id}.cmd_info.json"
-		String aux_info_tar_gz = "~{raw_data_path}/~{sample_id}.aux_info.tar.gz"
+		String quant_file = "~{raw_data_path}/~{sample_id}.alignment_mode.quant.sf"
+		String command_info_json = "~{raw_data_path}/~{sample_id}.alignment_mode.cmd_info.json"
+		String aux_info_tar_gz = "~{raw_data_path}/~{sample_id}.alignment_mode.aux_info.tar.gz"
 	}
 
 	runtime {
