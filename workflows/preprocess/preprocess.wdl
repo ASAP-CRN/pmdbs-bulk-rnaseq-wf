@@ -32,8 +32,8 @@ workflow preprocess {
 	String fastqc_trimmed_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_trimmed_reads/~{sub_workflow_version}"
 
 	scatter (sample_object in samples) {
-		String fastqc_raw_reads_output = "~{fastqc_raw_reads_raw_data_path}/~{sample_object.sample_id}_fastqc_reports.tar.gz"
-		String fastqc_trimmed_reads_output = "~{fastqc_trimmed_reads_raw_data_path}/~{sample_object.sample_id}_trimmed_fastqc_reports.tar.gz"
+		String fastqc_raw_reads_output = "~{fastqc_raw_reads_raw_data_path}/~{sample_object.sample_id}.fastqc_reports.tar.gz"
+		String fastqc_trimmed_reads_output = "~{fastqc_trimmed_reads_raw_data_path}/~{sample_object.sample_id}.trimmed_fastqc_reports.tar.gz"
 	}
 
 	# For each sample, outputs an array of true/false: [fastqc_raw_reads_complete, fastqc_trimmed_reads_complete]
@@ -53,7 +53,7 @@ workflow preprocess {
 		String fastqc_raw_reads_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String fastqc_trimmed_reads_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
 
-		String fastqc_raw_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}_fastqc_reports.tar.gz"
+		String fastqc_raw_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}.fastqc_reports.tar.gz"
 
 		if (fastqc_raw_reads_complete == "false") {
 			call Fastqc.fastqc as fastqc_raw_reads {
@@ -74,41 +74,46 @@ workflow preprocess {
 		scatter (fastq_index in range(length(sample.fastq_R1s))) {
 			String fastq_R1_basename = sub(basename(sample.fastq_R1s[fastq_index]), "(\\.fastq|\\.fq)(\\.gz|)", "")
 			String fastq_R2_basename = sub(basename(sample.fastq_R2s[fastq_index]), "(\\.fastq|\\.fq)(\\.gz|)", "")
-			String fastq_basename = sub(basename(fastq_R1_basename), "(R1|r1)[_-]*$", "")
 
-			String fastp_trimmed_fastq_R1 = "~{fastp_raw_data_path}/~{fastq_R1_basename}_trimmed.fastq.gz"
-			String fastp_trimmed_fastq_R2 = "~{fastp_raw_data_path}/~{fastq_R2_basename}_trimmed.fastq.gz"
-			String fastp_failed_paired_fastq = "~{fastp_raw_data_path}/~{fastq_basename}_failed.fastq.gz"
-			String fastp_report_html = "~{fastp_raw_data_path}/~{fastq_basename}_fastp.html"
-
-			if (fastqc_trimmed_reads_complete == "false") {
-				call trim_and_qc {
-					input:
-						fastq_R1 = sample.fastq_R1s[fastq_index],
-						fastq_R2 = sample.fastq_R2s[fastq_index],
-						fastq_R1_basename = fastq_R1_basename,
-						fastq_R2_basename = fastq_R2_basename,
-						fastq_basename = fastq_basename,
-						raw_data_path = fastp_raw_data_path,
-						workflow_info = workflow_info,
-						billing_project = billing_project,
-						container_registry = container_registry,
-						zones = zones
-				}
-			}
-
-			File selected_trimmed_fastq_R1 = select_first([trim_and_qc.trimmed_fastq_R1, fastp_trimmed_fastq_R1]) #!FileCoercion
-		    File selected_trimmed_fastq_R2 = select_first([trim_and_qc.trimmed_fastq_R2, fastp_trimmed_fastq_R2]) #!FileCoercion
-		    File selected_failed_paired_fastq = select_first([trim_and_qc.failed_paired_fastq, fastp_failed_paired_fastq]) #!FileCoercion
-		    File selected_report_html = select_first([trim_and_qc.report_html, fastp_report_html]) #!FileCoercion
+			String fastp_trimmed_fastq_R1 = "~{fastp_raw_data_path}/~{fastq_R1_basename}.trimmed.fastq.gz"
+			String fastp_trimmed_fastq_R2 = "~{fastp_raw_data_path}/~{fastq_R2_basename}.trimmed.fastq.gz"
 		}
 
-		Array[File] trimmed_fastq_R1s_output = selected_trimmed_fastq_R1
-		Array[File] trimmed_fastq_R2s_output = selected_trimmed_fastq_R2
-		Array[File] failed_paired_fastq_output = selected_failed_paired_fastq
-		Array[File] report_html_output = selected_report_html
+		String fastp_failed_paired_fastqs = "~{fastp_raw_data_path}/~{sample.sample_id}.fastp_failed_paired_fastqs.tar.gz"
+		String fastp_reports_html = "~{fastp_raw_data_path}/~{sample.sample_id}.fastp_reports.tar.gz"
 
-		String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}_trimmed_fastqc_reports.tar.gz"
+		if (fastqc_trimmed_reads_complete == "false") {
+			call trim_and_qc {
+				input:
+					sample_id = sample.sample_id,
+					batch = select_first([sample.batch]),
+					fastq_R1s = sample.fastq_R1s,
+					fastq_R2s = sample.fastq_R2s,
+					fastq_I1s = sample.fastq_I1s,
+					fastq_I2s = sample.fastq_I2s,
+					raw_data_path = fastp_raw_data_path,
+					workflow_info = workflow_info,
+					billing_project = billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+		}
+
+		Array[File] trimmed_fastq_R1s_output = if (defined(trim_and_qc.trimmed_fastq_R1s)) then select_all(trim_and_qc.trimmed_fastq_R1s) else select_all(fastp_trimmed_fastq_R1)
+	    Array[File] trimmed_fastq_R2s_output = if (defined(trim_and_qc.trimmed_fastq_R2s)) then select_all(trim_and_qc.trimmed_fastq_R2s) else select_all(fastp_trimmed_fastq_R2)
+	    File failed_paired_fastqs_tar_gz_output = select_first([trim_and_qc.failed_paired_fastqs_tar_gz, fastp_failed_paired_fastqs]) #!FileCoercion
+	    File reports_html_tar_gz_output = select_first([trim_and_qc.reports_html_tar_gz, fastp_reports_html]) #!FileCoercion
+
+	    Sample trimmed_samples = {
+		    "sample_id": sample.sample_id,
+		    "batch": sample.batch,
+		    "fastq_R1s": trimmed_fastq_R1s_output,
+		    "fastq_R2s": trimmed_fastq_R2s_output,
+		    "fastq_I1s": sample.fastq_I1s,
+		    "fastq_I2s": sample.fastq_I2s
+		}
+
+	    String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}.trimmed_fastqc_reports.tar.gz"
 
 		if (fastqc_trimmed_reads_complete == "false") {
 			call Fastqc.fastqc as fastqc_trimmed_reads {
@@ -125,15 +130,6 @@ workflow preprocess {
 		}
 
 		File trimmed_fastqc_reports_tar_gz_output = select_first([fastqc_trimmed_reads.trimmed_fastqc_reports_tar_gz, fastqc_trimmed_reads_reports_tar_gz]) #!FileCoercion
-		
-		TrimmedSample trimmed_fastq_samples_output = {
-			"sample_id": sample.sample_id,
-			"batch": sample.batch,
-			"fastq_R1s": trimmed_fastq_R1s_output,
-			"fastq_R2s": trimmed_fastq_R2s_output,
-			"fastq_I1s": sample.fastq_I1s,
-			"fastq_I2s": sample.fastq_I2s
-		}
 	}
 
 	output {
@@ -146,8 +142,8 @@ workflow preprocess {
 		# Trimmed reads
 		Array[Array[File]] trimmed_fastq_R1s = trimmed_fastq_R1s_output #!FileCoercion
 		Array[Array[File]] trimmed_fastq_R2s = trimmed_fastq_R2s_output #!FileCoercion
-		Array[Array[File]] failed_paired_fastq = failed_paired_fastq_output #!FileCoercion
-		Array[Array[File]] report_html = report_html_output #!FileCoercion
+		Array[File] failed_paired_fastqs_tar_gz = failed_paired_fastqs_tar_gz_output #!FileCoercion
+		Array[File] reports_html_tar_gz = reports_html_tar_gz_output #!FileCoercion
 
 		# FastQC reports on trimmed reads
 		Array[File] trimmed_fastqc_reports_tar_gz = trimmed_fastqc_reports_tar_gz_output #!FileCoercion
@@ -201,12 +197,13 @@ task check_output_files_exist {
 
 task trim_and_qc {
 	input {
-		File fastq_R1
-		File fastq_R2
+		String sample_id
+		String batch
 
-		String fastq_R1_basename
-		String fastq_R2_basename
-		String fastq_basename
+		Array[File] fastq_R1s
+		Array[File] fastq_R2s
+		Array[File] fastq_I1s
+		Array[File] fastq_I2s
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -217,39 +214,70 @@ task trim_and_qc {
 
 	Int threads = 8
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([fastq_R1, fastq_R2], "GB") * 2 + 50)
+	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
-		fastp \
-			--in1 ~{fastq_R1} \
-			--out1 ~{fastq_R1_basename}_trimmed.fastq.gz \
-			--in2 ~{fastq_R2} \
-			--out2 ~{fastq_R2_basename}_trimmed.fastq.gz \
-			--failed_out ~{fastq_basename}_failed.fastq.gz \
-			--detect_adapter_for_pe \
-			--correction \
-			--overrepresentation_analysis \
-			--html ~{fastq_basename}_fastp.html \
-			--report_title ~{fastq_basename} \
-			--thread ~{threads - 1}
+		trimmed_fastq_R1s_list=
+		trimmed_fastq_R2s_list=
+		while read -r fastq_R1 fastq_R2 || [[ -n "${fastq_R1}" ]] || [[ -n "${fastq_R2}" ]]; do
+			fastq_R1_basename=$(basename "${fastq_R1}" | sed -E 's/\.(fastq|fq)(\.gz)?$//')
+			fastq_R2_basename=$(basename "${fastq_R2}" | sed -E 's/\.(fastq|fq)(\.gz)?$//')
+			fastq_basename=$(echo "${fastq_R1_basename}" | sed -E 's/(R1|r1)[_-]*$//; s/[_-]+$//')
+
+			fastp \
+				--in1 "${fastq_R1}" \
+				--out1 "${fastq_R1_basename}.trimmed.fastq.gz" \
+				--in2 "${fastq_R2}" \
+				--out2 "${fastq_R2_basename}.trimmed.fastq.gz" \
+				--failed_out "${fastq_basename}.failed.fastq.gz" \
+				--detect_adapter_for_pe \
+				--correction \
+				--overrepresentation_analysis \
+				--html "${fastq_basename}.fastp.html" \
+				--report_title "${fastq_basename}" \
+				--thread ~{threads - 1}
+
+			# TODO - Organize trimmed fastqs into individual sample folders in bucket?
+			upload_outputs \
+				-b ~{billing_project} \
+				-d ~{raw_data_path} \
+				-i ~{write_tsv(workflow_info)} \
+				-o "${fastq_R1_basename}.trimmed.fastq.gz" \
+				-o "${fastq_R2_basename}.trimmed.fastq.gz"
+
+			trimmed_fastq_R1s_list+="${fastq_R1_basename}.trimmed.fastq.gz"
+			trimmed_fastq_R2s_list+="${fastq_R2_basename}.trimmed.fastq.gz"
+		done < <(paste ~{write_lines(fastq_R1s)} ~{write_lines(fastq_R2s)})
+
+		# Get list of trimmed fastqs in order to save into Array[String]
+		gs_path=$(echo ~{raw_data_path})
+		echo "${trimmed_fastq_R1s_list}" | sed "s;^;${gs_path}/;" > trimmed_fastq_R1s_path.txt
+		echo "${trimmed_fastq_R2s_list}" | sed "s;^;${gs_path}/;" > trimmed_fastq_R2s_path.txt
+
+		mkdir -p ~{sample_id}_fastp_failed_paired_fastqs
+		find . -maxdepth 1 -type f -name "*failed.fastq.gz" -exec mv {} ~{sample_id}_fastp_failed_paired_fastqs/ \;
+		tar -czvf "~{sample_id}.fastp_failed_paired_fastqs.tar.gz" "~{sample_id}_fastp_failed_paired_fastqs"
+
+		mkdir -p ~{sample_id}_fastp_reports
+		find . -maxdepth 1 -type f -name "*fastp.html" -exec mv {} ~{sample_id}_fastp_reports/ \;
+		tar -czvf "~{sample_id}.fastp_reports.tar.gz" "~{sample_id}_fastp_reports"
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{fastq_R1_basename}_trimmed.fastq.gz" \
-			-o "~{fastq_R2_basename}_trimmed.fastq.gz" \
-			-o "~{fastq_basename}_failed.fastq.gz" \
-			-o "~{fastq_basename}_fastp.html"
+			-o "~{sample_id}.fastp_failed_paired_fastqs.tar.gz" \
+			-o "~{sample_id}.fastp_reports.tar.gz"
 	>>>
 
 	output {
-		String trimmed_fastq_R1 = "~{raw_data_path}/~{fastq_R1_basename}_trimmed.fastq.gz"
-		String trimmed_fastq_R2 = "~{raw_data_path}/~{fastq_R2_basename}_trimmed.fastq.gz"
-		String failed_paired_fastq = "~{raw_data_path}/~{fastq_basename}_failed.fastq.gz"
-		String report_html = "~{raw_data_path}/~{fastq_basename}_fastp.html"
+		Array[String] trimmed_fastq_R1s = read_lines("trimmed_fastq_R1s_path.txt")
+		Array[String] trimmed_fastq_R2s = read_lines("trimmed_fastq_R2s_path.txt")
+		String failed_paired_fastqs_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_failed_paired_fastqs.tar.gz"
+		String reports_html_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_reports.tar.gz"
+		Array[File] test_fastq_R1s = fastq_R1s
 	}
 
 	runtime {
