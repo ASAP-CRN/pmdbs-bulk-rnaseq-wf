@@ -8,7 +8,12 @@ struct ReferenceData {
 	File transcripts_fasta
 }
 
-struct IndexData {
-	File data
-	File data_index
+struct OutputSample {
+	Array[String] sample_id
+	Array[String]? batch
+
+	Array[File]+ fastq_R1s
+	Array[File]+ fastq_R2s
+	Array[File] fastq_I1s
+	Array[File] fastq_I2s
 }

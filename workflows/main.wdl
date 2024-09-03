@@ -62,21 +62,19 @@ workflow pmdbs_bulk_rnaseq_analysis {
 
 		Array[String] preprocessing_output_file_paths = flatten([
 			preprocess.fastqc_reports_tar_gz,
-			preprocess.trimmed_fastq_R1s,
-			preprocess.trimmed_fastq_R2s,
-			preprocess.failed_paired_fastq,
-			preprocess.report_html,
+			flatten(preprocess.trimmed_fastq_R1s),
+			flatten(preprocess.trimmed_fastq_R2s),
+			preprocess.failed_paired_fastqs_tar_gz,
+			preprocess.reports_html_tar_gz,
 			preprocess.trimmed_fastqc_reports_tar_gz
 		]) #!StringCoercion
 
 		call AlignmentQuantification.alignment_quantification {
 			input:
-				samples = project.samples,
+				trimmed_samples = preprocess.trimmed_samples,
 				run_index_ref_genome = run_star_index_ref_genome,
 				reference = select_first([reference]),
 				star_genome_dir_tar_gz = select_first([star_genome_dir_tar_gz]),
-				trimmed_fastq_R1s = preprocess.trimmed_fastq_R1s,
-				trimmed_fastq_R2s = preprocess.trimmed_fastq_R2s,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -87,14 +85,26 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				zones = zones
 		}
 
+		Array[String] alignment_quantification_output_file_paths = flatten([
+			alignment_quantification.aligned_bam,
+			alignment_quantification.aligned_bam_index,
+			alignment_quantification.unmapped_mate1,
+			alignment_quantification.unmapped_mate2,
+			alignment_quantification.log,
+			alignment_quantification.final_log,
+			alignment_quantification.progress_log,
+			alignment_quantification.sj_out_tab,
+			alignment_quantification.quant_file,
+			alignment_quantification.command_info_json,
+			alignment_quantification.aux_info_tar_gz
+		]) #!StringCoercion
+
 		call PseudoMappingQuantification.pseudo_mapping_quantification {
 			input:
-				samples = project.samples,
+				trimmed_samples = preprocess.trimmed_samples,
 				run_index_ref_genome = run_salmon_index_ref_genome,
 				reference = select_first([reference]),
-				star_genome_dir_tar_gz = select_first([salmon_genome_dir_tar_gz]),
-				trimmed_fastq_R1s = preprocess.trimmed_fastq_R1s,
-				trimmed_fastq_R2s = preprocess.trimmed_fastq_R2s,
+				salmon_genome_dir_tar_gz = select_first([salmon_genome_dir_tar_gz]),
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -104,6 +114,12 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				container_registry = container_registry,
 				zones = zones
 		}
+
+		Array[String] pseudo_mapping_quantification_output_file_paths = flatten([
+			pseudo_mapping_quantification.quant_file,
+			pseudo_mapping_quantification.command_info_json,
+			pseudo_mapping_quantification.aux_info_tar_gz
+		]) #!StringCoercion
 	}
 
 	output {
@@ -115,12 +131,13 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File]] fastqc_raw_reads_reports_tar_gz = preprocess.fastqc_reports_tar_gz
 		Array[Array[Array[File]]] fastp_trimmed_fastq_R1s = preprocess.trimmed_fastq_R1s
 		Array[Array[Array[File]]] fastp_trimmed_fastq_R2s = preprocess.trimmed_fastq_R2s
-		Array[Array[Array[File]]] fastp_failed_paired_fastq = preprocess.failed_paired_fastq
-		Array[Array[Array[File]]] fastp_report_html = preprocess.report_html
+		Array[Array[File]] fastp_failed_paired_fastqs_tar_gz = preprocess.failed_paired_fastqs_tar_gz
+		Array[Array[File]] fastp_report_html_tar_gz = preprocess.reports_html_tar_gz
 		Array[Array[File]] fastqc_trimmed_reads_reports_tar_gz = preprocess.trimmed_fastqc_reports_tar_gz
 
 		# Alignment and quantification
-		Array[Array[IndexData]] star_aligned_bams = alignment_quantification.aligned_bams
+		Array[Array[File]] star_aligned_bam = alignment_quantification.aligned_bam
+		Array[Array[File]] star_aligned_bam_index = alignment_quantification.aligned_bam_index
 		Array[Array[File]] star_unmapped_mate1 = alignment_quantification.unmapped_mate1
 		Array[Array[File]] star_unmapped_mate2 = alignment_quantification.unmapped_mate2
 		Array[Array[File]] star_log = alignment_quantification.log

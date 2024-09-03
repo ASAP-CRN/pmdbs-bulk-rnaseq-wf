@@ -6,14 +6,11 @@ import "../pmdbs_bulk_rnaseq_analysis_structs.wdl"
 
 workflow pseudo_mapping_quantification {
 	input {
-		Array[Sample] samples
+		Array[OutputSample] trimmed_samples
 
 		Boolean run_index_ref_genome
 		ReferenceData reference
 		File salmon_genome_dir_tar_gz
-
-		Array[File] trimmed_fastq_R1s
-		Array[File] trimmed_fastq_R2s
 
 		String workflow_name
 		String workflow_version
@@ -34,8 +31,8 @@ workflow pseudo_mapping_quantification {
 	String workflow_raw_data_path_prefix = "~{raw_data_path_prefix}/~{sub_workflow_name}"
 	String salmon_raw_data_path = "~{workflow_raw_data_path_prefix}/mapping_quantification/~{mapping_quantification_task_version}"
 
-	scatter (sample_object in samples) {
-		String mapping_quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id}.mapping_mode.quant.sf"
+	scatter (sample_object in trimmed_samples) {
+		String mapping_quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id[0]}.mapping_mode.quant.sf"
 	}
 
 	# For each sample, outputs an array of true/false: [mapping_quantification_complete]
@@ -69,22 +66,22 @@ workflow pseudo_mapping_quantification {
 		salmon_genome_dir_tar_gz
 	])
 
-	scatter (sample_index in range(length(samples))) {
-		Sample sample = samples[sample_index]
+	scatter (sample_index in range(length(trimmed_samples))) {
+		OutputSample trimmed_sample = trimmed_samples[sample_index]
 
 		String mapping_quantification_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 
-		String salmon_quant_file = "~{salmon_raw_data_path}/~{sample.sample_id}.mapping_mode.quant.sf"
-		String salmon_command_info_json = "~{salmon_raw_data_path}/~{sample.sample_id}.mapping_mode.cmd_info.json"
-		String salmon_aux_info_tar_gz = "~{salmon_raw_data_path}/~{sample.sample_id}.mapping_mode.aux_info.tar.gz"
+		String salmon_quant_file = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.mapping_mode.quant.sf"
+		String salmon_command_info_json = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.mapping_mode.cmd_info.json"
+		String salmon_aux_info_tar_gz = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.mapping_mode.aux_info.tar.gz"
 
 		if (mapping_quantification_complete == "false") {
 			call mapping_quantification {
 				input:
-					sample_id = sample.sample_id,
+					sample_id = trimmed_sample.sample_id[0],
 					salmon_genome_dir_tar_gz = genome_dir_tar_gz,
-					trimmed_fastq_R1s = trimmed_fastq_R1s,
-					trimmed_fastq_R2s = trimmed_fastq_R2s,
+					trimmed_fastq_R1s = trimmed_sample.fastq_R1s,
+					trimmed_fastq_R2s = trimmed_sample.fastq_R2s,
 					raw_data_path = salmon_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,

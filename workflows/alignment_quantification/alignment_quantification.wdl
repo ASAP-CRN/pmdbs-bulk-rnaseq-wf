@@ -6,14 +6,11 @@ import "../pmdbs_bulk_rnaseq_analysis_structs.wdl"
 
 workflow alignment_quantification {
 	input {
-		Array[Sample] samples
+		Array[OutputSample] trimmed_samples
 
 		Boolean run_index_ref_genome
 		ReferenceData reference
 		File star_genome_dir_tar_gz
-
-		Array[File] trimmed_fastq_R1s
-		Array[File] trimmed_fastq_R2s
 
 		String workflow_name
 		String workflow_version
@@ -36,9 +33,9 @@ workflow alignment_quantification {
 	String star_raw_data_path = "~{workflow_raw_data_path_prefix}/alignment/~{alignment_task_version}"
 	String salmon_raw_data_path = "~{workflow_raw_data_path_prefix}/quantification/~{quantification_task_version}"
 
-	scatter (sample_object in samples) {
-		String alignment_output = "~{star_raw_data_path}/~{sample_object.sample_id}.Aligned.sortedByCoord.out.bam"
-		String quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id}.alignment_mode.quant.sf"
+	scatter (sample_object in trimmed_samples) {
+		String alignment_output = "~{star_raw_data_path}/~{sample_object.sample_id[0]}.Aligned.sortedByCoord.out.bam"
+		String quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id[0]}.alignment_mode.quant.sf"
 	}
 
 	# For each sample, outputs an array of true/false: [alignment_complete, quantification_complete]
@@ -65,28 +62,28 @@ workflow alignment_quantification {
 		star_genome_dir_tar_gz
 	])
 
-	scatter (sample_index in range(length(samples))) {
-		Sample sample = samples[sample_index]
+	scatter (sample_index in range(length(trimmed_samples))) {
+		OutputSample trimmed_sample = trimmed_samples[sample_index]
 
 		String alignment_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String quantification_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
 
-		String star_aligned_bam = "~{star_raw_data_path}/~{sample.sample_id}.Aligned.sortedByCoord.out.bam"
-		String star_aligned_bam_index = "~{star_raw_data_path}/~{sample.sample_id}.Aligned.sortedByCoord.out.bam.bai"
-		String star_unmapped_mate1 = "~{star_raw_data_path}/~{sample.sample_id}.Unmapped.out.mate1"
-		String star_unmapped_mate2 = "~{star_raw_data_path}/~{sample.sample_id}.Unmapped.out.mate2"
-		String star_log = "~{star_raw_data_path}/~{sample.sample_id}.Log.out"
-		String star_final_log = "~{star_raw_data_path}/~{sample.sample_id}.Log.final.out"
-		String star_progress_log = "~{star_raw_data_path}/~{sample.sample_id}.Log.progress.out"
-		String star_sj_out_tab = "~{star_raw_data_path}/~{sample.sample_id}.SJ.out.tab"
+		String star_aligned_bam = "~{star_raw_data_path}/~{trimmed_sample.sample_id[0]}.Aligned.sortedByCoord.out.bam"
+		String star_aligned_bam_index = "~{star_raw_data_path}/~{trimmed_sample.sample_id[0]}.Aligned.sortedByCoord.out.bam.bai"
+		String star_unmapped_mate1 = "~{star_raw_data_path}/~{trimmed_sample.sample_id[0]}.Unmapped.out.mate1"
+		String star_unmapped_mate2 = "~{star_raw_data_path}/~{trimmed_sample.sample_id[0]}.Unmapped.out.mate2"
+		String star_log = "~{star_raw_data_path}/~{trimmed_sample.sample_id[0]}.Log.out"
+		String star_final_log = "~{star_raw_data_path}/~{trimmed_sample.sample_id[0]}.Log.final.out"
+		String star_progress_log = "~{star_raw_data_path}/~{trimmed_sample.sample_id[0]}.Log.progress.out"
+		String star_sj_out_tab = "~{star_raw_data_path}/~{trimmed_sample.sample_id[0]}.SJ.out.tab"
 
 		if (alignment_complete == "false") {
 			call alignment {
 				input:
-					sample_id = sample.sample_id,
+					sample_id = trimmed_sample.sample_id[0],
 					star_genome_dir_tar_gz = genome_dir_tar_gz,
-					trimmed_fastq_R1s = trimmed_fastq_R1s,
-					trimmed_fastq_R2s = trimmed_fastq_R2s,
+					trimmed_fastq_R1s = trimmed_sample.fastq_R1s,
+					trimmed_fastq_R2s = trimmed_sample.fastq_R2s,
 					raw_data_path = star_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -95,10 +92,8 @@ workflow alignment_quantification {
 			}
 		}
 
-		IndexData aligned_bam_output = {
-			"data": select_first([alignment.aligned_bam, star_aligned_bam]), #!FileCoercion
-			"data_index": select_first([alignment.aligned_bam_index, star_aligned_bam_index]) #!FileCoercion
-		}
+		File aligned_bam_output = select_first([alignment.aligned_bam, star_aligned_bam]) #!FileCoercion
+		File aligned_bam_index_output = select_first([alignment.aligned_bam_index, star_aligned_bam_index]) #!FileCoercion
 		File unmapped_mate1_output = select_first([alignment.unmapped_mate1, star_unmapped_mate1]) #!FileCoercion
 		File unmapped_mate2_output = select_first([alignment.unmapped_mate2, star_unmapped_mate2]) #!FileCoercion
 		File log_output = select_first([alignment.log, star_log]) #!FileCoercion
@@ -106,17 +101,17 @@ workflow alignment_quantification {
 		File progress_log_output = select_first([alignment.progress_log, star_progress_log]) #!FileCoercion
 		File sj_out_tab_output = select_first([alignment.sj_out_tab, star_sj_out_tab]) #!FileCoercion
 
-		String salmon_quant_file = "~{salmon_raw_data_path}/~{sample.sample_id}.alignment_mode.quant.sf"
-		String salmon_command_info_json = "~{salmon_raw_data_path}/~{sample.sample_id}.alignment_mode.cmd_info.json"
-		String salmon_aux_info_tar_gz = "~{salmon_raw_data_path}/~{sample.sample_id}.alignment_mode.aux_info.tar.gz"
+		String salmon_quant_file = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.alignment_mode.quant.sf"
+		String salmon_command_info_json = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.alignment_mode.cmd_info.json"
+		String salmon_aux_info_tar_gz = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.alignment_mode.aux_info.tar.gz"
 
 		if (quantification_complete == "false") {
 			call quantification {
 				input:
-					sample_id = sample.sample_id,
+					sample_id = trimmed_sample.sample_id[0],
 					transcripts_fasta = reference.transcripts_fasta,
-					aligned_bam = aligned_bam_output.data,
-					aligned_bam_index = aligned_bam_output.data_index,
+					aligned_bam = aligned_bam_output,
+					aligned_bam_index = aligned_bam_index_output,
 					raw_data_path = salmon_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -132,7 +127,8 @@ workflow alignment_quantification {
 
 	output {
 		# STAR alignment
-		Array[IndexData] aligned_bams = aligned_bam_output #!FileCoercion
+		Array[File] aligned_bam = aligned_bam_output #!FileCoercion
+		Array[File] aligned_bam_index = aligned_bam_index_output #!FileCoercion
 		Array[File] unmapped_mate1 = unmapped_mate1_output #!FileCoercion
 		Array[File] unmapped_mate2 = unmapped_mate2_output #!FileCoercion
 		Array[File] log = log_output #!FileCoercion

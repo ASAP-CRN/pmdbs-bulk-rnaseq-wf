@@ -86,11 +86,8 @@ workflow preprocess {
 			call trim_and_qc {
 				input:
 					sample_id = sample.sample_id,
-					batch = select_first([sample.batch]),
 					fastq_R1s = sample.fastq_R1s,
 					fastq_R2s = sample.fastq_R2s,
-					fastq_I1s = sample.fastq_I1s,
-					fastq_I2s = sample.fastq_I2s,
 					raw_data_path = fastp_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -99,14 +96,14 @@ workflow preprocess {
 			}
 		}
 
-		Array[File] trimmed_fastq_R1s_output = if (defined(trim_and_qc.trimmed_fastq_R1s)) then select_all(trim_and_qc.trimmed_fastq_R1s) else select_all(fastp_trimmed_fastq_R1)
-	    Array[File] trimmed_fastq_R2s_output = if (defined(trim_and_qc.trimmed_fastq_R2s)) then select_all(trim_and_qc.trimmed_fastq_R2s) else select_all(fastp_trimmed_fastq_R2)
+		Array[File] trimmed_fastq_R1s_output = if (fastqc_trimmed_reads_complete == "false") then fastp_trimmed_fastq_R1 else select_first([trim_and_qc.trimmed_fastq_R1s]) #!FileCoercion
+	    Array[File] trimmed_fastq_R2s_output = if (fastqc_trimmed_reads_complete == "false") then fastp_trimmed_fastq_R2 else select_first([trim_and_qc.trimmed_fastq_R2s]) #!FileCoercion
 	    File failed_paired_fastqs_tar_gz_output = select_first([trim_and_qc.failed_paired_fastqs_tar_gz, fastp_failed_paired_fastqs]) #!FileCoercion
 	    File reports_html_tar_gz_output = select_first([trim_and_qc.reports_html_tar_gz, fastp_reports_html]) #!FileCoercion
 
-	    Sample trimmed_samples = {
-		    "sample_id": sample.sample_id,
-		    "batch": sample.batch,
+	    OutputSample trimmed_sample = {
+		    "sample_id": [sample.sample_id],
+		    "batch": [select_first([sample.batch])],
 		    "fastq_R1s": trimmed_fastq_R1s_output,
 		    "fastq_R2s": trimmed_fastq_R2s_output,
 		    "fastq_I1s": sample.fastq_I1s,
@@ -144,6 +141,7 @@ workflow preprocess {
 		Array[Array[File]] trimmed_fastq_R2s = trimmed_fastq_R2s_output #!FileCoercion
 		Array[File] failed_paired_fastqs_tar_gz = failed_paired_fastqs_tar_gz_output #!FileCoercion
 		Array[File] reports_html_tar_gz = reports_html_tar_gz_output #!FileCoercion
+		Array[OutputSample] trimmed_samples = trimmed_sample
 
 		# FastQC reports on trimmed reads
 		Array[File] trimmed_fastqc_reports_tar_gz = trimmed_fastqc_reports_tar_gz_output #!FileCoercion
@@ -198,12 +196,9 @@ task check_output_files_exist {
 task trim_and_qc {
 	input {
 		String sample_id
-		String batch
 
 		Array[File] fastq_R1s
 		Array[File] fastq_R2s
-		Array[File] fastq_I1s
-		Array[File] fastq_I2s
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -252,8 +247,11 @@ task trim_and_qc {
 		done < <(paste ~{write_lines(fastq_R1s)} ~{write_lines(fastq_R2s)})
 
 		# Get list of trimmed fastqs in order to save into Array[String]
+		# shellcheck disable=SC2116
 		gs_path=$(echo ~{raw_data_path})
-		echo "${trimmed_fastq_R1s_list}" | sed "s;^;${gs_path}/;" > trimmed_fastq_R1s_path.txt
+		# shellcheck disable=SC2001
+		echo "${trimmed_fastq_R1s_list}" | sed "s;^;${gs_path}/;"> trimmed_fastq_R1s_path.txt
+		# shellcheck disable=SC2001
 		echo "${trimmed_fastq_R2s_list}" | sed "s;^;${gs_path}/;" > trimmed_fastq_R2s_path.txt
 
 		mkdir -p ~{sample_id}_fastp_failed_paired_fastqs
@@ -277,7 +275,6 @@ task trim_and_qc {
 		Array[String] trimmed_fastq_R2s = read_lines("trimmed_fastq_R2s_path.txt")
 		String failed_paired_fastqs_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_failed_paired_fastqs.tar.gz"
 		String reports_html_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_reports.tar.gz"
-		Array[File] test_fastq_R1s = fastq_R1s
 	}
 
 	runtime {
