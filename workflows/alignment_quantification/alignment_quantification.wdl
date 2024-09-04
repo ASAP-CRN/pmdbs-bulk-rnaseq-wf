@@ -335,7 +335,10 @@ task quantification {
 			--alignments ~{aligned_bam} \
 			--output salmon_quant \
 			--validateMappings \
-			--threads ~{threads}
+			--threads ~{threads} \
+			--rangeFactorizationBins 4 \
+			--useErrorModel \
+			--gcBias
 
 		cd salmon_quant
 		mv quant.sf ~{sample_id}.alignment_mode.quant.sf

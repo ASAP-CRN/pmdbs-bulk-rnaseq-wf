@@ -248,7 +248,9 @@ task mapping_quantification {
 			--mates2 ~{sep=' ' trimmed_fastq_R2s} \
 			--output salmon_quant \
 			--validateMappings \
-			--threads ~{threads}
+			--threads ~{threads} \
+			--rangeFactorizationBins 4 \
+			--gcBias
 
 		cd salmon_quant
 		mv quant.sf ~{sample_id}.mapping_mode.quant.sf
