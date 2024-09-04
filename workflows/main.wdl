@@ -16,10 +16,12 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		ReferenceData? reference
 
 		# STAR and salmon quantification
+		Boolean run_alignment_quantification = true
 		Boolean run_star_index_ref_genome = false
 		File? star_genome_dir_tar_gz
 
 		# Salmon mapping and quantification
+		Boolean run_pseudo_mapping_quantification = false
 		Boolean run_salmon_index_ref_genome = false
 		File? salmon_genome_dir_tar_gz
 
@@ -69,57 +71,61 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			preprocess.trimmed_fastqc_reports_tar_gz
 		]) #!StringCoercion
 
-		call AlignmentQuantification.alignment_quantification {
-			input:
-				trimmed_samples = preprocess.trimmed_samples,
-				run_index_ref_genome = run_star_index_ref_genome,
-				reference = select_first([reference]),
-				star_genome_dir_tar_gz = select_first([star_genome_dir_tar_gz]),
-				workflow_name = workflow_name,
-				workflow_version = workflow_version,
-				workflow_release = workflow_release,
-				run_timestamp = get_workflow_metadata.timestamp,
-				raw_data_path_prefix = project_raw_data_path_prefix,
-				billing_project = get_workflow_metadata.billing_project,
-				container_registry = container_registry,
-				zones = zones
+		if (run_alignment_quantification) {
+			call AlignmentQuantification.alignment_quantification {
+				input:
+					trimmed_samples = preprocess.trimmed_samples,
+					run_index_ref_genome = run_star_index_ref_genome,
+					reference = select_first([reference]),
+					star_genome_dir_tar_gz = select_first([star_genome_dir_tar_gz]),
+					workflow_name = workflow_name,
+					workflow_version = workflow_version,
+					workflow_release = workflow_release,
+					run_timestamp = get_workflow_metadata.timestamp,
+					raw_data_path_prefix = project_raw_data_path_prefix,
+					billing_project = get_workflow_metadata.billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+
+			Array[String] alignment_quantification_output_file_paths = flatten([
+				alignment_quantification.aligned_bam,
+				alignment_quantification.aligned_bam_index,
+				alignment_quantification.unmapped_mate1,
+				alignment_quantification.unmapped_mate2,
+				alignment_quantification.log,
+				alignment_quantification.final_log,
+				alignment_quantification.progress_log,
+				alignment_quantification.sj_out_tab,
+				alignment_quantification.quant_file,
+				alignment_quantification.command_info_json,
+				alignment_quantification.aux_info_tar_gz
+			]) #!StringCoercion
 		}
 
-		Array[String] alignment_quantification_output_file_paths = flatten([
-			alignment_quantification.aligned_bam,
-			alignment_quantification.aligned_bam_index,
-			alignment_quantification.unmapped_mate1,
-			alignment_quantification.unmapped_mate2,
-			alignment_quantification.log,
-			alignment_quantification.final_log,
-			alignment_quantification.progress_log,
-			alignment_quantification.sj_out_tab,
-			alignment_quantification.quant_file,
-			alignment_quantification.command_info_json,
-			alignment_quantification.aux_info_tar_gz
-		]) #!StringCoercion
+		if (run_pseudo_mapping_quantification) {
+			call PseudoMappingQuantification.pseudo_mapping_quantification {
+				input:
+					trimmed_samples = preprocess.trimmed_samples,
+					run_index_ref_genome = run_salmon_index_ref_genome,
+					reference = select_first([reference]),
+					salmon_genome_dir_tar_gz = select_first([salmon_genome_dir_tar_gz]),
+					workflow_name = workflow_name,
+					workflow_version = workflow_version,
+					workflow_release = workflow_release,
+					run_timestamp = get_workflow_metadata.timestamp,
+					raw_data_path_prefix = project_raw_data_path_prefix,
+					billing_project = get_workflow_metadata.billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
 
-		call PseudoMappingQuantification.pseudo_mapping_quantification {
-			input:
-				trimmed_samples = preprocess.trimmed_samples,
-				run_index_ref_genome = run_salmon_index_ref_genome,
-				reference = select_first([reference]),
-				salmon_genome_dir_tar_gz = select_first([salmon_genome_dir_tar_gz]),
-				workflow_name = workflow_name,
-				workflow_version = workflow_version,
-				workflow_release = workflow_release,
-				run_timestamp = get_workflow_metadata.timestamp,
-				raw_data_path_prefix = project_raw_data_path_prefix,
-				billing_project = get_workflow_metadata.billing_project,
-				container_registry = container_registry,
-				zones = zones
+			Array[String] pseudo_mapping_quantification_output_file_paths = flatten([
+				pseudo_mapping_quantification.quant_file,
+				pseudo_mapping_quantification.command_info_json,
+				pseudo_mapping_quantification.aux_info_tar_gz
+			]) #!StringCoercion
 		}
-
-		Array[String] pseudo_mapping_quantification_output_file_paths = flatten([
-			pseudo_mapping_quantification.quant_file,
-			pseudo_mapping_quantification.command_info_json,
-			pseudo_mapping_quantification.aux_info_tar_gz
-		]) #!StringCoercion
 	}
 
 	output {
@@ -136,22 +142,22 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File]] fastqc_trimmed_reads_reports_tar_gz = preprocess.trimmed_fastqc_reports_tar_gz
 
 		# Alignment and quantification
-		Array[Array[File]] star_aligned_bam = alignment_quantification.aligned_bam
-		Array[Array[File]] star_aligned_bam_index = alignment_quantification.aligned_bam_index
-		Array[Array[File]] star_unmapped_mate1 = alignment_quantification.unmapped_mate1
-		Array[Array[File]] star_unmapped_mate2 = alignment_quantification.unmapped_mate2
-		Array[Array[File]] star_log = alignment_quantification.log
-		Array[Array[File]] star_final_log = alignment_quantification.final_log
-		Array[Array[File]] star_progress_log = alignment_quantification.progress_log
-		Array[Array[File]] star_sj_out_tab = alignment_quantification.sj_out_tab
-		Array[Array[File]] salmon_alignment_mode_quant_file = alignment_quantification.quant_file
-		Array[Array[File]] salmon_alignment_mode_command_info_json = alignment_quantification.command_info_json
-		Array[Array[File]] salmon_alignment_mode_aux_info_tar_gz = alignment_quantification.aux_info_tar_gz
+		Array[Array[File]?] star_aligned_bam = alignment_quantification.aligned_bam
+		Array[Array[File]?] star_aligned_bam_index = alignment_quantification.aligned_bam_index
+		Array[Array[File]?] star_unmapped_mate1 = alignment_quantification.unmapped_mate1
+		Array[Array[File]?] star_unmapped_mate2 = alignment_quantification.unmapped_mate2
+		Array[Array[File]?] star_log = alignment_quantification.log
+		Array[Array[File]?] star_final_log = alignment_quantification.final_log
+		Array[Array[File]?] star_progress_log = alignment_quantification.progress_log
+		Array[Array[File]?] star_sj_out_tab = alignment_quantification.sj_out_tab
+		Array[Array[File]?] salmon_alignment_mode_quant_file = alignment_quantification.quant_file
+		Array[Array[File]?] salmon_alignment_mode_command_info_json = alignment_quantification.command_info_json
+		Array[Array[File]?] salmon_alignment_mode_aux_info_tar_gz = alignment_quantification.aux_info_tar_gz
 
 		# Direct quantification with mapping
-		Array[Array[File]] salmon_mapping_mode_quant_file = pseudo_mapping_quantification.quant_file
-		Array[Array[File]] salmon_mapping_mode_command_info_json = pseudo_mapping_quantification.command_info_json
-		Array[Array[File]] salmon_mapping_mode_aux_info_tar_gz = pseudo_mapping_quantification.aux_info_tar_gz
+		Array[Array[File]?] salmon_mapping_mode_quant_file = pseudo_mapping_quantification.quant_file
+		Array[Array[File]?] salmon_mapping_mode_command_info_json = pseudo_mapping_quantification.command_info_json
+		Array[Array[File]?] salmon_mapping_mode_aux_info_tar_gz = pseudo_mapping_quantification.aux_info_tar_gz
 	}
 
 	meta {
@@ -162,8 +168,10 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team cohort analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis."}
 		reference: {help: "The primary assembly FASTA and gene annotation GTF from GENCODE."}
+		run_alignment_quantification: {help: "Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or '' must be set to true. [true]"}
 		run_star_index_ref_genome: {help: "Option to index reference genome with STAR. [false]"}
 		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
+		run_pseudo_mapping_quantification: {help: "Option to map and directly quantify raw reads with Salmon. This and/or '' must be set to true. [false]"}
 		run_salmon_index_ref_genome: {help: "Option to create decoy sequences (from genome), concatenating transcriptome and genome, and index concatenated genome with Salmon. [false]"}
 		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (cellranger and generating the initial adata object(s)) will run for samples. [false]"}
