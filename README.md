@@ -235,12 +235,13 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 # Notes
 ## Reference data
 
-Release 46 (GRCh38.p14) on GENCODE was used in this pipeline. The GTF file was used to create a tx2gene dataframe:
+Release 46 (GRCh38.p14) on GENCODE was used in this pipeline. The GTF file was used to create a tx2gene dataframe in R:
 ```R
 library(GenomicFeatures)
 
 txdb <- makeTxDbFromGFF("gencode.v46.annotation.gtf", format="gtf", organism="Homo sapiens")
 k <- keys(txdb, keytype = "TXNAME")
+# The column names do not matter but this column order must be used: 1) transcript ID and 2) gene ID
 tx2gene <- select(txdb, k, "GENEID", "TXNAME")
 write.csv(tx2gene, "tx2gene.gencode.v46.csv", row.names = FALSE)
 ```
