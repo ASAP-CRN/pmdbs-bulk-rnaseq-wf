@@ -240,7 +240,7 @@ task mapping_quantification {
 			--libType A \
 			--mates1 ~{sep=' ' trimmed_fastq_R1s} \
 			--mates2 ~{sep=' ' trimmed_fastq_R2s} \
-			--output salmon_quant \
+			--output ~{sample_id}_salmon_quant \
 			--validateMappings \
 			--threads ~{threads} \
 			--rangeFactorizationBins 4 \
@@ -248,7 +248,7 @@ task mapping_quantification {
 
 		# Outputs must remain in folder and unmodified for downstream analysis
 		# Outputs include: quant.sf, cmd_info.json, and aux_info folder
-		tar -czvf "~{sample_id}.mapping_mode.salmon_quant.tar.gz" "salmon_quant"
+		tar -czvf "~{sample_id}.mapping_mode.salmon_quant.tar.gz" "~{sample_id}_salmon_quant"
 
 		upload_outputs \
 			-b ~{billing_project} \

@@ -327,7 +327,7 @@ task quantification {
 			--transcripts ~{transcripts_fasta} \
 			--libType A \
 			--alignments ~{aligned_bam} \
-			--output salmon_quant \
+			--output ~{sample_id}_salmon_quant \
 			--validateMappings \
 			--threads ~{threads} \
 			--rangeFactorizationBins 4 \
@@ -336,7 +336,7 @@ task quantification {
 
 		# Outputs must remain in folder and unmodified for downstream analysis
 		# Outputs include: quant.sf, cmd_info.json, and aux_info folder
-		tar -czvf "~{sample_id}.alignment_mode.salmon_quant.tar.gz" "salmon_quant"
+		tar -czvf "~{sample_id}.alignment_mode.salmon_quant.tar.gz" "~{sample_id}_salmon_quant"
 
 		upload_outputs \
 			-b ~{billing_project} \
