@@ -32,7 +32,7 @@ workflow pseudo_mapping_quantification {
 	String salmon_raw_data_path = "~{workflow_raw_data_path_prefix}/mapping_quantification/~{mapping_quantification_task_version}"
 
 	scatter (sample_object in trimmed_samples) {
-		String mapping_quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id[0]}.mapping_mode.quant.sf"
+		String mapping_quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id[0]}.mapping_mode.salmon_quant.tar.gz"
 	}
 
 	# For each sample, outputs an array of true/false: [mapping_quantification_complete]
@@ -71,9 +71,7 @@ workflow pseudo_mapping_quantification {
 
 		String mapping_quantification_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 
-		String salmon_quant_file = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.mapping_mode.quant.sf"
-		String salmon_command_info_json = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.mapping_mode.cmd_info.json"
-		String salmon_aux_info_tar_gz = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.mapping_mode.aux_info.tar.gz"
+		String salmon_quant_tar_gz = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.mapping_mode.salmon_quant.tar.gz"
 
 		if (mapping_quantification_complete == "false") {
 			call mapping_quantification {
@@ -90,16 +88,12 @@ workflow pseudo_mapping_quantification {
 			}
 		}
 
-		File quant_file_output = select_first([mapping_quantification.quant_file, salmon_quant_file]) #!FileCoercion
-		File command_info_json_output = select_first([mapping_quantification.command_info_json, salmon_command_info_json]) #!FileCoercion
-		File aux_info_tar_gz_output = select_first([mapping_quantification.aux_info_tar_gz, salmon_aux_info_tar_gz]) #!FileCoercion
+		File quant_tar_gz_output = select_first([mapping_quantification.quant_tar_gz, salmon_quant_tar_gz]) #!FileCoercion
 	}
 
 	output {
 		# Salmon mapping and quantification
-		Array[File] quant_file = quant_file_output #!FileCoercion
-		Array[File] command_info_json = command_info_json_output #!FileCoercion
-		Array[File] aux_info_tar_gz = aux_info_tar_gz_output #!FileCoercion
+		Array[File] quant_tar_gz = quant_tar_gz_output #!FileCoercion
 	}
 }
 
@@ -252,24 +246,19 @@ task mapping_quantification {
 			--rangeFactorizationBins 4 \
 			--gcBias
 
-		cd salmon_quant
-		mv quant.sf ~{sample_id}.mapping_mode.quant.sf
-		mv cmd_info.json ~{sample_id}.mapping_mode.cmd_info.json
-		tar -czvf "~{sample_id}.mapping_mode.aux_info.tar.gz" "aux_info"
+		# Outputs must remain in folder and unmodified for downstream analysis
+		# Outputs include: quant.sf, cmd_info.json, and aux_info folder
+		tar -czvf "~{sample_id}.mapping_mode.salmon_quant.tar.gz" "salmon_quant"
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.mapping_mode.quant.sf" \
-			-o "~{sample_id}.mapping_mode.cmd_info.json" \
-			-o "~{sample_id}.mapping_mode.aux_info.tar.gz"
+			-o "~{sample_id}.mapping_mode.salmon_quant.tar.gz"
 	>>>
 
 	output {
-		String quant_file = "~{raw_data_path}/~{sample_id}.mapping_mode.quant.sf"
-		String command_info_json = "~{raw_data_path}/~{sample_id}.mapping_mode.cmd_info.json"
-		String aux_info_tar_gz = "~{raw_data_path}/~{sample_id}.mapping_mode.aux_info.tar.gz"
+		String quant_tar_gz = "~{raw_data_path}/~{sample_id}.mapping_mode.salmon_quant.tar.gz"
 	}
 
 	runtime {

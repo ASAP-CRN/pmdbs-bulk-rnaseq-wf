@@ -97,9 +97,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				alignment_quantification.final_log,
 				alignment_quantification.progress_log,
 				alignment_quantification.sj_out_tab,
-				alignment_quantification.quant_file,
-				alignment_quantification.command_info_json,
-				alignment_quantification.aux_info_tar_gz
+				alignment_quantification.quant_tar_gz
 			]) #!StringCoercion
 		}
 
@@ -121,9 +119,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			}
 
 			Array[String] pseudo_mapping_quantification_output_file_paths = flatten([
-				pseudo_mapping_quantification.quant_file,
-				pseudo_mapping_quantification.command_info_json,
-				pseudo_mapping_quantification.aux_info_tar_gz
+				pseudo_mapping_quantification.quant_tar_gz
 			]) #!StringCoercion
 		}
 	}
@@ -150,14 +146,10 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File]?] star_final_log = alignment_quantification.final_log
 		Array[Array[File]?] star_progress_log = alignment_quantification.progress_log
 		Array[Array[File]?] star_sj_out_tab = alignment_quantification.sj_out_tab
-		Array[Array[File]?] salmon_alignment_mode_quant_file = alignment_quantification.quant_file
-		Array[Array[File]?] salmon_alignment_mode_command_info_json = alignment_quantification.command_info_json
-		Array[Array[File]?] salmon_alignment_mode_aux_info_tar_gz = alignment_quantification.aux_info_tar_gz
+		Array[Array[File]?] salmon_alignment_mode_quant_tar_gz = alignment_quantification.quant_tar_gz
 
 		# Direct quantification with mapping
-		Array[Array[File]?] salmon_mapping_mode_quant_file = pseudo_mapping_quantification.quant_file
-		Array[Array[File]?] salmon_mapping_mode_command_info_json = pseudo_mapping_quantification.command_info_json
-		Array[Array[File]?] salmon_mapping_mode_aux_info_tar_gz = pseudo_mapping_quantification.aux_info_tar_gz
+		Array[Array[File]?] salmon_mapping_mode_quant_tar_gz = pseudo_mapping_quantification.quant_tar_gz
 	}
 
 	meta {

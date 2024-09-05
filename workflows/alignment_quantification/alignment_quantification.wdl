@@ -35,7 +35,7 @@ workflow alignment_quantification {
 
 	scatter (sample_object in trimmed_samples) {
 		String alignment_output = "~{star_raw_data_path}/~{sample_object.sample_id[0]}.Aligned.sortedByCoord.out.bam"
-		String quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id[0]}.alignment_mode.quant.sf"
+		String quantification_output = "~{salmon_raw_data_path}/~{sample_object.sample_id[0]}.alignment_mode.salmon_quant.tar.gz"
 	}
 
 	# For each sample, outputs an array of true/false: [alignment_complete, quantification_complete]
@@ -101,9 +101,7 @@ workflow alignment_quantification {
 		File progress_log_output = select_first([alignment.progress_log, star_progress_log]) #!FileCoercion
 		File sj_out_tab_output = select_first([alignment.sj_out_tab, star_sj_out_tab]) #!FileCoercion
 
-		String salmon_quant_file = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.alignment_mode.quant.sf"
-		String salmon_command_info_json = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.alignment_mode.cmd_info.json"
-		String salmon_aux_info_tar_gz = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.alignment_mode.aux_info.tar.gz"
+		String salmon_quant_tar_gz = "~{salmon_raw_data_path}/~{trimmed_sample.sample_id[0]}.alignment_mode.salmon_quant.tar.gz"
 
 		if (quantification_complete == "false") {
 			call quantification {
@@ -120,9 +118,7 @@ workflow alignment_quantification {
 			}
 		}
 
-		File quant_file_output = select_first([quantification.quant_file, salmon_quant_file]) #!FileCoercion
-		File command_info_json_output = select_first([quantification.command_info_json, salmon_command_info_json]) #!FileCoercion
-		File aux_info_tar_gz_output = select_first([quantification.aux_info_tar_gz, salmon_aux_info_tar_gz]) #!FileCoercion
+		File quant_tar_gz_output = select_first([quantification.quant_tar_gz, salmon_quant_tar_gz]) #!FileCoercion
 	}
 
 	output {
@@ -137,9 +133,7 @@ workflow alignment_quantification {
 		Array[File] sj_out_tab = sj_out_tab_output #!FileCoercion
 
 		# Salmon quantification
-		Array[File] quant_file = quant_file_output #!FileCoercion
-		Array[File] command_info_json = command_info_json_output #!FileCoercion
-		Array[File] aux_info_tar_gz = aux_info_tar_gz_output #!FileCoercion
+		Array[File] quant_tar_gz = quant_tar_gz_output #!FileCoercion
 	}
 }
 
@@ -340,24 +334,19 @@ task quantification {
 			--useErrorModel \
 			--gcBias
 
-		cd salmon_quant
-		mv quant.sf ~{sample_id}.alignment_mode.quant.sf
-		mv cmd_info.json ~{sample_id}.alignment_mode.cmd_info.json
-		tar -czvf "~{sample_id}.alignment_mode.aux_info.tar.gz" "aux_info"
+		# Outputs must remain in folder and unmodified for downstream analysis
+		# Outputs include: quant.sf, cmd_info.json, and aux_info folder
+		tar -czvf "~{sample_id}.alignment_mode.salmon_quant.tar.gz" "salmon_quant"
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.alignment_mode.quant.sf" \
-			-o "~{sample_id}.alignment_mode.cmd_info.json" \
-			-o "~{sample_id}.alignment_mode.aux_info.tar.gz"
+			-o "~{sample_id}.alignment_mode.salmon_quant.tar.gz"
 	>>>
 
 	output {
-		String quant_file = "~{raw_data_path}/~{sample_id}.alignment_mode.quant.sf"
-		String command_info_json = "~{raw_data_path}/~{sample_id}.alignment_mode.cmd_info.json"
-		String aux_info_tar_gz = "~{raw_data_path}/~{sample_id}.alignment_mode.aux_info.tar.gz"
+		String quant_tar_gz = "~{raw_data_path}/~{sample_id}.alignment_mode.salmon_quant.tar.gz"
 	}
 
 	runtime {
