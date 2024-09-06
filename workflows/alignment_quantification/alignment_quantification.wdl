@@ -241,7 +241,7 @@ task alignment {
 
 	Int threads = 24
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(flatten([trimmed_fastq_R1s, trimmed_fastq_R2s]), "GB") * 2 + 50)
+	Int disk_size = ceil((size(star_genome_dir_tar_gz, "GB") + size(flatten([trimmed_fastq_R1s, trimmed_fastq_R2s]), "GB")) * 2 + 50)
 
 	command <<<
 		set -euo pipefail
