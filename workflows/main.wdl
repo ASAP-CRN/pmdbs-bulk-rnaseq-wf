@@ -7,6 +7,7 @@ import "wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "preprocess/preprocess.wdl" as Preprocess
 import "alignment_quantification/alignment_quantification.wdl" as AlignmentQuantification
 import "pseudo_mapping_quantification/pseudo_mapping_quantification.wdl" as PseudoMappingQuantification
+import "differential_gene_expression_analysis/differential_gene_expression_analysis.wdl" as DifferentialGeneExpressionAnalysis
 
 workflow pmdbs_bulk_rnaseq_analysis {
 	input {
@@ -30,12 +31,16 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		String cohort_raw_data_bucket
 		Array[String] cohort_staging_data_buckets
 
+		File metadata_csv
+		File gene_map_csv
+		File blacklist_genes_bed
+
 		String container_registry
 		String zones = "us-central1-c us-central1-f"
 	}
 
 	String workflow_execution_path = "workflow_execution"
-	String workflow_name = "pmdbs_bulk_rnaseq"
+	String workflow_name = "pmdbs_bulk_rnaseq_analysis"
 	String workflow_version = "v1.0.0"
 	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-~{workflow_version}"
 
@@ -99,6 +104,31 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				alignment_quantification.sj_out_tab,
 				alignment_quantification.quant_tar_gz
 			]) #!StringCoercion
+
+			call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis as alignment_quantification_dge_analysis {
+				input:
+					cohort_id = project.project_id,
+					sample_ids = sample_ids,
+					metadata_csv = metadata_csv,
+					gene_map_csv = gene_map_csv,
+					blacklist_genes_bed = blacklist_genes_bed,
+					salmon_mode = "alignment_mode",
+					salmon_quant_tar_gz = alignment_quantification.quant_tar_gz,
+					workflow_name = workflow_name,
+					workflow_version = workflow_version,
+					workflow_release = workflow_release,
+					run_timestamp = get_workflow_metadata.timestamp,
+					raw_data_path_prefix = project_raw_data_path_prefix,
+					billing_project = get_workflow_metadata.billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+
+			Array[String] alignment_quantification_dge_analysis_output_file_paths = [
+				alignment_quantification_dge_analysis.significant_genes_csv,
+				alignment_quantification_dge_analysis.pca_plot_png,
+				alignment_quantification_dge_analysis.volcano_plot_png
+			] #!StringCoercion
 		}
 
 		if (run_pseudo_mapping_quantification) {
@@ -121,6 +151,31 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			Array[String] pseudo_mapping_quantification_output_file_paths = flatten([
 				pseudo_mapping_quantification.quant_tar_gz
 			]) #!StringCoercion
+
+			call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis as pseudo_mapping_quantification_dge_analysis {
+				input:
+					cohort_id = project.project_id,
+					sample_ids = sample_ids,
+					metadata_csv = metadata_csv,
+					gene_map_csv = gene_map_csv,
+					blacklist_genes_bed = blacklist_genes_bed,
+					salmon_mode = "mapping_mode",
+					salmon_quant_tar_gz = pseudo_mapping_quantification.quant_tar_gz,
+					workflow_name = workflow_name,
+					workflow_version = workflow_version,
+					workflow_release = workflow_release,
+					run_timestamp = get_workflow_metadata.timestamp,
+					raw_data_path_prefix = project_raw_data_path_prefix,
+					billing_project = get_workflow_metadata.billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+
+			Array[String] pseudo_mapping_quantification_dge_analysis_output_file_paths = [
+				pseudo_mapping_quantification_dge_analysis.significant_genes_csv,
+				pseudo_mapping_quantification_dge_analysis.pca_plot_png,
+				pseudo_mapping_quantification_dge_analysis.volcano_plot_png
+			] #!StringCoercion
 		}
 	}
 
@@ -148,8 +203,18 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File]?] star_sj_out_tab = alignment_quantification.sj_out_tab
 		Array[Array[File]?] salmon_alignment_mode_quant_tar_gz = alignment_quantification.quant_tar_gz
 
+		# DGE analysis with Salmon mapping-mode counts
+		Array[File?] pydeseq2_alignment_mode_significant_genes_csv = alignment_quantification_dge_analysis.significant_genes_csv
+		Array[File?] pydeseq2_alignment_mode_pca_plot_png = alignment_quantification_dge_analysis.pca_plot_png
+		Array[File?] pydeseq2_alignment_mode_volcano_plot_png = alignment_quantification_dge_analysis.volcano_plot_png
+
 		# Direct quantification with mapping
 		Array[Array[File]?] salmon_mapping_mode_quant_tar_gz = pseudo_mapping_quantification.quant_tar_gz
+
+		# DGE analysis with Salmon mapping-mode counts
+		Array[File?] pydeseq2_mapping_mode_significant_genes_csv = pseudo_mapping_quantification_dge_analysis.significant_genes_csv
+		Array[File?] pydeseq2_mapping_mode_pca_plot_png = pseudo_mapping_quantification_dge_analysis.pca_plot_png
+		Array[File?] pydeseq2_mapping_mode_volcano_plot_png = pseudo_mapping_quantification_dge_analysis.volcano_plot_png
 	}
 
 	meta {
@@ -160,12 +225,15 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team cohort analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis."}
 		reference: {help: "The primary assembly FASTA and gene annotation GTF from GENCODE."}
-		run_alignment_quantification: {help: "Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or '' must be set to true. [true]"}
-		run_star_index_ref_genome: {help: "Option to index reference genome with STAR. [false]"}
+		run_alignment_quantification: {help: "Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true]"}
+		run_star_index_ref_genome: {help: "Option to index reference genome with STAR. If set to false, star_genome_dir_tar_gz must be provided. [false]"}
 		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
-		run_pseudo_mapping_quantification: {help: "Option to map and directly quantify raw reads with Salmon. This and/or '' must be set to true. [false]"}
-		run_salmon_index_ref_genome: {help: "Option to create decoy sequences (from genome), concatenating transcriptome and genome, and index concatenated genome with Salmon. [false]"}
+		run_pseudo_mapping_quantification: {help: "Option to map and directly quantify raw reads with Salmon. This and/or 'run_alignment_quantification' must be set to true. [false]"}
+		run_salmon_index_ref_genome: {help: "Option to create decoy sequences (from genome), concatenating transcriptome and genome, and index concatenated genome with Salmon. If set to false, salmon_genome_dir_tar_gz must be provided [false]"}
 		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
+		metadata_csv: {help: "CSV containing all sample information including batch, condition, etc."}
+		gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
+		blacklist_genes_bed: {help: "BED file containing the ENCODE Blacklist genes."}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (cellranger and generating the initial adata object(s)) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team cohort intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team cohort analysis outputs in."}
