@@ -6,13 +6,14 @@ import "pmdbs_bulk_rnaseq_analysis_structs.wdl"
 import "wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "index_ref_genome/index_ref_genome.wdl" as IndexRefGenome
 import "upstream/upstream.wdl" as Upstream
+import "downstream/downstream.wdl" as Downstream
 
 workflow pmdbs_bulk_rnaseq_analysis {
 	input {
 		String cohort_id
 		Array[Project] projects
 
-		ReferenceData? reference
+		ReferenceData reference
 
 		# STAR and salmon quantification
 		Boolean run_alignment_quantification = true
@@ -79,14 +80,14 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				zones = zones
 		}
 
-		Array[String] upstream_output_file_paths = flatten([
-			upstream.fastqc_reports_tar_gz,
-			flatten(upstream.trimmed_fastq_R1s),
-			flatten(upstream.trimmed_fastq_R2s),
-			upstream.failed_paired_fastqs_tar_gz,
-			upstream.reports_html_tar_gz,
-			upstream.trimmed_fastqc_reports_tar_gz,
-			select_all([
+		Array[String] upstream_output_file_paths = select_all(
+			flatten([
+				upstream.fastqc_reports_tar_gz,
+				flatten(upstream.trimmed_fastq_R1s),
+				flatten(upstream.trimmed_fastq_R2s),
+				upstream.failed_paired_fastqs_tar_gz,
+				upstream.reports_html_tar_gz,
+				upstream.trimmed_fastqc_reports_tar_gz,
 				upstream.aligned_bam,
 				upstream.aligned_bam_index,
 				upstream.unmapped_mate1,
@@ -96,13 +97,116 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				upstream.progress_log,
 				upstream.sj_out_tab,
 				upstream.alignment_mode_quant_tar_gz,
-				upstream.alignment_mode_multiqc_report_html,
-				upstream.alignment_mode_multiqc_data_tar_gz,
 				upstream.mapping_mode_quant_tar_gz,
-				upstream.mapping_mode_multiqc_report_html,
-				upstream.mapping_mode_multiqc_data_tar_gz
+				[
+					upstream.alignment_mode_multiqc_report_html,
+					upstream.alignment_mode_multiqc_data_tar_gz,
+					upstream.mapping_mode_multiqc_report_html,
+					upstream.mapping_mode_multiqc_data_tar_gz
+				]
 			])
-		]) #!StringCoercion
+		)
+		#!StringCoercion
+
+		if (run_alignment_quantification) {
+			if (project.run_project_cohort_analysis) {
+				call Downstream.downstream as alignment_mode_project_downstream {
+					input:
+						cohort_id = project.project_id,
+						project_sample_ids = upstream.project_sample_ids,
+						upstream_output_file_paths = upstream_output_file_paths,
+						metadata_csv = metadata_csv,
+						gene_map_csv = gene_map_csv,
+						blacklist_genes_bed = blacklist_genes_bed,
+						salmon_mode = "alignment_mode",
+						salmon_quant_tar_gz = select_all(upstream.alignment_mode_quant_tar_gz),
+						workflow_name = workflow_name,
+						workflow_version = workflow_version,
+						workflow_release = workflow_release,
+						run_timestamp = get_workflow_metadata.timestamp,
+						raw_data_path_prefix = project_raw_data_path_prefix,
+						staging_data_buckets = project.staging_data_buckets,
+						billing_project = get_workflow_metadata.billing_project,
+						container_registry = container_registry,
+						zones = zones
+				}
+			}
+		}
+
+		if (run_pseudo_mapping_quantification) {
+			if (project.run_project_cohort_analysis) {
+				call Downstream.downstream as mapping_mode_project_downstream {
+					input:
+						cohort_id = project.project_id,
+						project_sample_ids = upstream.project_sample_ids,
+						upstream_output_file_paths = upstream_output_file_paths,
+						metadata_csv = metadata_csv,
+						gene_map_csv = gene_map_csv,
+						blacklist_genes_bed = blacklist_genes_bed,
+						salmon_mode = "mapping_mode",
+						salmon_quant_tar_gz = select_all(upstream.mapping_mode_quant_tar_gz),
+						workflow_name = workflow_name,
+						workflow_version = workflow_version,
+						workflow_release = workflow_release,
+						run_timestamp = get_workflow_metadata.timestamp,
+						raw_data_path_prefix = project_raw_data_path_prefix,
+						staging_data_buckets = project.staging_data_buckets,
+						billing_project = get_workflow_metadata.billing_project,
+						container_registry = container_registry,
+						zones = zones
+				}
+			}
+		}
+	}
+
+	if (run_cross_team_cohort_analysis) {
+		String cohort_raw_data_path_prefix = "~{cohort_raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
+
+		if (run_alignment_quantification) {
+			call Downstream.downstream as alignment_mode_cross_team_downstream {
+				input:
+					cohort_id = cohort_id,
+					project_sample_ids = flatten(upstream.project_sample_ids),
+					upstream_output_file_paths = upstream_output_file_paths,
+					metadata_csv = metadata_csv,
+					gene_map_csv = gene_map_csv,
+					blacklist_genes_bed = blacklist_genes_bed,
+					salmon_mode = "alignment_mode",
+					salmon_quant_tar_gz = select_all(flatten(upstream.alignment_mode_quant_tar_gz)),
+					workflow_name = workflow_name,
+					workflow_version = workflow_version,
+					workflow_release = workflow_release,
+					run_timestamp = get_workflow_metadata.timestamp,
+					raw_data_path_prefix = cohort_raw_data_path_prefix,
+					staging_data_buckets = cohort_staging_data_buckets,
+					billing_project = get_workflow_metadata.billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+		}
+
+		if (run_pseudo_mapping_quantification) {
+			call Downstream.downstream  as mapping_mode_cross_team_downstream {
+				input:
+					cohort_id = cohort_id,
+					project_sample_ids = flatten(upstream.project_sample_ids),
+					upstream_output_file_paths = upstream_output_file_paths,
+					metadata_csv = metadata_csv,
+					gene_map_csv = gene_map_csv,
+					blacklist_genes_bed = blacklist_genes_bed,
+					salmon_mode = "mapping_mode",
+					salmon_quant_tar_gz = select_all(flatten(upstream.mapping_mode_quant_tar_gz)),
+					workflow_name = workflow_name,
+					workflow_version = workflow_version,
+					workflow_release = workflow_release,
+					run_timestamp = get_workflow_metadata.timestamp,
+					raw_data_path_prefix = cohort_raw_data_path_prefix,
+					staging_data_buckets = cohort_staging_data_buckets,
+					billing_project = get_workflow_metadata.billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+		}
 	}
 
 	output {
@@ -135,6 +239,45 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File?]] salmon_mapping_mode_quant_tar_gz = upstream.mapping_mode_quant_tar_gz
 		Array[File?] salmon_mapping_mode_multiqc_report_html = upstream.mapping_mode_multiqc_report_html
 		Array[File?] salmon_mapping_mode_multiqc_data_tar_gz = upstream.mapping_mode_multiqc_data_tar_gz
+
+		# Project downstream analysis outputs
+		## List of samples included in the cohort. Both modes produce the same sample list
+		Array[File?] project_cohort_sample_list = alignment_mode_project_downstream.cohort_sample_list
+
+		# DGE analysis with Salmon mapping-mode counts
+		Array[File?] project_pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_project_downstream.significant_genes_csv
+		Array[File?] project_pydeseq2_alignment_mode_pca_plot_png = alignment_mode_project_downstream.pca_plot_png
+		Array[File?] project_pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_project_downstream.volcano_plot_png
+
+		Array[Array[File]?] alignment_mode_upstream_manifests = alignment_mode_project_downstream.upstream_manifest_tsvs
+		Array[Array[File]?] alignment_mode_project_manifests = alignment_mode_project_downstream.downstream_manifest_tsvs
+
+		# DGE analysis with Salmon mapping-mode counts
+		Array[File?] project_pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_project_downstream.significant_genes_csv
+		Array[File?] project_pydeseq2_mapping_mode_pca_plot_png = mapping_mode_project_downstream.pca_plot_png
+		Array[File?] project_pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_project_downstream.volcano_plot_png
+
+		# TODO this will replace the alignment_mode_project_downstream MANIFEST.tsv's
+		Array[Array[File]?] mapping_mode_upstream_manifests = mapping_mode_project_downstream.upstream_manifest_tsvs
+		Array[Array[File]?] mapping_mode_project_manifests = mapping_mode_project_downstream.downstream_manifest_tsvs
+
+		# Cross-team downstream outputs
+		## List of samples included in the cohort. Both modes produce the same sample list
+		File? cohort_sample_list = alignment_mode_cross_team_downstream.cohort_sample_list
+
+		# DGE analysis with Salmon mapping-mode counts
+		File? cohort_pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_cross_team_downstream.significant_genes_csv
+		File? cohort_pydeseq2_alignment_mode_pca_plot_png = alignment_mode_cross_team_downstream.pca_plot_png
+		File? cohort_pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_cross_team_downstream.volcano_plot_png
+
+		Array[File]? alignment_mode_cohort_manifests = alignment_mode_cross_team_downstream.downstream_manifest_tsvs
+
+		# DGE analysis with Salmon mapping-mode counts
+		File? cohort_pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_cross_team_downstream.significant_genes_csv
+		File? cohort_pydeseq2_mapping_mode_pca_plot_png = mapping_mode_cross_team_downstream.pca_plot_png
+		File? cohort_pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_cross_team_downstream.volcano_plot_png
+
+		Array[File]?  mapping_mode_cohort_manifests = mapping_mode_cross_team_downstream.downstream_manifest_tsvs
 	}
 
 	meta {
@@ -154,9 +297,9 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		metadata_csv: {help: "CSV containing all sample information including batch, condition, etc."}
 		gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
 		blacklist_genes_bed: {help: "BED file containing the ENCODE Blacklist genes."}
-		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (cellranger and generating the initial adata object(s)) will run for samples. [false]"}
-		cohort_raw_data_bucket: {help: "Bucket to upload cross-team cohort intermediate files to."}
-		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team cohort analysis outputs in."}
+		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only upstream steps (QC, align/map, and quantify) will run for samples. [false]"}
+		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
+		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream outputs in."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
 		zones: {help: "Space-delimited set of GCP zones to spin up compute in."}
 	}

@@ -1,18 +1,18 @@
 version 1.0
 
-# Run steps in the cohort analysis
+# Downstream analysis including DGE analysis across multiple groups
 
 import "../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
 import "differential_gene_expression_analysis/differential_gene_expression_analysis.wdl" as DifferentialGeneExpressionAnalysis
 import "../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
-workflow cohort_analysis {
+workflow downstream {
 	input {
 		String cohort_id
 		Array[Array[String]] project_sample_ids
 
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
-		Array[String] preprocessing_output_file_paths = []
+		Array[String] upstream_output_file_paths = []
 
 		File metadata_csv
 		File gene_map_csv
@@ -33,7 +33,7 @@ workflow cohort_analysis {
 		String zones
 	}
 
-	String sub_workflow_name = "cohort_analysis"
+	String sub_workflow_name = "downstream"
 	String sub_workflow_version = "1.0.0"
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
@@ -67,16 +67,16 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call UploadFinalOutputs.upload_final_outputs as upload_preprocess_files {
+	call UploadFinalOutputs.upload_final_outputs as upload_upstream_files {
 		input:
-			output_file_paths = preprocessing_output_file_paths,
+			output_file_paths = upstream_output_file_paths,
 			staging_data_buckets = staging_data_buckets,
-			staging_data_path = "preprocess",
+			staging_data_path = "upstream",
 			billing_project = billing_project,
 			zones = zones
 	}
 
-	Array[String] cohort_analysis_final_output_paths = flatten([
+	Array[String] downstream_final_output_paths = flatten([
 		[
 			differential_gene_expression_analysis.significant_genes_csv,
 			differential_gene_expression_analysis.pca_plot_png,
@@ -84,9 +84,9 @@ workflow cohort_analysis {
 		]
 	]) #!StringCoercion
 
-	call UploadFinalOutputs.upload_final_outputs as upload_cohort_analysis_files {
+	call UploadFinalOutputs.upload_final_outputs as upload_downstream_files {
 		input:
-			output_file_paths = cohort_analysis_final_output_paths,
+			output_file_paths = downstream_final_output_paths,
 			staging_data_buckets = staging_data_buckets,
 			staging_data_path = sub_workflow_name,
 			billing_project = billing_project,
@@ -101,7 +101,7 @@ workflow cohort_analysis {
 		File pca_plot_png = differential_gene_expression_analysis.pca_plot_png #!FileCoercion
 		File volcano_plot_png = differential_gene_expression_analysis.volcano_plot_png #!FileCoercion
 
-		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
-		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
+		Array[File] upstream_manifest_tsvs = upload_upstream_files.manifests #!FileCoercion
+		Array[File] downstream_manifest_tsvs = upload_downstream_files.manifests #!FileCoercion
 	}
 }
