@@ -13,17 +13,15 @@ workflow upstream {
 		String project_id
 		Array[Sample] samples
 
-		ReferenceData reference
+		File transcripts_fasta
 
 		# STAR and salmon quantification option
 		Boolean run_alignment_quantification
-		Boolean run_star_index_ref_genome
-		File star_genome_tar_gz
+		File star_genome_dir_tar_gz
 
 		# Salmon mapping and quantification option
 		Boolean run_pseudo_mapping_quantification
-		Boolean run_salmon_index_ref_genome
-		File salmon_genome_tar_gz
+		File salmon_genome_dir_tar_gz
 
 		String workflow_name
 		String workflow_version
@@ -72,45 +70,6 @@ workflow upstream {
 			billing_project = billing_project,
 			zones = zones
 	}
-
-	# Prepare reference files for alignment/mapping and quantification
-	if (run_star_index_ref_genome) {
-		call star_index_ref_genome {
-		input:
-			primary_assembly_fasta = reference.primary_assembly_fasta,
-			gene_annotation_gtf = reference.gene_annotation_gtf,
-			container_registry = container_registry,
-			zones = zones
-		}
-	}
-
-	File star_genome_dir_tar_gz = select_first([
-		star_index_ref_genome.star_genome_dir_tar_gz,
-		star_genome_tar_gz
-	])
-
-	if (run_salmon_index_ref_genome) {
-		call generate_decoy {
-		input:
-			primary_assembly_fasta = reference.primary_assembly_fasta,
-			transcripts_fasta = reference.transcripts_fasta,
-			container_registry = container_registry,
-			zones = zones
-		}
-
-		call salmon_index_ref_genome {
-		input:
-			gentrome_fasta = generate_decoy.gentrome_fasta,
-			decoys_txt = generate_decoy.decoys_txt,
-			container_registry = container_registry,
-			zones = zones
-		}
-	}
-
-	File salmon_genome_dir_tar_gz = select_first([
-		salmon_index_ref_genome.salmon_genome_dir_tar_gz,
-		salmon_genome_tar_gz
-	])
 
 	scatter (sample_index in range(length(samples))) {
 		Sample sample = samples[sample_index]
@@ -203,7 +162,7 @@ workflow upstream {
 				call AlignmentQuantification.alignment_quantification {
 					input:
 						sample_id = sample.sample_id,
-						transcripts_fasta = reference.transcripts_fasta,
+						transcripts_fasta = transcripts_fasta,
 						star_genome_dir_tar_gz = star_genome_dir_tar_gz,
 						trimmed_fastq_R1s = trimmed_fastq_R1s_output,
 						trimmed_fastq_R2s = trimmed_fastq_R2s_output,
@@ -253,6 +212,7 @@ workflow upstream {
 
 	if (run_alignment_quantification) {
 		String alignment_quantification_multiqc_report_html = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_star_salmon_alignment_mode_report.html"
+		String alignment_quantification_multiqc_data_tar_gz = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_star_salmon_alignment_mode_report_data.tar.gz"
 
 		if (alignment_quantification_multiqc_complete == "false") {
 			call Multiqc.multiqc as multiqc_alignment_mode {
@@ -280,10 +240,12 @@ workflow upstream {
 		}
 
 		File alignment_quantification_multiqc_report_html_output = select_first([multiqc_alignment_mode.multiqc_report_html, alignment_quantification_multiqc_report_html]) #!FileCoercion
+		File alignment_quantification_multiqc_data_tar_gz_output = select_first([multiqc_alignment_mode.multiqc_data_tar_gz, alignment_quantification_multiqc_data_tar_gz]) #!FileCoercion
 	}
 
 	if (run_pseudo_mapping_quantification) {
 		String pseudo_mapping_quantification_multiqc_report_html = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_salmon_mapping_mode_report.html"
+		String pseudo_mapping_quantification_multiqc_data_tar_gz = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_salmon_mapping_mode_report_data.tar.gz"
 
 		if (pseudo_mapping_quantification_multiqc_complete == "false") {
 			call Multiqc.multiqc as multiqc_mapping_mode {
@@ -307,6 +269,7 @@ workflow upstream {
 		}
 
 		File pseudo_mapping_quantification_multiqc_report_html_output = select_first([multiqc_mapping_mode.multiqc_report_html, pseudo_mapping_quantification_multiqc_report_html]) #!FileCoercion
+		File pseudo_mapping_quantification_multiqc_data_tar_gz_output = select_first([multiqc_mapping_mode.multiqc_data_tar_gz, pseudo_mapping_quantification_multiqc_data_tar_gz]) #!FileCoercion
 	}
 
 	output {
@@ -338,11 +301,13 @@ workflow upstream {
 		Array[File?] alignment_mode_quant_tar_gz = salmon_alignment_mode_quant_tar_gz_output #!FileCoercion
 		# MultiQC report alignment-mode
 		File? alignment_mode_multiqc_report_html = alignment_quantification_multiqc_report_html_output #!FileCoercion
+		File? alignment_mode_multiqc_data_tar_gz = alignment_quantification_multiqc_data_tar_gz_output #!FileCoercion
 
 		# Salmon mapping and quantification
 		Array[File?] mapping_mode_quant_tar_gz = salmon_mapping_mode_quant_tar_gz_output #!FileCoercion
 		# MultiQC report mapping-mode
 		File? mapping_mode_multiqc_report_html = pseudo_mapping_quantification_multiqc_report_html_output #!FileCoercion
+		File? mapping_mode_multiqc_data_tar_gz = pseudo_mapping_quantification_multiqc_data_tar_gz_output #!FileCoercion
 	}
 }
 
@@ -426,122 +391,6 @@ task check_output_files_exist {
 		cpu: 2
 		memory: "4 GB"
 		disks: "local-disk 20 HDD"
-		preemptible: 3
-		zones: zones
-	}
-}
-
-task star_index_ref_genome {
-	input {
-		File primary_assembly_fasta
-		File gene_annotation_gtf
-		String container_registry
-		String zones
-	}
-
-	Int threads = 24
-	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([primary_assembly_fasta, gene_annotation_gtf], "GB") *2 + 100)
-
-	command <<<
-		set -euo pipefail
-
-		mkdir -p star_genome_dir
-
-		STAR \
-			--runThreadN ~{threads - 1} \
-			--runMode genomeGenerate \
-			--genomeDir star_genome_dir \
-			--genomeFastaFiles ~{primary_assembly_fasta} \
-			--sjdbGTFfile ~{gene_annotation_gtf}
-
-		tar -czvf star_genome_dir.tar.gz star_genome_dir
-	>>>
-
-	output {
-		File star_genome_dir_tar_gz = "star_genome_dir.tar.gz"
-	}
-
-	runtime {
-		docker: "~{container_registry}/star_samtools:2.7.11b_1.20"
-		cpu: threads
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
-		preemptible: 3
-		zones: zones
-	}
-}
-
-task generate_decoy {
-	input {
-		File primary_assembly_fasta
-		File transcripts_fasta
-		String container_registry
-		String zones
-	}
-
-	Int threads = 24
-	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([primary_assembly_fasta, transcripts_fasta], "GB") *2 + 100)
-
-	command <<<
-		set -euo pipefail
-
-		grep "^>" <(gunzip -c ~{primary_assembly_fasta}) | cut -d " " -f 1 > decoys.txt
-		sed -i.bak -e 's/>//g' decoys.txt
-		cat ~{transcripts_fasta} ~{primary_assembly_fasta} > gentrome.fa.gz
-	>>>
-
-	output {
-		File decoys_txt = "decoys.txt"
-		File gentrome_fasta = "gentrome.fa.gz"
-	}
-
-	runtime {
-		docker: "~{container_registry}/salmon:1.10.1"
-		cpu: threads
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
-		preemptible: 3
-		zones: zones
-	}
-}
-
-task salmon_index_ref_genome {
-	input {
-		File gentrome_fasta
-		File decoys_txt
-		String container_registry
-		String zones
-	}
-
-	Int threads = 24
-	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([gentrome_fasta, decoys_txt], "GB") *2 + 100)
-
-	command <<<
-		set -euo pipefail
-
-		salmon index \
-			--transcripts ~{gentrome_fasta} \
-			--index salmon_index \
-			--kmerLen 31 \
-			--gencode \
-			--decoys ~{decoys_txt} \
-			--threads ~{threads}
-
-		tar -czvf salmon_genome_dir.tar.gz salmon_index
-	>>>
-
-	output {
-		File salmon_genome_dir_tar_gz = "salmon_genome_dir.tar.gz"
-	}
-
-	runtime {
-		docker: "~{container_registry}/salmon:1.10.1"
-		cpu: threads
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		zones: zones
 	}

@@ -4,10 +4,8 @@ version 1.0
 
 import "pmdbs_bulk_rnaseq_analysis_structs.wdl"
 import "wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
-import "preprocess/preprocess.wdl" as Preprocess
-import "alignment_quantification/alignment_quantification.wdl" as AlignmentQuantification
-import "pseudo_mapping_quantification/pseudo_mapping_quantification.wdl" as PseudoMappingQuantification
-import "differential_gene_expression_analysis/differential_gene_expression_analysis.wdl" as DifferentialGeneExpressionAnalysis
+import "index_ref_genome/index_ref_genome.wdl" as IndexRefGenome
+import "upstream/upstream.wdl" as Upstream
 
 workflow pmdbs_bulk_rnaseq_analysis {
 	input {
@@ -49,14 +47,28 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			zones = zones
 	}
 
+	call IndexRefGenome.index_ref_genome {
+		input:
+			reference = reference,
+			run_star_index_ref_genome = run_star_index_ref_genome,
+			run_salmon_index_ref_genome = run_salmon_index_ref_genome,
+			container_registry = container_registry,
+			zones = zones
+	}
+
 	scatter (project in projects) {
 		# Add workflow name or else intermediate files will be uploaded to the same folder as harmonized_pmdbs
 		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
 
-		call Preprocess.preprocess {
+		call Upstream.upstream {
 			input:
 				project_id = project.project_id,
 				samples = project.samples,
+				transcripts_fasta = reference.transcripts_fasta,
+				run_alignment_quantification = run_alignment_quantification,
+				star_genome_dir_tar_gz = select_first([index_ref_genome.star_genome_dir_tar_gz, star_genome_dir_tar_gz]),
+				run_pseudo_mapping_quantification = run_pseudo_mapping_quantification,
+				salmon_genome_dir_tar_gz = select_first([index_ref_genome.salmon_genome_dir_tar_gz, salmon_genome_dir_tar_gz]),
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -67,154 +79,62 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				zones = zones
 		}
 
-		Array[String] preprocessing_output_file_paths = flatten([
-			preprocess.fastqc_reports_tar_gz,
-			flatten(preprocess.trimmed_fastq_R1s),
-			flatten(preprocess.trimmed_fastq_R2s),
-			preprocess.failed_paired_fastqs_tar_gz,
-			preprocess.reports_html_tar_gz,
-			preprocess.trimmed_fastqc_reports_tar_gz
+		Array[String] upstream_output_file_paths = flatten([
+			upstream.fastqc_reports_tar_gz,
+			flatten(upstream.trimmed_fastq_R1s),
+			flatten(upstream.trimmed_fastq_R2s),
+			upstream.failed_paired_fastqs_tar_gz,
+			upstream.reports_html_tar_gz,
+			upstream.trimmed_fastqc_reports_tar_gz,
+			select_all([
+				upstream.aligned_bam,
+				upstream.aligned_bam_index,
+				upstream.unmapped_mate1,
+				upstream.unmapped_mate2,
+				upstream.log,
+				upstream.final_log,
+				upstream.progress_log,
+				upstream.sj_out_tab,
+				upstream.alignment_mode_quant_tar_gz,
+				upstream.alignment_mode_multiqc_report_html,
+				upstream.alignment_mode_multiqc_data_tar_gz,
+				upstream.mapping_mode_quant_tar_gz,
+				upstream.mapping_mode_multiqc_report_html,
+				upstream.mapping_mode_multiqc_data_tar_gz
+			])
 		]) #!StringCoercion
-
-		if (run_alignment_quantification) {
-			call AlignmentQuantification.alignment_quantification {
-				input:
-					trimmed_samples = preprocess.trimmed_samples,
-					run_index_ref_genome = run_star_index_ref_genome,
-					reference = select_first([reference]),
-					star_genome_dir_tar_gz = select_first([star_genome_dir_tar_gz]),
-					workflow_name = workflow_name,
-					workflow_version = workflow_version,
-					workflow_release = workflow_release,
-					run_timestamp = get_workflow_metadata.timestamp,
-					raw_data_path_prefix = project_raw_data_path_prefix,
-					billing_project = get_workflow_metadata.billing_project,
-					container_registry = container_registry,
-					zones = zones
-			}
-
-			Array[String] alignment_quantification_output_file_paths = flatten([
-				alignment_quantification.aligned_bam,
-				alignment_quantification.aligned_bam_index,
-				alignment_quantification.unmapped_mate1,
-				alignment_quantification.unmapped_mate2,
-				alignment_quantification.log,
-				alignment_quantification.final_log,
-				alignment_quantification.progress_log,
-				alignment_quantification.sj_out_tab,
-				alignment_quantification.quant_tar_gz
-			]) #!StringCoercion
-
-			call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis as alignment_quantification_dge_analysis {
-				input:
-					cohort_id = project.project_id,
-					sample_ids = sample_ids,
-					metadata_csv = metadata_csv,
-					gene_map_csv = gene_map_csv,
-					blacklist_genes_bed = blacklist_genes_bed,
-					salmon_mode = "alignment_mode",
-					salmon_quant_tar_gz = alignment_quantification.quant_tar_gz,
-					workflow_name = workflow_name,
-					workflow_version = workflow_version,
-					workflow_release = workflow_release,
-					run_timestamp = get_workflow_metadata.timestamp,
-					raw_data_path_prefix = project_raw_data_path_prefix,
-					billing_project = get_workflow_metadata.billing_project,
-					container_registry = container_registry,
-					zones = zones
-			}
-
-			Array[String] alignment_quantification_dge_analysis_output_file_paths = [
-				alignment_quantification_dge_analysis.significant_genes_csv,
-				alignment_quantification_dge_analysis.pca_plot_png,
-				alignment_quantification_dge_analysis.volcano_plot_png
-			] #!StringCoercion
-		}
-
-		if (run_pseudo_mapping_quantification) {
-			call PseudoMappingQuantification.pseudo_mapping_quantification {
-				input:
-					trimmed_samples = preprocess.trimmed_samples,
-					run_index_ref_genome = run_salmon_index_ref_genome,
-					reference = select_first([reference]),
-					salmon_genome_dir_tar_gz = select_first([salmon_genome_dir_tar_gz]),
-					workflow_name = workflow_name,
-					workflow_version = workflow_version,
-					workflow_release = workflow_release,
-					run_timestamp = get_workflow_metadata.timestamp,
-					raw_data_path_prefix = project_raw_data_path_prefix,
-					billing_project = get_workflow_metadata.billing_project,
-					container_registry = container_registry,
-					zones = zones
-			}
-
-			Array[String] pseudo_mapping_quantification_output_file_paths = flatten([
-				pseudo_mapping_quantification.quant_tar_gz
-			]) #!StringCoercion
-
-			call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis as pseudo_mapping_quantification_dge_analysis {
-				input:
-					cohort_id = project.project_id,
-					sample_ids = sample_ids,
-					metadata_csv = metadata_csv,
-					gene_map_csv = gene_map_csv,
-					blacklist_genes_bed = blacklist_genes_bed,
-					salmon_mode = "mapping_mode",
-					salmon_quant_tar_gz = pseudo_mapping_quantification.quant_tar_gz,
-					workflow_name = workflow_name,
-					workflow_version = workflow_version,
-					workflow_release = workflow_release,
-					run_timestamp = get_workflow_metadata.timestamp,
-					raw_data_path_prefix = project_raw_data_path_prefix,
-					billing_project = get_workflow_metadata.billing_project,
-					container_registry = container_registry,
-					zones = zones
-			}
-
-			Array[String] pseudo_mapping_quantification_dge_analysis_output_file_paths = [
-				pseudo_mapping_quantification_dge_analysis.significant_genes_csv,
-				pseudo_mapping_quantification_dge_analysis.pca_plot_png,
-				pseudo_mapping_quantification_dge_analysis.volcano_plot_png
-			] #!StringCoercion
-		}
 	}
 
 	output {
 		# Sample-level outputs
 		# Sample list
-		Array[Array[Array[String]]] project_sample_ids = preprocess.project_sample_ids
+		Array[Array[Array[String]]] project_sample_ids = upstream.project_sample_ids
 
 		# Preprocess
-		Array[Array[File]] fastqc_raw_reads_reports_tar_gz = preprocess.fastqc_reports_tar_gz
-		Array[Array[Array[File]]] fastp_trimmed_fastq_R1s = preprocess.trimmed_fastq_R1s
-		Array[Array[Array[File]]] fastp_trimmed_fastq_R2s = preprocess.trimmed_fastq_R2s
-		Array[Array[File]] fastp_failed_paired_fastqs_tar_gz = preprocess.failed_paired_fastqs_tar_gz
-		Array[Array[File]] fastp_report_html_tar_gz = preprocess.reports_html_tar_gz
-		Array[Array[File]] fastqc_trimmed_reads_reports_tar_gz = preprocess.trimmed_fastqc_reports_tar_gz
+		Array[Array[File]] fastqc_raw_reads_reports_tar_gz = upstream.fastqc_reports_tar_gz
+		Array[Array[Array[File]]] fastp_trimmed_fastq_R1s = upstream.trimmed_fastq_R1s
+		Array[Array[Array[File]]] fastp_trimmed_fastq_R2s = upstream.trimmed_fastq_R2s
+		Array[Array[File]] fastp_failed_paired_fastqs_tar_gz = upstream.failed_paired_fastqs_tar_gz
+		Array[Array[File]] fastp_report_html_tar_gz = upstream.reports_html_tar_gz
+		Array[Array[File]] fastqc_trimmed_reads_reports_tar_gz = upstream.trimmed_fastqc_reports_tar_gz
 
 		# Alignment and quantification
-		Array[Array[File]?] star_aligned_bam = alignment_quantification.aligned_bam
-		Array[Array[File]?] star_aligned_bam_index = alignment_quantification.aligned_bam_index
-		Array[Array[File]?] star_unmapped_mate1 = alignment_quantification.unmapped_mate1
-		Array[Array[File]?] star_unmapped_mate2 = alignment_quantification.unmapped_mate2
-		Array[Array[File]?] star_log = alignment_quantification.log
-		Array[Array[File]?] star_final_log = alignment_quantification.final_log
-		Array[Array[File]?] star_progress_log = alignment_quantification.progress_log
-		Array[Array[File]?] star_sj_out_tab = alignment_quantification.sj_out_tab
-		Array[Array[File]?] salmon_alignment_mode_quant_tar_gz = alignment_quantification.quant_tar_gz
-
-		# DGE analysis with Salmon mapping-mode counts
-		Array[File?] pydeseq2_alignment_mode_significant_genes_csv = alignment_quantification_dge_analysis.significant_genes_csv
-		Array[File?] pydeseq2_alignment_mode_pca_plot_png = alignment_quantification_dge_analysis.pca_plot_png
-		Array[File?] pydeseq2_alignment_mode_volcano_plot_png = alignment_quantification_dge_analysis.volcano_plot_png
+		Array[Array[File?]] star_aligned_bam = upstream.aligned_bam
+		Array[Array[File?]] star_aligned_bam_index = upstream.aligned_bam_index
+		Array[Array[File?]] star_unmapped_mate1 = upstream.unmapped_mate1
+		Array[Array[File?]] star_unmapped_mate2 = upstream.unmapped_mate2
+		Array[Array[File?]] star_log = upstream.log
+		Array[Array[File?]] star_final_log = upstream.final_log
+		Array[Array[File?]] star_progress_log = upstream.progress_log
+		Array[Array[File?]] star_sj_out_tab = upstream.sj_out_tab
+		Array[Array[File?]] salmon_alignment_mode_quant_tar_gz = upstream.alignment_mode_quant_tar_gz
+		Array[File?] salmon_alignment_mode_multiqc_report_html = upstream.alignment_mode_multiqc_report_html
+		Array[File?] salmon_alignment_mode_multiqc_data_tar_gz = upstream.alignment_mode_multiqc_data_tar_gz
 
 		# Direct quantification with mapping
-		Array[Array[File]?] salmon_mapping_mode_quant_tar_gz = pseudo_mapping_quantification.quant_tar_gz
-
-		# DGE analysis with Salmon mapping-mode counts
-		Array[File?] pydeseq2_mapping_mode_significant_genes_csv = pseudo_mapping_quantification_dge_analysis.significant_genes_csv
-		Array[File?] pydeseq2_mapping_mode_pca_plot_png = pseudo_mapping_quantification_dge_analysis.pca_plot_png
-		Array[File?] pydeseq2_mapping_mode_volcano_plot_png = pseudo_mapping_quantification_dge_analysis.volcano_plot_png
+		Array[Array[File?]] salmon_mapping_mode_quant_tar_gz = upstream.mapping_mode_quant_tar_gz
+		Array[File?] salmon_mapping_mode_multiqc_report_html = upstream.mapping_mode_multiqc_report_html
+		Array[File?] salmon_mapping_mode_multiqc_data_tar_gz = upstream.mapping_mode_multiqc_data_tar_gz
 	}
 
 	meta {
