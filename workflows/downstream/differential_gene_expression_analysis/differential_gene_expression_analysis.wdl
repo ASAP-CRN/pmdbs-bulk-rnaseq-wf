@@ -75,6 +75,7 @@ task differential_gene_expression {
 	command <<<
 		set -euo pipefail
 
+		# TODO - might not need this because sample IDs are in metadata
 		sample_id_column_no=$(tr '\t' '\n' < <(head -1 ~{cohort_sample_list}) | grep -n "sample_id" | cut -d : -f 1)
 		sample_ids=$(cut -f "$sample_id_column_no" ~{cohort_sample_list} | sed -r '/^\s*$/d')
 

@@ -286,22 +286,22 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	parameter_meta {
-		cohort_id: {help: "Name of the cohort; used to name output files during cross-team cohort analysis."}
-		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis."}
+		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
+		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
 		reference: {help: "The primary assembly FASTA and gene annotation GTF from GENCODE."}
 		run_alignment_quantification: {help: "Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true]"}
-		run_star_index_ref_genome: {help: "Option to index reference genome with STAR. If set to false, star_genome_dir_tar_gz must be provided. [false]"}
+		run_star_index_ref_genome: {help: "Option to index reference genome with STAR. If set to false, 'star_genome_dir_tar_gz' must be provided. [false]"}
 		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
 		run_pseudo_mapping_quantification: {help: "Option to map and directly quantify raw reads with Salmon. This and/or 'run_alignment_quantification' must be set to true. [false]"}
-		run_salmon_index_ref_genome: {help: "Option to create decoy sequences (from genome), concatenating transcriptome and genome, and index concatenated genome with Salmon. If set to false, salmon_genome_dir_tar_gz must be provided [false]"}
+		run_salmon_index_ref_genome: {help: "Option to create decoy sequences (from genome), concatenating transcriptome and genome, and index concatenated genome with Salmon. If set to false, 'salmon_genome_dir_tar_gz' must be provided [false]"}
 		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
+		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only upstream steps (QC, align/map, and quantify) will run for samples. [false]"}
+		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
+		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
 		metadata_csv: {help: "CSV containing all sample information including batch, condition, etc."}
 		gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
 		blacklist_genes_bed: {help: "BED file containing the ENCODE Blacklist genes."}
-		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only upstream steps (QC, align/map, and quantify) will run for samples. [false]"}
-		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
-		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream outputs in."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
-		zones: {help: "Space-delimited set of GCP zones to spin up compute in."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place."}
 	}
 }

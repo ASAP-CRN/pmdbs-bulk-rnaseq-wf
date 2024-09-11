@@ -158,13 +158,6 @@ if __name__ == "__main__":
         help="Sample IDs"
     )
     parser.add_argument(
-        "-i"
-        "--salmon-input",
-        type=str,
-        required=True,
-        help="Directory for each sample containing Salmon outputs that must be unmodified"
-    )
-    parser.add_argument(
         "-m"
         "--metadata",
         type=str,
@@ -191,13 +184,6 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Salmon mode used to quantify transcripts in order to name outputs"
-    )
-    parser.add_argument(
-        "-o"
-        "--output",
-        type=str,
-        required=True,
-        help="Filename for table of statistically significant genes"
     )
 
     args = parser.parse_args()

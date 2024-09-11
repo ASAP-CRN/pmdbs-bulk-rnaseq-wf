@@ -15,7 +15,7 @@ Repo for testing and developing a common postmortem-derived brain sequencing (PM
 
 Worfklows are defined in [the `workflows` directory](workflows).
 
-This workflow is set up to analyze bulk RNAseq in WDL using Python scripts.
+This workflow is set up to analyze bulk RNAseq in WDL using mainly command line and a Python script.
 
 ![Workflow diagram](workflows/workflow_diagram.svg "Workflow diagram")
 
@@ -23,16 +23,21 @@ This workflow is set up to analyze bulk RNAseq in WDL using Python scripts.
 
 **Input template**: [workflows/inputs.json](workflows/inputs.json)
 
-The workflow is broken up into two main chunks:
+The workflow is broken up into three main chunks:
 
-1. [Preprocessing](#preprocessing)
-2. [Cohort analysis](#cohort-analysis)
+1. [Index reference genome](#index-reference-genome)
+2. [Upstream](#upstream)
+3. [Downstream](#downstream)
 
-## Preprocessing
+## Index reference genome
 
-Run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
+Optional step to index reference genome in order to produce a genome directory input for STAR and/or Salmon.
 
-## Cohort analysis
+## Upstream
+
+Run once per sample; only rerun when the upstream workflow version is updated. A single report that summarizes all upstream logs is generated per team (all samples from a single team). Upstream outputs are stored in the originating team's raw and staging data buckets.
+
+## Downstream
 
 Run once per team (all samples from a single team) if `project.run_project_cohort_analysis` is set to `true`, and once for the whole cohort (all samples from all teams). This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
 
@@ -42,12 +47,22 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
-| Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
-| Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (cellranger and generating the initial adata object(s)) will run for samples. [false] |
-| String | cohort_raw_data_bucket | Bucket to upload cross-team cohort intermediate files to. |
-| String | cohort_staging_data_bucket | Bucket to upload cross-team cohort analysis outputs to. |
+| String | cohort_id | Name of the cohort; used to name output files during cross-team downstream analysis. |
+| Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis. |
+| Boolean? | run_alignment_quantification | Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true] |
+| Boolean? | run_star_index_ref_genome | Option to index reference genome with STAR. If set to false, star_genome_dir_tar_gz must be provided. [false] |
+| File? | star_genome_dir_tar_gz | The indexed reference genome files required for STAR. |
+| Boolean? | run_pseudo_mapping_quantification | Option to map and directly quantify raw reads with Salmon. This and/or 'run_alignment_quantification' must be set to true. [false] |
+| Boolean? | run_salmon_index_ref_genome | Option to create decoy sequences (from genome), concatenating transcriptome and genome, and index concatenated genome with Salmon. If set to false, salmon_genome_dir_tar_gz must be provided [false] |
+| File? | salmon_genome_dir_tar_gz | The indexed concatenated transcriptome and genome files required for Salmon. |
+| Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only upstream steps (QC, align/map, and quantify) will run for samples. [false] |
+| String | cohort_raw_data_bucket | Bucket to upload cross-team downstream intermediate files to. |
+| Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team downstream analysis outputs to. |
+| File | metadata_csv | CSV containing all sample information including batch, condition, etc. |
+| File | gene_map_csv | CSV containing mapped transcript IDs and gene IDs that must be in this order. |
+| File | blacklist_genes_bed | BED file containing the ENCODE Blacklist genes. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
+| String? | zones | Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f'] |
 
 ## Structs
 
@@ -55,22 +70,32 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | project_id | Unique identifier for project; used for naming output files |
-| Array[[Sample](#sample)] | samples | The set of samples associated with this project |
-| Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project |
-| String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here |
-| String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here |
+| String | project_id | Unique identifier for project; used for naming output files. |
+| Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
+| Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
+| String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
+| String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
 
 ### Sample
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | sample_id | Unique identifier for the sample within the project |
-| String? | batch | The sample's batch. If unset, the analysis will stop after running `cellranger_count`. |
-| File | fastq_R1 | Path to the sample's read 1 FASTQ file |
-| File | fastq_R2 | Path to the sample's read 2 FASTQ file |
-| File? | fastq_I1 | Optional fastq index 1 |
-| File? | fastq_I2 | Optional fastq index 2 |
+| String | sample_id | Unique identifier for the sample within the project. |
+| String? | batch | The sample's batch. |
+| File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
+| File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
+| File? | fastq_I1 | Optional fastq index 1. |
+| File? | fastq_I2 | Optional fastq index 2. |
+
+### Reference
+
+See [reference data](#reference-data) notes for more details.
+
+| Type | Name | Description |
+| :- | :- | :- |
+| File | primary_assembly_fasta | Nucleotide sequence of the GRCh38 primary genome assembly (chromosomes and scaffolds). |
+| File | gene_annotation_gtf | Comprehensive gene annotation on the reference chromosomes only. |
+| File | transcripts_fasta | Nucleotide sequences of all transcripts on the reference chromosomes. |
 
 ## Generating the inputs JSON
 
@@ -101,28 +126,31 @@ Example usage:
 
 ## Output structure
 
-- `cohort_id`: either the `project_id` for project-level cohort analysis, or the `cohort_id` for the full cohort
+- `cohort_id`: either the `project_id` for project-level downstream analysis, or the `cohort_id` for the full cohort
 - `workflow_run_timestamp`: format: `%Y-%m-%dT%H-%M-%SZ`
-- The list of samples used to generate the cohort analysis will be output alongside other cohort analysis outputs in the staging data bucket (`${cohort_id}.sample_list.tsv`)
+- The list of samples used to generate the downstream analysis will be output alongside other downstream analysis outputs in the staging data bucket (`${cohort_id}.sample_list.tsv`)
 - The MANIFEST.tsv file in the staging data bucket describes the file name, md5 hash, timestamp, workflow version, workflow name, and workflow release for the run used to generate each file in that directory
 
 ### Raw data (intermediate files and final outputs for all runs of the workflow)
 
 The raw data bucket will contain *some* artifacts generated as part of workflow execution. Following successful workflow execution, the artifacts will also be copied into the staging bucket as final outputs.
 
-In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Preprocess final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L59-L73) and [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L118), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L129-L149).
+In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L83-L108), and downstream analysis final outputs are defined at [downstream.wdl](workflows/downstream/downstream.wdl#L79-L85).
 
 ```bash
 asap-raw-data-{cohort,team-xxyy}
 └── workflow_execution
-    ├── cohort_analysis
-    │   └──${cohort_analysis_workflow_version}
+    ├── downstream
+    │   └──${downstream_workflow_version}
     │       └── ${workflow_run_timestamp}
-    │            └── <cohort outputs>
-    └── preprocess  // only produced in project raw data buckets, not in the full cohort bucket
-        └── counts_to_adata
-            └── ${preprocess_workflow_version}
-                └── <counts_to_adata output>
+    │            └── <downstream outputs>
+    └── upstream  // only produced in project raw data buckets, not in the full cohort bucket
+        ├── trim_and_qc
+        │   └── ${upstream_workflow_version}
+        │       └── <trim_and_qc output>
+        └── alignment_quantification
+            └── ${alignment_quantification_workflow_version}
+                └── <alignment_quantification output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -133,10 +161,10 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 
 ```bash
 asap-dev-{collection}-{modality}-{cohort,team-xxyy}
-├── cohort_analysis
+├── downstream
 │   ├── ${cohort_id}.sample_list.tsv
 │   └── MANIFEST.tsv
-└── preprocess
+└── upstream
     ├── ...
     └── MANIFEST.tsv
 ```
@@ -170,10 +198,10 @@ The script defaults to a dry run, printing out the files that would be copied or
 # List available teams
 ./util/promote_staging_data -l
 
-# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy, team-rio, and cohort
-./util/promote_staging_data -t team-hardy,team-rio,cohort
+# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy, team-wood, and cohort
+./util/promote_staging_data -t team-hardy,team-wood,cohort
 
-# Promote data for team-hardy, team-rio, team-wood, and cohort
+# Promote data for team-hardy, team-lee, team-wood, and cohort
 ./util/promote_staging_data -a -p -s dev
 ```
 
@@ -184,12 +212,18 @@ Docker images are defined in [the `docker` directory](docker). Each image must m
 Example directory structure:
 ```bash
 docker
-├── scvi
+├── fastp
 │   ├── build.env
 │   └── Dockerfile
-└── samtools
+├── star_samtools
+│   ├── build.env
+│   └── Dockerfile
+└── pydeseq2
     ├── build.env
-    └── Dockerfile
+    ├── Dockerfile
+    ├── requirements.txt
+    └── scripts
+    	└── pydeseq2.py
 ```
 
 ## The `build.env` file
@@ -209,7 +243,7 @@ Docker images can be build using the [`build_docker_images`](util/build_docker_i
 
 ```bash
 # Build a single image
-./util/build_docker_images -d docker/scvi
+./util/build_docker_images -d docker/fastp
 
 # Build all images in the `docker` directory
 ./util/build_docker_images -d docker
@@ -222,6 +256,12 @@ Docker images can be build using the [`build_docker_images`](util/build_docker_i
 
 | Image | Major tool versions | Links |
 | :- | :- | :- |
+| fastqc | <ul><li>[fastqc v0.12.0](https://github.com/s-andrews/FastQC/releases/tag/v0.12.0)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/fastqc) |
+| fastp | <ul><li>[fastp v0.23.4](https://github.com/OpenGene/fastp/releases/tag/v0.23.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/fastp) |
+| star_samtools | <ul><li>[star 2.7.11b](https://github.com/alexdobin/STAR/releases/tag/2.7.11b)</li><li>[samtools 1.20](https://github.com/samtools/samtools/releases/tag/1.20)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/star_samtools) |
+| salmon | <ul><li>[salmon v1.10.1](https://github.com/COMBINE-lab/salmon/releases/tag/v1.10.1)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/salmon) |
+| pydeseq2 | Python (v3.10.12) libraries: <ul><li>[pydeseq2 v0.4.11](https://github.com/owkin/PyDESeq2/releases/tag/v0.4.11)</li><li>[scikit-learn 1.1.1](https://github.com/scikit-learn/scikit-learn/releases/tag/1.1.1)</li><li>[scipy v1.11.0](https://github.com/scipy/scipy/releases/tag/v1.11.1)</li><li>[pytximport 0.8.0](https://github.com/complextissue/pytximport/releases/tag/0.8.0)</li><li>[matplotlib v3.9.2](https://github.com/matplotlib/matplotlib/releases/tag/v3.9.2)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/pydeseq2) |
+| multiqc | <ul><li>[multiqc v1.24.1](https://github.com/MultiQC/MultiQC/releases/tag/v1.24.1)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/multiqc) |
 | util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/util) |
 
 
@@ -235,7 +275,7 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 # Notes
 ## Reference data
 
-Release 46 (GRCh38.p14) on GENCODE was used in this pipeline. The GTF file was used to create a tx2gene dataframe in R:
+[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/) and the [ENCODE hg38 blacklist genes](https://github.com/Boyle-Lab/Blacklist/blob/master/lists/hg38-blacklist.v2.bed.gz) were used in this pipeline. The GENCODE GTF file was used to create a tx2gene dataframe in R:
 ```R
 library(GenomicFeatures)
 
