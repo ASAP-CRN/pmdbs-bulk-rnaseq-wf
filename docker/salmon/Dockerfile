@@ -15,25 +15,30 @@ RUN apt-get -qq update \
 		wget \
 		time \
 		gzip \
+		unzip \
+		cmake \
 		make \
 		gcc \
-		build-essential \
-		libz-dev \
-		libncurses5-dev \
-		libbz2-dev \
+		g++ \
+		libboost-all-dev \
 		liblzma-dev \
+		libbz2-dev \
+		ca-certificates \
+		zlib1g-dev \
+		libcurl4-openssl-dev \
+		autoconf \
+		apt-transport-https \
+		gnupg \
+		software-properties-common \
 	&& rm -rf /var/lib/apt/lists/*
 
 # SALMON
 ARG SALMON_VERSION
 ENV SALMON_VERSION "${SALMON_VERSION}"
 RUN wget https://github.com/COMBINE-lab/salmon/archive/v${SALMON_VERSION}.tar.gz \
-	&& tar -xzf salmon-${SALMON_VERSION}.tar.gz \
+	&& tar -xzf v${SALMON_VERSION}.tar.gz \
 	&& mv salmon-${SALMON_VERSION} /opt/salmon
-RUN cd /opt/salmon && \
-	./configure --prefix=/usr/local/ && \
-	make && \
-	make install
-
-COPY --from=scripts /opt/scripts /opt/scripts
-ENV PATH "${PATH}:/opt/scripts"
+RUN cd /opt/salmon \
+	&& cmake -DCMAKE_INSTALL_PREFIX=/usr/local/salmon \
+	&& make \
+	&& make install

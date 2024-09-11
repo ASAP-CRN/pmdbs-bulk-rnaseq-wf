@@ -26,7 +26,7 @@ RUN apt-get -qq update \
 		libc6-dev \
 		libbz2-dev \
 		libffi-dev \
-		liblzma-dev
+		liblzma-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
 ARG PYDESEQ2_VERSION
@@ -48,6 +48,3 @@ RUN ln -s /opt/Python-${PYTHON3_VERSION}/python /opt/Python-${PYTHON3_VERSION}/p
 
 COPY ./requirements.txt /opt/requirements.txt
 RUN python3 -m pip install -r /opt/requirements.txt
-
-COPY --from=scripts /opt/scripts /opt/scripts
-ENV PATH "${PATH}:/opt/scripts"

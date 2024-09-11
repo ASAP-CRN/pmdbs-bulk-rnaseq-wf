@@ -42,6 +42,3 @@ RUN cd /opt/samtools-${SAMTOOLS_VERSION} && \
 	./configure --prefix=/usr/local/ && \
 	make && \
 	make install
-
-COPY --from=scripts /opt/scripts /opt/scripts
-ENV PATH "${PATH}:/opt/scripts"

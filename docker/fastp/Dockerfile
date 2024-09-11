@@ -24,6 +24,3 @@ RUN wget http://opengene.org/fastp/fastp.${FASTP_VERSION} \
 	&& mv fastp.${FASTP_VERSION} /opt/fastp
 RUN chmod a+x /opt/fastp \
 	&& ln -s /opt/fastp /usr/local/bin/
-
-COPY --from=scripts /opt/scripts /opt/scripts
-ENV PATH "${PATH}:/opt/scripts"

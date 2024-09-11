@@ -27,6 +27,3 @@ RUN wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${FAS
 	&& rm fastqc_v${FASTQC_VERSION}.zip
 RUN chmod +x /opt/FastQC/fastqc \
 	&& ln -s /opt/FastQC/fastqc /usr/local/bin/
-
-COPY --from=scripts /opt/scripts /opt/scripts
-ENV PATH "${PATH}:/opt/scripts"
