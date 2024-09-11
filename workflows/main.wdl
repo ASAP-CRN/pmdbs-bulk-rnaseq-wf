@@ -105,11 +105,10 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					upstream.mapping_mode_multiqc_data_tar_gz
 				]
 			])
-		)
-		#!StringCoercion
+		) #!StringCoercion
 
-		if (run_alignment_quantification) {
-			if (project.run_project_cohort_analysis) {
+		if (project.run_project_cohort_analysis) {
+			if (run_alignment_quantification) {
 				call Downstream.downstream as alignment_mode_project_downstream {
 					input:
 						cohort_id = project.project_id,
@@ -131,10 +130,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						zones = zones
 				}
 			}
-		}
 
-		if (run_pseudo_mapping_quantification) {
-			if (project.run_project_cohort_analysis) {
+			if (run_pseudo_mapping_quantification) {
 				call Downstream.downstream as mapping_mode_project_downstream {
 					input:
 						cohort_id = project.project_id,
@@ -167,7 +164,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				input:
 					cohort_id = cohort_id,
 					project_sample_ids = flatten(upstream.project_sample_ids),
-					upstream_output_file_paths = upstream_output_file_paths,
+					upstream_output_file_paths = flatten(upstream_output_file_paths),
 					metadata_csv = metadata_csv,
 					gene_map_csv = gene_map_csv,
 					blacklist_genes_bed = blacklist_genes_bed,
@@ -190,7 +187,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				input:
 					cohort_id = cohort_id,
 					project_sample_ids = flatten(upstream.project_sample_ids),
-					upstream_output_file_paths = upstream_output_file_paths,
+					upstream_output_file_paths = flatten(upstream_output_file_paths),
 					metadata_csv = metadata_csv,
 					gene_map_csv = gene_map_csv,
 					blacklist_genes_bed = blacklist_genes_bed,
@@ -232,11 +229,15 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File?]] star_progress_log = upstream.progress_log
 		Array[Array[File?]] star_sj_out_tab = upstream.sj_out_tab
 		Array[Array[File?]] salmon_alignment_mode_quant_tar_gz = upstream.alignment_mode_quant_tar_gz
+
+		# Multiqc on alignment-mode
 		Array[File?] salmon_alignment_mode_multiqc_report_html = upstream.alignment_mode_multiqc_report_html
 		Array[File?] salmon_alignment_mode_multiqc_data_tar_gz = upstream.alignment_mode_multiqc_data_tar_gz
 
 		# Direct quantification with mapping
 		Array[Array[File?]] salmon_mapping_mode_quant_tar_gz = upstream.mapping_mode_quant_tar_gz
+
+		# Multiqc on mapping-mode
 		Array[File?] salmon_mapping_mode_multiqc_report_html = upstream.mapping_mode_multiqc_report_html
 		Array[File?] salmon_mapping_mode_multiqc_data_tar_gz = upstream.mapping_mode_multiqc_data_tar_gz
 
