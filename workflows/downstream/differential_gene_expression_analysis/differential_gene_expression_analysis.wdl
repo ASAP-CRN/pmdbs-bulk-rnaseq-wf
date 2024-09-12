@@ -6,9 +6,7 @@ workflow differential_gene_expression_analysis {
 	input {
 		String cohort_id
 		
-		File cohort_sample_list
-
-		File metadata_csv
+		File metadata_csv # TODO - ASAP_sample_id will be metadata once DTi processes them (SAMPLE.csv)
 		File gene_map_csv
 		File blacklist_genes_bed
 
@@ -27,7 +25,6 @@ workflow differential_gene_expression_analysis {
 	call differential_gene_expression {
 		input:
 			cohort_id = cohort_id,
-			cohort_sample_list = cohort_sample_list,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
 			blacklist_genes_bed = blacklist_genes_bed,
@@ -52,8 +49,6 @@ task differential_gene_expression {
 	input {
 		String cohort_id
 		
-		File cohort_sample_list
-
 		File metadata_csv
 		File gene_map_csv
 		File blacklist_genes_bed
@@ -70,14 +65,10 @@ task differential_gene_expression {
 
 	Int threads = 24
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size([cohort_sample_list, metadata_csv, gene_map_csv, blacklist_genes_bed], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 50)
+	Int disk_size = ceil((size([metadata_csv, gene_map_csv, blacklist_genes_bed], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 50)
 
 	command <<<
 		set -euo pipefail
-
-		# TODO - might not need this because sample IDs are in metadata
-		sample_id_column_no=$(tr '\t' '\n' < <(head -1 ~{cohort_sample_list}) | grep -n "sample_id" | cut -d : -f 1)
-		sample_ids=$(cut -f "$sample_id_column_no" ~{cohort_sample_list} | sed -r '/^\s*$/d')
 
 		while read -r quant_tar_gz || [[ -n "${quant_tar_gz}" ]]; do
 			tar -xzvf "${quant_tar_gz}"
@@ -85,7 +76,6 @@ task differential_gene_expression {
 
 		python3 pydeseq2.py \
 			--cohort-id ~{cohort_id} \
-			--samples "${sample_ids}" \
 			--metadata ~{metadata_csv} \
 			--gene-map ~{gene_map_csv} \
 			--blacklist-genes ~{blacklist_genes_bed} \

@@ -55,7 +55,6 @@ workflow downstream {
 	call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis {
 		input:
 			cohort_id = cohort_id,
-			cohort_sample_list = write_cohort_sample_list.cohort_sample_list, #!FileCoercion
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
 			blacklist_genes_bed = blacklist_genes_bed,

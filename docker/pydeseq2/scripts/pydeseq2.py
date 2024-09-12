@@ -14,13 +14,9 @@ def main(args):
     ## METADATA ##
     ##############
 
-    # TODO load in the metadata and filter
-    ## Check if there are empty entries for samples (i.e. condition), remove, and save into CSV
-    ### Example:
+    # Remove samples with missing annotations
     metadata = pd.read_csv(args.metadata)
-
-    samples_to_keep = ~metadata.condition.isna()
-    counts_df = counts_df.loc[samples_to_keep]
+    samples_to_keep =  ~(metadata.batch.isna() | metadata.condition.isna())
     metadata = metadata.loc[samples_to_keep]
 
 
@@ -33,8 +29,8 @@ def main(args):
     blacklist_genes = pd.read_csv(args.blacklist_genes)
 
     path = os.getcwd()
-    samples = [args.samples]
-    files = [os.path.join(path, "/", args.sample, "_salmon_quant/quant.sf") for sample in samples]
+    samples = metadata["ASAP_sample_id"].tolist()
+    files = [os.path.join(path, "/", sample, "_salmon_quant/quant.sf") for sample in samples]
     #files_dict = dict(zip(samples, files))
 
     txi_counts = tximport(
@@ -47,7 +43,7 @@ def main(args):
     dds = DeseqDataSet(
         counts=txi_counts,
         clinical=metadata,
-        design_factors=["group", "condition"], #TODO
+        design_factors=["batch", "condition"],
     )
 
     ## Remove genes with less than 10 read counts total
@@ -62,9 +58,11 @@ def main(args):
     # Statistical analysis
     log2_fc_threshold = 1
     padj_threshold = 0.05
+    unique_conditions = metadata["condition"].unique().tolist()
+    unique_conditions.insert(0, "condition")
     stat_res = DeseqStats(
         dds,
-        contrast=["condition", "B", "A"], #TODO
+        contrast=unique_conditions, # Comparing condition only but model uses information from both the condition and batch variables
     )
     results_df = stat_res.results_df
     sig_genes = results_df[(results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"].abs() > log2_fc_threshold)]
@@ -149,13 +147,6 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Cohort ID"
-    )
-    parser.add_argument(
-        "-s"
-        "--samples",
-        type=str,
-        required=True,
-        help="Sample IDs"
     )
     parser.add_argument(
         "-m"
