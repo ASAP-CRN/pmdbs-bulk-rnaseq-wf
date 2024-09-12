@@ -39,6 +39,7 @@ workflow downstream {
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
 	String raw_data_path = "~{raw_data_path_prefix}/~{sub_workflow_name}/~{sub_workflow_version}/~{run_timestamp}"
+	String downstream_staging_data_path = "~{sub_workflow_name}/~{salmon_mode}"
 
 	call WriteCohortSampleList.write_cohort_sample_list {
 		input:
@@ -78,6 +79,9 @@ workflow downstream {
 
 	Array[String] downstream_final_output_paths = flatten([
 		[
+			write_cohort_sample_list.cohort_sample_list
+		],
+		[
 			differential_gene_expression_analysis.significant_genes_csv,
 			differential_gene_expression_analysis.pca_plot_png,
 			differential_gene_expression_analysis.volcano_plot_png
@@ -88,7 +92,7 @@ workflow downstream {
 		input:
 			output_file_paths = downstream_final_output_paths,
 			staging_data_buckets = staging_data_buckets,
-			staging_data_path = sub_workflow_name,
+			staging_data_path = downstream_staging_data_path,
 			billing_project = billing_project,
 			zones = zones
 	}

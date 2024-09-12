@@ -258,7 +258,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[File?] project_pydeseq2_mapping_mode_pca_plot_png = mapping_mode_project_downstream.pca_plot_png
 		Array[File?] project_pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_project_downstream.volcano_plot_png
 
-		# TODO this will replace the alignment_mode_project_downstream MANIFEST.tsv's
 		Array[Array[File]?] mapping_mode_upstream_manifests = mapping_mode_project_downstream.upstream_manifest_tsvs
 		Array[Array[File]?] mapping_mode_project_manifests = mapping_mode_project_downstream.downstream_manifest_tsvs
 
