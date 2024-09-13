@@ -39,7 +39,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	String workflow_execution_path = "workflow_execution"
-	String workflow_name = "pmdbs_bulk_rnaseq_analysis"
+	String workflow_name = "pmdbs_bulk_rnaseq"
 	String workflow_version = "v1.0.0"
 	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-~{workflow_version}"
 
