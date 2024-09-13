@@ -4,7 +4,7 @@ version 1.0
 
 workflow differential_gene_expression_analysis {
 	input {
-		String cohort_id
+		String project_id
 		
 		File metadata_csv # TODO - ASAP_sample_id will be metadata once DTi processes them (SAMPLE.csv)
 		File gene_map_csv
@@ -20,11 +20,9 @@ workflow differential_gene_expression_analysis {
 		String zones
 	}
 
-	# TODO add step to modify metadata in task
-
 	call differential_gene_expression {
 		input:
-			cohort_id = cohort_id,
+			project_id = project_id,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
 			blacklist_genes_bed = blacklist_genes_bed,
@@ -47,7 +45,7 @@ workflow differential_gene_expression_analysis {
 
 task differential_gene_expression {
 	input {
-		String cohort_id
+		String project_id
 		
 		File metadata_csv
 		File gene_map_csv
@@ -75,7 +73,7 @@ task differential_gene_expression {
 		done < ~{write_lines(salmon_quant_tar_gz)}
 
 		python3 pydeseq2.py \
-			--cohort-id ~{cohort_id} \
+			--cohort-id ~{project_id} \
 			--metadata ~{metadata_csv} \
 			--gene-map ~{gene_map_csv} \
 			--blacklist-genes ~{blacklist_genes_bed} \
@@ -85,15 +83,15 @@ task differential_gene_expression {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.~{salmon_mode}.pydeseq2_significant_genes.csv" \
-			-o "~{cohort_id}.~{salmon_mode}.pca_plot.png" \
-			-o "~{cohort_id}.~{salmon_mode}.volcano_plot.png"
+			-o "~{project_id}.~{salmon_mode}.pydeseq2_significant_genes.csv" \
+			-o "~{project_id}.~{salmon_mode}.pca_plot.png" \
+			-o "~{project_id}.~{salmon_mode}.volcano_plot.png"
 	>>>
 
 	output {
-		String significant_genes_csv = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.pydeseq2_significant_genes.csv"
-		String pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.pca_plot.png"
-		String volcano_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.volcano_plot.png"
+		String significant_genes_csv = "~{raw_data_path}/~{project_id}.~{salmon_mode}.pydeseq2_significant_genes.csv"
+		String pca_plot_png = "~{raw_data_path}/~{project_id}.~{salmon_mode}.pca_plot.png"
+		String volcano_plot_png = "~{raw_data_path}/~{project_id}.~{salmon_mode}.volcano_plot.png"
 	}
 	runtime {
 		docker: "~{container_registry}/pydeseq2:0.4.11"

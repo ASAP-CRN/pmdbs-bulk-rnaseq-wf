@@ -1,18 +1,16 @@
 version 1.0
 
-# Downstream analysis including DGE analysis across multiple groups
+# Downstream analysis including generating a single HTML report for multiple bioinformatics analyses across many samples and DGE analysis across multiple groups
 
-import "../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
+import "../wf-common/wdl/tasks/multiqc.wdl" as Multiqc
 import "differential_gene_expression_analysis/differential_gene_expression_analysis.wdl" as DifferentialGeneExpressionAnalysis
-import "../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow downstream {
 	input {
-		String cohort_id
-		Array[Array[String]] project_sample_ids
+		String project_id
 
-		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
-		Array[String] upstream_output_file_paths = []
+		Array[File] output_files
+		String output_name
 
 		File metadata_csv
 		File gene_map_csv
@@ -26,7 +24,6 @@ workflow downstream {
 		String workflow_release
 		String run_timestamp
 		String raw_data_path_prefix
-		Array[String] staging_data_buckets
 		String billing_project
 		String container_registry
 		String zones
@@ -38,12 +35,12 @@ workflow downstream {
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
 	String raw_data_path = "~{raw_data_path_prefix}/~{sub_workflow_name}/~{sub_workflow_version}/~{run_timestamp}"
-	String downstream_staging_data_path = "~{sub_workflow_name}/~{salmon_mode}"
 
-	call WriteCohortSampleList.write_cohort_sample_list {
+	call Multiqc.multiqc {
 		input:
-			cohort_id = cohort_id,
-			project_sample_ids = project_sample_ids,
+			project_id = project_id,
+			output_files = output_files,
+			output_name = output_name,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -53,7 +50,7 @@ workflow downstream {
 
 	call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis {
 		input:
-			cohort_id = cohort_id,
+			project_id = project_id,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
 			blacklist_genes_bed = blacklist_genes_bed,
@@ -66,44 +63,14 @@ workflow downstream {
 			zones = zones
 	}
 
-	call UploadFinalOutputs.upload_final_outputs as upload_upstream_files {
-		input:
-			output_file_paths = upstream_output_file_paths,
-			staging_data_buckets = staging_data_buckets,
-			staging_data_path = "upstream",
-			billing_project = billing_project,
-			zones = zones
-	}
-
-	Array[String] downstream_final_output_paths = flatten([
-		[
-			write_cohort_sample_list.cohort_sample_list
-		],
-		[
-			differential_gene_expression_analysis.significant_genes_csv,
-			differential_gene_expression_analysis.pca_plot_png,
-			differential_gene_expression_analysis.volcano_plot_png
-		]
-	]) #!StringCoercion
-
-	call UploadFinalOutputs.upload_final_outputs as upload_downstream_files {
-		input:
-			output_file_paths = downstream_final_output_paths,
-			staging_data_buckets = staging_data_buckets,
-			staging_data_path = downstream_staging_data_path,
-			billing_project = billing_project,
-			zones = zones
-	}
-
 	output {
-		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
-
 		# PyDESeq2 DGE Analysis
 		File significant_genes_csv = differential_gene_expression_analysis.significant_genes_csv #!FileCoercion
 		File pca_plot_png = differential_gene_expression_analysis.pca_plot_png #!FileCoercion
 		File volcano_plot_png = differential_gene_expression_analysis.volcano_plot_png #!FileCoercion
 
-		Array[File] upstream_manifest_tsvs = upload_upstream_files.manifests #!FileCoercion
-		Array[File] downstream_manifest_tsvs = upload_downstream_files.manifests #!FileCoercion
+		# MultiQC report
+		File multiqc_report_html = multiqc.multiqc_report_html #!FileCoercion
+		File multiqc_data_tar_gz = multiqc.multiqc_data_tar_gz #!FileCoercion
 	}
 }

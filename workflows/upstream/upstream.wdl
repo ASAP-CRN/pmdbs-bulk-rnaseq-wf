@@ -1,12 +1,11 @@
 version 1.0
 
-# Perform QC, trim, align, and quantify reads, and generate a single HTML report for multiple bioinformatics analyses across many samples
+# Perform QC, trim, align, and quantify reads
 
 import "../pmdbs_bulk_rnaseq_analysis_structs.wdl"
 import "../wf-common/wdl/tasks/fastqc.wdl" as Fastqc
 import "alignment_quantification/alignment_quantification.wdl" as AlignmentQuantification
 import "pseudo_mapping_quantification/pseudo_mapping_quantification.wdl" as PseudoMappingQuantification
-import "../wf-common/wdl/tasks/multiqc.wdl" as Multiqc
 
 workflow upstream {
 	input {
@@ -47,7 +46,6 @@ workflow upstream {
 	String fastqc_trimmed_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_trimmed_reads/~{sub_workflow_version}"
 	String star_and_salmon_alignment_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/alignment_quantification/~{alignment_quantification_workflow_version}"
 	String salmon_mapping_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/mapping_quantification/~{pseudo_mapping_quantification_workflow_version}"
-	String multiqc_raw_data_path = "~{workflow_raw_data_path_prefix}/multiqc/~{sub_workflow_version}"
 
 	scatter (sample_object in samples) {
 		String fastqc_raw_reads_output = "~{fastqc_raw_reads_raw_data_path}/~{sample_object.sample_id}.fastqc_reports.tar.gz"
@@ -55,8 +53,6 @@ workflow upstream {
 		String alignment_quantification_output = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample_object.sample_id}.alignment_mode.salmon_quant.tar.gz"
 		String pseudo_mapping_quantification_output = "~{salmon_mapping_mode_raw_data_path}/~{sample_object.sample_id}.mapping_mode.salmon_quant.tar.gz"
 	}
-	String alignment_quantification_multiqc_output = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_star_salmon_alignment_mode_report.html"
-	String pseudo_mapping_quantification_multiqc_output = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_salmon_mapping_mode_report.html"
 
 	# For each sample, outputs an array of true/false: [fastqc_raw_reads_complete, fastqc_trimmed_reads_complete, alignment_quantification_complete, pseudo_mapping_quantification_complete]
 	call check_output_files_exist {
@@ -65,8 +61,6 @@ workflow upstream {
 			fastqc_trimmed_reads_output_files = fastqc_trimmed_reads_output,
 			alignment_quantification_output_files = alignment_quantification_output,
 			pseudo_mapping_quantification_output_files = pseudo_mapping_quantification_output,
-			alignment_quantification_multiqc_output_file = alignment_quantification_multiqc_output,
-			pseudo_mapping_quantification_multiqc_output_file = pseudo_mapping_quantification_multiqc_output,
 			billing_project = billing_project,
 			zones = zones
 	}
@@ -207,71 +201,6 @@ workflow upstream {
 		}
 	}
 
-	String alignment_quantification_multiqc_complete = check_output_files_exist.multiqc_complete[0][0]
-	String pseudo_mapping_quantification_multiqc_complete = check_output_files_exist.multiqc_complete[0][1]
-
-	if (run_alignment_quantification) {
-		String alignment_quantification_multiqc_report_html = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_star_salmon_alignment_mode_report.html"
-		String alignment_quantification_multiqc_data_tar_gz = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_star_salmon_alignment_mode_report_data.tar.gz"
-
-		if (alignment_quantification_multiqc_complete == "false") {
-			call Multiqc.multiqc as multiqc_alignment_mode {
-				input:
-					project_id = project_id,
-					output_files = select_all(
-						flatten([
-							fastqc_reports_tar_gz_output,
-							reports_html_tar_gz_output,
-							trimmed_fastqc_reports_tar_gz_output,
-							log_output,
-							final_log_output,
-							progress_log_output,
-							sj_out_tab_output,
-							salmon_alignment_mode_quant_tar_gz_output
-						])
-					),
-					output_name = "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
-					raw_data_path = multiqc_raw_data_path,
-					workflow_info = workflow_info,
-					billing_project = billing_project,
-					container_registry = container_registry,
-					zones = zones
-			}
-		}
-
-		File alignment_quantification_multiqc_report_html_output = select_first([multiqc_alignment_mode.multiqc_report_html, alignment_quantification_multiqc_report_html]) #!FileCoercion
-		File alignment_quantification_multiqc_data_tar_gz_output = select_first([multiqc_alignment_mode.multiqc_data_tar_gz, alignment_quantification_multiqc_data_tar_gz]) #!FileCoercion
-	}
-
-	if (run_pseudo_mapping_quantification) {
-		String pseudo_mapping_quantification_multiqc_report_html = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_salmon_mapping_mode_report.html"
-		String pseudo_mapping_quantification_multiqc_data_tar_gz = "~{multiqc_raw_data_path}/~{project_id}.multiqc_fastqc_fastp_salmon_mapping_mode_report_data.tar.gz"
-
-		if (pseudo_mapping_quantification_multiqc_complete == "false") {
-			call Multiqc.multiqc as multiqc_mapping_mode {
-				input:
-					project_id = project_id,
-					output_files = select_all(
-						flatten([
-							fastqc_reports_tar_gz_output,
-							reports_html_tar_gz_output,
-							trimmed_fastqc_reports_tar_gz_output,
-							salmon_mapping_mode_quant_tar_gz_output
-						])
-					),
-					output_name = "multiqc_fastqc_fastp_salmon_mapping_mode_report",
-					raw_data_path = multiqc_raw_data_path,
-					workflow_info = workflow_info,
-					billing_project = billing_project,
-					container_registry = container_registry,
-					zones = zones
-			}
-		}
-
-		File pseudo_mapping_quantification_multiqc_report_html_output = select_first([multiqc_mapping_mode.multiqc_report_html, pseudo_mapping_quantification_multiqc_report_html]) #!FileCoercion
-		File pseudo_mapping_quantification_multiqc_data_tar_gz_output = select_first([multiqc_mapping_mode.multiqc_data_tar_gz, pseudo_mapping_quantification_multiqc_data_tar_gz]) #!FileCoercion
-	}
-
 	output {
 		# Sample list
 		Array[Array[String]] project_sample_ids = project_sample_id
@@ -299,15 +228,9 @@ workflow upstream {
 		Array[File?] sj_out_tab = sj_out_tab_output #!FileCoercion
 		# Salmon alignment-mode quantification
 		Array[File?] alignment_mode_quant_tar_gz = salmon_alignment_mode_quant_tar_gz_output #!FileCoercion
-		# MultiQC report alignment-mode
-		File? alignment_mode_multiqc_report_html = alignment_quantification_multiqc_report_html_output #!FileCoercion
-		File? alignment_mode_multiqc_data_tar_gz = alignment_quantification_multiqc_data_tar_gz_output #!FileCoercion
 
 		# Salmon mapping and quantification
 		Array[File?] mapping_mode_quant_tar_gz = salmon_mapping_mode_quant_tar_gz_output #!FileCoercion
-		# MultiQC report mapping-mode
-		File? mapping_mode_multiqc_report_html = pseudo_mapping_quantification_multiqc_report_html_output #!FileCoercion
-		File? mapping_mode_multiqc_data_tar_gz = pseudo_mapping_quantification_multiqc_data_tar_gz_output #!FileCoercion
 	}
 }
 
@@ -317,8 +240,6 @@ task check_output_files_exist {
 		Array[String] fastqc_trimmed_reads_output_files
 		Array[String] alignment_quantification_output_files
 		Array[String] pseudo_mapping_quantification_output_files
-		String alignment_quantification_multiqc_output_file
-		String pseudo_mapping_quantification_multiqc_output_file
 
 		String billing_project
 		String zones
@@ -361,29 +282,10 @@ task check_output_files_exist {
 				echo -e "false\tfalse\tfalse\tfalse" >> sample_preprocessing_complete.tsv
 			fi
 		done < <(paste ~{write_lines(fastqc_raw_reads_output_files)} ~{write_lines(fastqc_trimmed_reads_output_files)} ~{write_lines(alignment_quantification_output_files)} ~{write_lines(pseudo_mapping_quantification_output_files)})
-
-		if gsutil -u ~{billing_project} ls ~{alignment_quantification_multiqc_output_file}; then
-			if gsutil -u ~{billing_project} ls ~{pseudo_mapping_quantification_multiqc_output_file}; then
-				# If we find all outputs, don't rerun anything
-				echo -e "true\ttrue" >> multiqc_complete.tsv
-			else
-				# If we can't find the multiqc report for pseudo mapping quantification, then run
-				echo -e "true\tfalse" >> multiqc_complete.tsv
-			fi
-		else
-			if gsutil -u ~{billing_project} ls ~{pseudo_mapping_quantification_multiqc_output_file}; then
-				# If we can't find the multiqc report for alignment quantification, then run
-				echo -e "false\ttrue" >> multiqc_complete.tsv
-			else
-				# If we can't find any multiqc reports, then run (or rerun) everything
-				echo -e "false\tfalse" >> multiqc_complete.tsv
-			fi
-		fi
 	>>>
 
 	output {
 		Array[Array[String]] sample_preprocessing_complete = read_tsv("sample_preprocessing_complete.tsv")
-		Array[Array[String]] multiqc_complete = read_tsv("multiqc_complete.tsv")
 	}
 
 	runtime {
