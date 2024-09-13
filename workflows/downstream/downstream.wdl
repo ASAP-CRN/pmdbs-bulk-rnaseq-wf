@@ -17,7 +17,6 @@ workflow downstream {
 		File metadata_csv
 		File gene_map_csv
 		File blacklist_genes_bed
-		File cell_type_markers_list #TODO
 
 		String salmon_mode
 		Array[File] salmon_quant_tar_gz

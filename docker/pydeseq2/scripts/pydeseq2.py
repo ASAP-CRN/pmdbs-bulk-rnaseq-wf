@@ -1,4 +1,5 @@
 import os
+import re
 import argparse
 import pandas as pd
 import numpy as np
@@ -46,7 +47,7 @@ def main(args):
         design_factors=["batch", "condition"],
     )
 
-    ## Remove genes with less than 10 read counts total
+    # Remove genes with less than 10 read counts total
     dds.counts = dds.counts.loc[dds.counts.sum(axis=1) >= 10]
 
     # Remove blacklist genes
@@ -59,10 +60,16 @@ def main(args):
     log2_fc_threshold = 1
     padj_threshold = 0.05
     unique_conditions = metadata["condition"].unique().tolist()
-    unique_conditions.insert(0, "condition")
+    # Ensure "control" is at the end of the list so it's ref_level
+    pattern = re.compile(r'^(control|ctl)$', re.IGNORECASE) # TODO make control arg?
+    control_conds = [cond for cond in unique_conditions if pattern.match(cond)]
+    filtered_conds = [cond for cond in unique_conditions if not pattern.match(cond)]
+    final_conditions = filtered_conds + control_conds
+    final_conditions.insert(0, "condition")
+    print(f"Levels used for contrast: {final_conditions}")
     stat_res = DeseqStats(
         dds,
-        contrast=unique_conditions, # Comparing condition only but model uses information from both the condition and batch variables
+        contrast=final_conditions, # Comparing condition only but model uses information from both the condition and batch variables
     )
     results_df = stat_res.results_df
     sig_genes = results_df[(results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"].abs() > log2_fc_threshold)]
