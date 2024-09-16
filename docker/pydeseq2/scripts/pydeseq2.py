@@ -14,17 +14,15 @@ def main(args):
     ##############
     ## METADATA ##
     ##############
-
     # Remove samples with missing annotations
     metadata = pd.read_csv(args.metadata)
     samples_to_keep =  ~(metadata.batch.isna() | metadata.condition.isna())
     metadata = metadata.loc[samples_to_keep]
-
+    
 
     ############
     ## COUNTS ##
     ############
-
     new_column_names = ["transcript_id", "gene_id"]
     gene_map = pd.read_csv(args.gene_map, names=new_column_names, header=0)
     blacklist_genes = pd.read_csv(args.blacklist_genes)

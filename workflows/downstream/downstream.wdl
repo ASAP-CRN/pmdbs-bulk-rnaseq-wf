@@ -64,13 +64,13 @@ workflow downstream {
 	}
 
 	output {
-		# PyDESeq2 DGE Analysis
-		File significant_genes_csv = differential_gene_expression_analysis.significant_genes_csv #!FileCoercion
-		File pca_plot_png = differential_gene_expression_analysis.pca_plot_png #!FileCoercion
-		File volcano_plot_png = differential_gene_expression_analysis.volcano_plot_png #!FileCoercion
-
 		# MultiQC report
 		File multiqc_report_html = multiqc.multiqc_report_html #!FileCoercion
 		File multiqc_data_tar_gz = multiqc.multiqc_data_tar_gz #!FileCoercion
+		
+		# PyDESeq2 DGE Analysis
+		File dds_object_pkl = differential_gene_expression_analysis.dds_object_pkl #!FileCoercion
+		File significant_genes_csv = differential_gene_expression_analysis.significant_genes_csv #!FileCoercion
+		File volcano_plot_png = differential_gene_expression_analysis.volcano_plot_png #!FileCoercion
 	}
 }

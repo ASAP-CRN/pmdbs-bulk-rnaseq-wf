@@ -7,6 +7,7 @@ import "wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "index_ref_genome/index_ref_genome.wdl" as IndexRefGenome
 import "upstream/upstream.wdl" as Upstream
 import "downstream/downstream.wdl" as Downstream
+import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
 
 workflow pmdbs_bulk_rnaseq_analysis {
 	input {
@@ -80,7 +81,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				zones = zones
 		}
 
-		Array[String] upstream_output_file_paths = select_all(
+		Array[String] alignment_mode_upstream_output_file_paths = select_all(
 			flatten([
 				upstream.fastqc_reports_tar_gz,
 				flatten(upstream.trimmed_fastq_R1s),
@@ -96,29 +97,115 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				upstream.final_log,
 				upstream.progress_log,
 				upstream.sj_out_tab,
-				upstream.alignment_mode_quant_tar_gz,
-				upstream.mapping_mode_quant_tar_gz,
-				[
-					upstream.alignment_mode_multiqc_report_html,
-					upstream.alignment_mode_multiqc_data_tar_gz,
-					upstream.mapping_mode_multiqc_report_html,
-					upstream.mapping_mode_multiqc_data_tar_gz
-				]
+				upstream.alignment_mode_quant_tar_gz
 			])
 		) #!StringCoercion
 
+		Array[String] mapping_mode_upstream_output_file_paths = select_all(
+			flatten([
+				upstream.fastqc_reports_tar_gz,
+				flatten(upstream.trimmed_fastq_R1s),
+				flatten(upstream.trimmed_fastq_R2s),
+				upstream.failed_paired_fastqs_tar_gz,
+				upstream.reports_html_tar_gz,
+				upstream.trimmed_fastqc_reports_tar_gz,
+				upstream.mapping_mode_quant_tar_gz
+			])
+		) #!StringCoercion
+
+		if (run_alignment_quantification) {
+			call Downstream.downstream as alignment_mode_downstream {
+				input:
+					project_id = project.project_id,
+					output_files = select_all(
+						flatten([
+							upstream.fastqc_reports_tar_gz,
+							upstream.reports_html_tar_gz,
+							upstream.trimmed_fastqc_reports_tar_gz,
+							upstream.log,
+							upstream.final_log,
+							upstream.progress_log,
+							upstream.sj_out_tab,
+							upstream.alignment_mode_quant_tar_gz
+						])
+					),
+					output_name = "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
+					metadata_csv = metadata_csv,
+					gene_map_csv = gene_map_csv,
+					blacklist_genes_bed = blacklist_genes_bed,
+					salmon_mode = "alignment_mode",
+					salmon_quant_tar_gz = select_all(upstream.alignment_mode_quant_tar_gz),
+					workflow_name = workflow_name,
+					workflow_version = workflow_version,
+					workflow_release = workflow_release,
+					run_timestamp = get_workflow_metadata.timestamp,
+					raw_data_path_prefix = project_raw_data_path_prefix,
+					billing_project = get_workflow_metadata.billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+		}
+
+		if (run_pseudo_mapping_quantification) {
+			call Downstream.downstream as mapping_mode_downstream {
+				input:
+					project_id = project.project_id,
+					output_files = select_all(
+						flatten([
+							upstream.fastqc_reports_tar_gz,
+							upstream.reports_html_tar_gz,
+							upstream.trimmed_fastqc_reports_tar_gz,
+							upstream.mapping_mode_quant_tar_gz
+						])
+					),
+					output_name = "multiqc_fastqc_fastp_salmon_mapping_mode_report",
+					metadata_csv = metadata_csv,
+					gene_map_csv = gene_map_csv,
+					blacklist_genes_bed = blacklist_genes_bed,
+					salmon_mode = "mapping_mode",
+					salmon_quant_tar_gz = select_all(upstream.mapping_mode_quant_tar_gz),
+					workflow_name = workflow_name,
+					workflow_version = workflow_version,
+					workflow_release = workflow_release,
+					run_timestamp = get_workflow_metadata.timestamp,
+					raw_data_path_prefix = project_raw_data_path_prefix,
+					billing_project = get_workflow_metadata.billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+		}
+
+		Array[String] alignment_mode_downstream_output_file_paths = flatten([
+			select_all([
+				alignment_mode_downstream.dds_object_pkl,
+				alignment_mode_downstream.significant_genes_csv,
+				alignment_mode_downstream.volcano_plot_png,
+				alignment_mode_downstream.multiqc_report_html,
+				alignment_mode_downstream.multiqc_data_tar_gz
+			])
+		]) #!StringCoercion
+
+		Array[String] mapping_mode_downstream_output_file_paths = flatten([
+			select_all([
+				mapping_mode_downstream.dds_object_pkl,
+				mapping_mode_downstream.significant_genes_csv,
+				mapping_mode_downstream.volcano_plot_png,
+				mapping_mode_downstream.multiqc_report_html,
+				mapping_mode_downstream.multiqc_data_tar_gz
+			])
+		]) #!StringCoercion
+
 		if (project.run_project_cohort_analysis) {
 			if (run_alignment_quantification) {
-				call Downstream.downstream as alignment_mode_project_downstream {
+				call CohortAnalysis.cohort_analysis as alignment_mode_project_cohort_analysis {
 					input:
 						cohort_id = project.project_id,
 						project_sample_ids = upstream.project_sample_ids,
-						upstream_output_file_paths = upstream_output_file_paths,
-						metadata_csv = metadata_csv,
-						gene_map_csv = gene_map_csv,
-						blacklist_genes_bed = blacklist_genes_bed,
+						upstream_output_file_paths = alignment_mode_upstream_output_file_paths,
+						downstream_output_file_paths = alignment_mode_downstream_output_file_paths,
+						significant_genes_csv = [select_first([alignment_mode_downstream.significant_genes_csv])],
+						dds_object_pkl = [select_first([alignment_mode_downstream.dds_object_pkl])],
 						salmon_mode = "alignment_mode",
-						salmon_quant_tar_gz = select_all(upstream.alignment_mode_quant_tar_gz),
 						workflow_name = workflow_name,
 						workflow_version = workflow_version,
 						workflow_release = workflow_release,
@@ -132,16 +219,15 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			}
 
 			if (run_pseudo_mapping_quantification) {
-				call Downstream.downstream as mapping_mode_project_downstream {
+				call CohortAnalysis.cohort_analysis as mapping_mode_project_cohort_analysis {
 					input:
 						cohort_id = project.project_id,
 						project_sample_ids = upstream.project_sample_ids,
-						upstream_output_file_paths = upstream_output_file_paths,
-						metadata_csv = metadata_csv,
-						gene_map_csv = gene_map_csv,
-						blacklist_genes_bed = blacklist_genes_bed,
+						upstream_output_file_paths = mapping_mode_upstream_output_file_paths,
+						downstream_output_file_paths = mapping_mode_downstream_output_file_paths,
+						significant_genes_csv = [select_first([mapping_mode_downstream.significant_genes_csv])],
+						dds_object_pkl = [select_first([mapping_mode_downstream.dds_object_pkl])],
 						salmon_mode = "mapping_mode",
-						salmon_quant_tar_gz = select_all(upstream.mapping_mode_quant_tar_gz),
 						workflow_name = workflow_name,
 						workflow_version = workflow_version,
 						workflow_release = workflow_release,
@@ -153,6 +239,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						zones = zones
 				}
 			}
+
 		}
 	}
 
@@ -160,16 +247,15 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		String cohort_raw_data_path_prefix = "~{cohort_raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
 
 		if (run_alignment_quantification) {
-			call Downstream.downstream as alignment_mode_cross_team_downstream {
+			call CohortAnalysis.cohort_analysis as alignment_mode_cross_team_cohort_analysis {
 				input:
 					cohort_id = cohort_id,
 					project_sample_ids = flatten(upstream.project_sample_ids),
-					upstream_output_file_paths = flatten(upstream_output_file_paths),
-					metadata_csv = metadata_csv,
-					gene_map_csv = gene_map_csv,
-					blacklist_genes_bed = blacklist_genes_bed,
+					upstream_output_file_paths = flatten(alignment_mode_upstream_output_file_paths),
+					downstream_output_file_paths = flatten(alignment_mode_downstream_output_file_paths),
+					significant_genes_csv = select_all(alignment_mode_downstream.significant_genes_csv),
+					dds_object_pkl = select_all(alignment_mode_downstream.dds_object_pkl),
 					salmon_mode = "alignment_mode",
-					salmon_quant_tar_gz = select_all(flatten(upstream.alignment_mode_quant_tar_gz)),
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
@@ -183,16 +269,15 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		}
 
 		if (run_pseudo_mapping_quantification) {
-			call Downstream.downstream  as mapping_mode_cross_team_downstream {
+			call CohortAnalysis.cohort_analysis  as mapping_mode_cross_team_cohort_analysis {
 				input:
 					cohort_id = cohort_id,
 					project_sample_ids = flatten(upstream.project_sample_ids),
-					upstream_output_file_paths = flatten(upstream_output_file_paths),
-					metadata_csv = metadata_csv,
-					gene_map_csv = gene_map_csv,
-					blacklist_genes_bed = blacklist_genes_bed,
+					upstream_output_file_paths = flatten(mapping_mode_upstream_output_file_paths),
+					downstream_output_file_paths = flatten(mapping_mode_downstream_output_file_paths),
+					significant_genes_csv = select_all(mapping_mode_downstream.significant_genes_csv),
+					dds_object_pkl = select_all(mapping_mode_downstream.dds_object_pkl),
 					salmon_mode = "mapping_mode",
-					salmon_quant_tar_gz = select_all(flatten(upstream.mapping_mode_quant_tar_gz)),
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
@@ -207,11 +292,11 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	output {
-		# Sample-level outputs
-		# Sample list
+		# Upstream - Sample-level outputs
+		## Sample list
 		Array[Array[Array[String]]] project_sample_ids = upstream.project_sample_ids
 
-		# Preprocess
+		## Preprocess
 		Array[Array[File]] fastqc_raw_reads_reports_tar_gz = upstream.fastqc_reports_tar_gz
 		Array[Array[Array[File]]] fastp_trimmed_fastq_R1s = upstream.trimmed_fastq_R1s
 		Array[Array[Array[File]]] fastp_trimmed_fastq_R2s = upstream.trimmed_fastq_R2s
@@ -219,7 +304,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File]] fastp_report_html_tar_gz = upstream.reports_html_tar_gz
 		Array[Array[File]] fastqc_trimmed_reads_reports_tar_gz = upstream.trimmed_fastqc_reports_tar_gz
 
-		# Alignment and quantification
+		## Alignment and quantification
 		Array[Array[File?]] star_aligned_bam = upstream.aligned_bam
 		Array[Array[File?]] star_aligned_bam_index = upstream.aligned_bam_index
 		Array[Array[File?]] star_unmapped_mate1 = upstream.unmapped_mate1
@@ -230,54 +315,61 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File?]] star_sj_out_tab = upstream.sj_out_tab
 		Array[Array[File?]] salmon_alignment_mode_quant_tar_gz = upstream.alignment_mode_quant_tar_gz
 
-		# Multiqc on alignment-mode
-		Array[File?] salmon_alignment_mode_multiqc_report_html = upstream.alignment_mode_multiqc_report_html
-		Array[File?] salmon_alignment_mode_multiqc_data_tar_gz = upstream.alignment_mode_multiqc_data_tar_gz
-
-		# Direct quantification with mapping
+		## Direct quantification with mapping
 		Array[Array[File?]] salmon_mapping_mode_quant_tar_gz = upstream.mapping_mode_quant_tar_gz
 
-		# Multiqc on mapping-mode
-		Array[File?] salmon_mapping_mode_multiqc_report_html = upstream.mapping_mode_multiqc_report_html
-		Array[File?] salmon_mapping_mode_multiqc_data_tar_gz = upstream.mapping_mode_multiqc_data_tar_gz
+		# Downstream - Project-level outputs
+		## Multiqc for alignment-mode
+		Array[File?] salmon_alignment_mode_multiqc_report_html = alignment_mode_downstream.multiqc_report_html
+		Array[File?] salmon_alignment_mode_multiqc_data_tar_gz = alignment_mode_downstream.multiqc_data_tar_gz
 
-		# Project downstream analysis outputs
+		## Multiqc for mapping-mode
+		Array[File?] salmon_mapping_mode_multiqc_report_html = mapping_mode_downstream.multiqc_report_html
+		Array[File?] salmon_mapping_mode_multiqc_data_tar_gz = mapping_mode_downstream.multiqc_data_tar_gz
+
+		## DGE analysis with Salmon alignment-mode counts
+		Array[File?] project_pydeseq2_alignment_mode_dds_object_pkl = alignment_mode_downstream.dds_object_pkl
+		Array[File?] project_pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_downstream.significant_genes_csv
+		Array[File?] project_pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_downstream.volcano_plot_png
+
+		## DGE analysis with Salmon mapping-mode counts
+		Array[File?] project_pydeseq2_mapping_mode_dds_object_pkl = mapping_mode_downstream.dds_object_pkl
+		Array[File?] project_pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_downstream.significant_genes_csv
+		Array[File?] project_pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_downstream.volcano_plot_png
+
+		# Project cohort analysis outputs
 		## List of samples included in the cohort. Both modes produce the same sample list
-		Array[File?] project_cohort_sample_list = alignment_mode_project_downstream.cohort_sample_list
+		Array[File?] project_cohort_sample_list = alignment_mode_project_cohort_analysis.cohort_sample_list
 
-		# DGE analysis with Salmon mapping-mode counts
-		Array[File?] project_pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_project_downstream.significant_genes_csv
-		Array[File?] project_pydeseq2_alignment_mode_pca_plot_png = alignment_mode_project_downstream.pca_plot_png
-		Array[File?] project_pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_project_downstream.volcano_plot_png
+		## PCA plot for alignment-mode
+		Array[File?] project_alignment_mode_pca_plot_png = alignment_mode_project_cohort_analysis.pca_plot_png
 
-		Array[Array[File]?] alignment_mode_upstream_manifests = alignment_mode_project_downstream.upstream_manifest_tsvs
-		Array[Array[File]?] alignment_mode_project_manifests = alignment_mode_project_downstream.downstream_manifest_tsvs
+		## PCA plot for mapping-mode
+		Array[File?] project_mapping_mode_pca_plot_png = mapping_mode_project_cohort_analysis.pca_plot_png
 
-		# DGE analysis with Salmon mapping-mode counts
-		Array[File?] project_pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_project_downstream.significant_genes_csv
-		Array[File?] project_pydeseq2_mapping_mode_pca_plot_png = mapping_mode_project_downstream.pca_plot_png
-		Array[File?] project_pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_project_downstream.volcano_plot_png
+		Array[Array[File]?] alignment_mode_upstream_manifests = alignment_mode_project_cohort_analysis.upstream_manifest_tsvs
+		Array[Array[File]?] alignment_mode_downstream_manifests = alignment_mode_project_cohort_analysis.downstream_manifest_tsvs
+		Array[Array[File]?] alignment_mode_project_manifests = alignment_mode_project_cohort_analysis.cohort_analysis_manifest_tsvs
 
-		Array[Array[File]?] mapping_mode_upstream_manifests = mapping_mode_project_downstream.upstream_manifest_tsvs
-		Array[Array[File]?] mapping_mode_project_manifests = mapping_mode_project_downstream.downstream_manifest_tsvs
+		Array[Array[File]?] mapping_mode_upstream_manifests = mapping_mode_project_cohort_analysis.upstream_manifest_tsvs
+		Array[Array[File]?] mapping_mode_downstream_manifests = mapping_mode_project_cohort_analysis.upstream_manifest_tsvs
+		Array[Array[File]?] mapping_mode_project_manifests = mapping_mode_project_cohort_analysis.cohort_analysis_manifest_tsvs
 
-		# Cross-team downstream outputs
+		# Cross-team cohort analysis outputs
 		## List of samples included in the cohort. Both modes produce the same sample list
-		File? cohort_sample_list = alignment_mode_cross_team_downstream.cohort_sample_list
+		File? cohort_sample_list = alignment_mode_cross_team_cohort_analysis.cohort_sample_list
 
-		# DGE analysis with Salmon mapping-mode counts
-		File? cohort_pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_cross_team_downstream.significant_genes_csv
-		File? cohort_pydeseq2_alignment_mode_pca_plot_png = alignment_mode_cross_team_downstream.pca_plot_png
-		File? cohort_pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_cross_team_downstream.volcano_plot_png
+		## Overlapping DEGs and PCA plot for alignment-mode
+		File? cohort_alignment_mode_overlapping_significant_genes_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
+		File? cohort_alignment_mode_pca_plot_png = alignment_mode_cross_team_cohort_analysis.pca_plot_png
 
-		Array[File]? alignment_mode_cohort_manifests = alignment_mode_cross_team_downstream.downstream_manifest_tsvs
+		## Overlapping DEGs and PCA plot for mapping-mode
+		File? cohort_mapping_mode_overlapping_significant_genes_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
+		File? cohort_mapping_mode_pca_plot_png = mapping_mode_cross_team_cohort_analysis.pca_plot_png
 
-		# DGE analysis with Salmon mapping-mode counts
-		File? cohort_pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_cross_team_downstream.significant_genes_csv
-		File? cohort_pydeseq2_mapping_mode_pca_plot_png = mapping_mode_cross_team_downstream.pca_plot_png
-		File? cohort_pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_cross_team_downstream.volcano_plot_png
+		Array[File]? alignment_mode_cohort_manifests = alignment_mode_cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 
-		Array[File]?  mapping_mode_cohort_manifests = mapping_mode_cross_team_downstream.downstream_manifest_tsvs
+		Array[File]? mapping_mode_cohort_manifests = mapping_mode_cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 	}
 
 	meta {
