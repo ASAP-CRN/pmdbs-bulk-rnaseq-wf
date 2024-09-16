@@ -37,8 +37,8 @@ workflow differential_gene_expression_analysis {
 
 	output {
 		# PyDESeq2 DGE Analysis
+		File dds_object_pkl = differential_gene_expression.dds_object_pkl #!FileCoercion
 		File significant_genes_csv = differential_gene_expression.significant_genes_csv #!FileCoercion
-		File pca_plot_png = differential_gene_expression.pca_plot_png #!FileCoercion
 		File volcano_plot_png = differential_gene_expression.volcano_plot_png #!FileCoercion
 	}
 }
@@ -83,14 +83,14 @@ task differential_gene_expression {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
+			-o "~{project_id}.~{salmon_mode}.dds.pkl" \
 			-o "~{project_id}.~{salmon_mode}.pydeseq2_significant_genes.csv" \
-			-o "~{project_id}.~{salmon_mode}.pca_plot.png" \
 			-o "~{project_id}.~{salmon_mode}.volcano_plot.png"
 	>>>
 
 	output {
+		String dds_object_pkl = "~{raw_data_path}/~{project_id}.~{salmon_mode}.dds.pkl"
 		String significant_genes_csv = "~{raw_data_path}/~{project_id}.~{salmon_mode}.pydeseq2_significant_genes.csv"
-		String pca_plot_png = "~{raw_data_path}/~{project_id}.~{salmon_mode}.pca_plot.png"
 		String volcano_plot_png = "~{raw_data_path}/~{project_id}.~{salmon_mode}.volcano_plot.png"
 	}
 	runtime {

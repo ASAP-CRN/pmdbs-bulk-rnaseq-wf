@@ -3,11 +3,11 @@ import re
 import argparse
 import pandas as pd
 import numpy as np
+import pickle as pkl
 import pydeseq2
 import pytximport
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.decomposition import PCA
 
 
 def main(args):
@@ -55,6 +55,9 @@ def main(args):
 
     # Fit dispersions and LFCs
     dds.deseq2()
+    # Save DeSeqDataSet (dds) object with pickle
+    with open(f"{args.cohort_id}.{args.salmon_mode}.dds.pkl", "wb") as f:
+        pkl.dump(dds, f)
 
     # Statistical analysis
     log2_fc_threshold = 1
@@ -79,32 +82,6 @@ def main(args):
     ###################
     ## VISUALIZATION ##
     ###################
-
-    # PCA plot
-    normalized_counts = dds.normalized_counts
-    # PCA expects samples as rows, genes as columns
-    pca = PCA(n_components=2)
-    pca_result = pca.fit_transform(normalized_counts.T)
-    pca_df = pd.DataFrame(pca_result, columns=["PC1", "PC2"])
-    pca_df["condition"] = metadata["condition"].values
-    plt.figure(figsize=(8, 6))
-    sns.scatterplot(
-        x="PC1",
-        y="PC2",
-        hue="condition", # TODO
-        data=pca_df,
-        s=100,
-        palette="Set2",
-        alpha=0.7,
-    )
-    plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.2f}% variance)")
-    plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.2f}% variance)")
-    plt.title("PCA of Normalized Counts")
-    plt.legend(title="Condition", loc="upper right")
-    plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.pca_plot.png", dpi=300, bbox_inches="tight")
-
-    plt.close("all")
-
     # Volcano plot
     results_df["-log10(padj)"] = -np.log10(results_df["padj"])
     results_df["color"] = np.where(
