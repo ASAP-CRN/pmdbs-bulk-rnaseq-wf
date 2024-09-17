@@ -146,31 +146,31 @@ In the workflow, task outputs are either specified as `String` (final outputs, w
 asap-raw-data-{cohort,team-xxyy}
 └── workflow_execution
 	├── cohort_analysis
-    │   └──${cohort_analysis_workflow_version}
-    │      └── ${salmon_mode}
-	│		   └── ${workflow_run_timestamp}
-	│              └── <cohort_analysis outputs>
-    ├── downstream // only produced in project raw data buckets, not in the full cohort bucket
-    │   └──${downstream_workflow_version}
-    │      └── ${salmon_mode}
-	│		   └── ${workflow_run_timestamp}
-	│              └── <downstream outputs>
+	│	└──${cohort_analysis_workflow_version}
+	│		└── ${salmon_mode}
+	│			└── ${workflow_run_timestamp}
+	│				└── <cohort_analysis outputs>
+	├── downstream // only produced in project raw data buckets, not in the full cohort bucket
+	│	└──${downstream_workflow_version}
+	│		└── ${salmon_mode}
+	│			└── ${workflow_run_timestamp}
+	│				└── <downstream outputs>
     └── upstream  // only produced in project raw data buckets, not in the full cohort bucket
-	    ├── fastqc_raw_reads
-	    │   └── ${upstream_workflow_version}
-	    │       └── <fastqc_raw_reads output>
-        ├── trim_and_qc
-		│   └── ${upstream_workflow_version}
-		│       └── <trim_and_qc output>
-        ├── fastqc_trimmed_reads
-        │   └── ${upstream_workflow_version}
-        │       └── <fastqc_trimmed_reads output>
-        ├── alignment_quantification
-        │   └── ${alignment_quantification_workflow_version}
-        │       └── <alignment_quantification output>
-        └── pseudo_mapping_quantification
-            └── ${pseudo_mapping_quantification_workflow_version}
-                └── <pseudo_mapping_quantification output>
+		├── fastqc_raw_reads
+		│	└── ${upstream_workflow_version}
+		│		└── <fastqc_raw_reads output>
+		├── trim_and_qc
+		│	└── ${upstream_workflow_version}
+		│		└── <trim_and_qc output>
+		├── fastqc_trimmed_reads
+		│	└── ${upstream_workflow_version}
+		│		└── <fastqc_trimmed_reads output>
+		├── alignment_quantification
+		│	└── ${alignment_quantification_workflow_version}
+		│		└── <alignment_quantification output>
+		└── pseudo_mapping_quantification
+			└── ${pseudo_mapping_quantification_workflow_version}
+				└── <pseudo_mapping_quantification output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -183,9 +183,9 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 asap-dev-{collection}-{modality}-{cohort,team-xxyy}
 ├── cohort_analysis
 │   ├── ${cohort_id}.sample_list.tsv
-│   ├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross-team
-│   ├──	${cohort_id}.${salmon_mode}.pca_plot.png
-│   └── MANIFEST.tsv
+│	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross-team
+│	├──	${cohort_id}.${salmon_mode}.pca_plot.png
+│	└── MANIFEST.tsv
 ├── downstream
 │   ├── ${project_id}.${output_name}.html # Includes salmon_mode
 │   ├── ${project_id}.${output_name}_data.tar.gz # Includes salmon_mode
