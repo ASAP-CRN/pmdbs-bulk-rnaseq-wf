@@ -155,7 +155,7 @@ asap-raw-data-{cohort,team-xxyy}
 	│		└── ${salmon_mode}
 	│			└── ${workflow_run_timestamp}
 	│				└── <downstream outputs>
-    └── upstream  // only produced in project raw data buckets, not in the full cohort bucket
+	└── upstream  // only produced in project raw data buckets, not in the full cohort bucket
 		├── fastqc_raw_reads
 		│	└── ${upstream_workflow_version}
 		│		└── <fastqc_raw_reads output>
@@ -282,7 +282,7 @@ docker
     ├── Dockerfile
     ├── requirements.txt
     └── scripts
-    	└── pydeseq2.py
+    	├── pydeseq2.py
     	└── cohort_analysis.py
 ```
 
