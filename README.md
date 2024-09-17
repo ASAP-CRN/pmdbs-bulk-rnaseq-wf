@@ -23,11 +23,12 @@ This workflow is set up to analyze bulk RNAseq in WDL using mainly command line 
 
 **Input template**: [workflows/inputs.json](workflows/inputs.json)
 
-The workflow is broken up into three main chunks:
+The workflow is broken up into four main chunks:
 
 1. [Index reference genome](#index-reference-genome)
 2. [Upstream](#upstream)
 3. [Downstream](#downstream)
+4. [Cohort analysis](#cohort-analysis)
 
 ## Index reference genome
 
@@ -35,11 +36,15 @@ Optional step to index reference genome in order to produce a genome directory i
 
 ## Upstream
 
-Run once per sample; only rerun when the upstream workflow version is updated. A single report that summarizes all upstream logs is generated per team (all samples from a single team). Upstream outputs are stored in the originating team's raw and staging data buckets.
+Run once per sample; only rerun when the upstream workflow version is updated. Upstream outputs are stored in the originating team's raw and staging data buckets.
 
 ## Downstream
 
-Run once per team (all samples from a single team) if `project.run_project_cohort_analysis` is set to `true`, and once for the whole cohort (all samples from all teams). This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
+Run once per team (all samples from a single team). This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
+
+## Cohort analysis
+Run once per team (all samples from a single team) if `project.run_project_cohort_analysis` is set to `true`, and once for the whole cohort (all samples from all teams) if `run_cross_team_cohort_analysis` is set to `true`. This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
+
 
 # Inputs
 
@@ -135,22 +140,37 @@ Example usage:
 
 The raw data bucket will contain *some* artifacts generated as part of workflow execution. Following successful workflow execution, the artifacts will also be copied into the staging bucket as final outputs.
 
-In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L83-L108), and downstream analysis final outputs are defined at [downstream.wdl](workflows/downstream/downstream.wdl#L79-L85).
+In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L84-L114), downstream analysis final outputs are defined at [downstream.wdl](workflows/main.wdl#L178-196), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L85-93).
 
 ```bash
 asap-raw-data-{cohort,team-xxyy}
 └── workflow_execution
-    ├── downstream
+	├── cohort_analysis
+    │   └──${cohort_analysis_workflow_version}
+    │      └── ${salmon_mode}
+	│		   └── ${workflow_run_timestamp}
+	│              └── <cohort_analysis outputs>
+    ├── downstream // only produced in project raw data buckets, not in the full cohort bucket
     │   └──${downstream_workflow_version}
-    │       └── ${workflow_run_timestamp}
-    │            └── <downstream outputs>
+    │      └── ${salmon_mode}
+	│		   └── ${workflow_run_timestamp}
+	│              └── <downstream outputs>
     └── upstream  // only produced in project raw data buckets, not in the full cohort bucket
+	    ├── fastqc_raw_reads
+	    │   └── ${upstream_workflow_version}
+	    │       └── <fastqc_raw_reads output>
         ├── trim_and_qc
+		│   └── ${upstream_workflow_version}
+		│       └── <trim_and_qc output>
+        ├── fastqc_trimmed_reads
         │   └── ${upstream_workflow_version}
-        │       └── <trim_and_qc output>
-        └── alignment_quantification
-            └── ${alignment_quantification_workflow_version}
-                └── <alignment_quantification output>
+        │       └── <fastqc_trimmed_reads output>
+        ├── alignment_quantification
+        │   └── ${alignment_quantification_workflow_version}
+        │       └── <alignment_quantification output>
+        └── pseudo_mapping_quantification
+            └── ${pseudo_mapping_quantification_workflow_version}
+                └── <pseudo_mapping_quantification output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -161,11 +181,50 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 
 ```bash
 asap-dev-{collection}-{modality}-{cohort,team-xxyy}
-├── downstream
+├── cohort_analysis
 │   ├── ${cohort_id}.sample_list.tsv
+│   ├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross-team
+│   ├──	${cohort_id}.${salmon_mode}.pca_plot.png
+│   └── MANIFEST.tsv
+├── downstream
+│   ├── ${project_id}.${output_name}.html # Includes salmon_mode
+│   ├── ${project_id}.${output_name}_data.tar.gz # Includes salmon_mode
+│   ├── ${project_id}.${salmon_mode}.dds.pkl
+│   ├── ${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv
+│   ├── ${project_id}.${salmon_mode}.volcano_plot.png
 │   └── MANIFEST.tsv
 └── upstream
+    ├── ${sampleA_id}.fastqc_reports.tar.gz
+    ├── ${fastq_R1_basename}.trimmed.fastq.gz # Multiple fastqs per sample
+    ├── ${fastq_R2_basename}.trimmed.fastq.gz # Multiple fastqs per sample
+    ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
+    ├── ${sampleA_id}.fastp_reports.tar.gz
+    ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
+    ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
+    ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
+    ├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
+    ├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
+    ├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
+    ├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
+    ├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
+    ├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
+    ├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
     ├── ...
+    ├── ${sampleN_id}.fastqc_reports.tar.gz
+    ├── ${fastq_R1_basename}.trimmed.fastq.gz
+    ├── ${fastq_R2_basename}.trimmed.fastq.gz
+    ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
+    ├── ${sampleN_id}.fastp_reports.tar.gz
+    ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
+    ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
+    ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
+    ├── ${sampleN_id}.Unmapped.out.mate1
+    ├── ${sampleN_id}.Unmapped.out.mate2
+    ├── ${sampleN_id}.Log.out
+    ├── ${sampleN_id}.Log.final.out
+    ├── ${sampleN_id}.Log.progress.out
+    ├── ${sampleN_id}.SJ.out.tab
+    ├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
     └── MANIFEST.tsv
 ```
 
@@ -224,6 +283,7 @@ docker
     ├── requirements.txt
     └── scripts
     	└── pydeseq2.py
+    	└── cohort_analysis.py
 ```
 
 ## The `build.env` file

@@ -34,7 +34,7 @@ workflow downstream {
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
-	String raw_data_path = "~{raw_data_path_prefix}/~{sub_workflow_name}/~{sub_workflow_version}/~{run_timestamp}/~{salmon_mode}"
+	String raw_data_path = "~{raw_data_path_prefix}/~{sub_workflow_name}/~{sub_workflow_version}/~{salmon_mode}/~{run_timestamp}"
 
 	call Multiqc.multiqc {
 		input:
@@ -67,7 +67,7 @@ workflow downstream {
 		# MultiQC report
 		File multiqc_report_html = multiqc.multiqc_report_html #!FileCoercion
 		File multiqc_data_tar_gz = multiqc.multiqc_data_tar_gz #!FileCoercion
-		
+
 		# PyDESeq2 DGE Analysis
 		File dds_object_pkl = differential_gene_expression_analysis.dds_object_pkl #!FileCoercion
 		File significant_genes_csv = differential_gene_expression_analysis.significant_genes_csv #!FileCoercion
