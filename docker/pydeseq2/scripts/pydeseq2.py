@@ -18,7 +18,7 @@ def main(args):
     metadata = pd.read_csv(args.metadata)
     samples_to_keep =  ~(metadata.batch.isna() | metadata.condition.isna())
     metadata = metadata.loc[samples_to_keep]
-    
+
 
     ############
     ## COUNTS ##
@@ -28,7 +28,7 @@ def main(args):
     blacklist_genes = pd.read_csv(args.blacklist_genes)
 
     path = os.getcwd()
-    samples = metadata["ASAP_sample_id"].tolist()
+    samples = metadata["sample_id"].tolist() # TODO change to ASAP_sample_id when DTi has processed metadata
     files = [os.path.join(path, "/", sample, "_salmon_quant/quant.sf") for sample in samples]
     #files_dict = dict(zip(samples, files))
 
