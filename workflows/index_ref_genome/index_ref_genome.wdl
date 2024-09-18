@@ -122,7 +122,7 @@ task generate_decoy {
 	}
 
 	runtime {
-		docker: "~{container_registry}/salmon:1.10.1"
+		docker: "~{container_registry}/salmon:1.10.3"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -162,7 +162,7 @@ task salmon_index_ref_genome {
 	}
 
 	runtime {
-		docker: "~{container_registry}/salmon:1.10.1"
+		docker: "~{container_registry}/salmon:1.10.3"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
