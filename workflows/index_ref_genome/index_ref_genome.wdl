@@ -71,9 +71,8 @@ task star_index_ref_genome {
 			--runThreadN ~{threads - 1} \
 			--runMode genomeGenerate \
 			--genomeDir star_genome_dir \
-			--genomeFastaFiles ~{primary_assembly_fasta} \
-			--sjdbGTFfile ~{gene_annotation_gtf} \
-			--readFilesCommand zcat
+			--genomeFastaFiles <(zcat ~{primary_assembly_fasta}) \
+			--sjdbGTFfile ~{gene_annotation_gtf}
 
 		tar -czvf star_genome_dir.tar.gz star_genome_dir
 	>>>
@@ -109,7 +108,7 @@ task generate_decoy {
 
 		grep "^>" <(gunzip -c ~{primary_assembly_fasta}) | cut -d " " -f 1 > decoys.txt
 		sed -i.bak -e 's/>//g' decoys.txt
-		zcat ~{transcripts_fasta} ~{primary_assembly_fasta} | gzip > gentrome.fa.gz
+		cat ~{transcripts_fasta} ~{primary_assembly_fasta} > gentrome.fa.gz
 	>>>
 
 	output {
