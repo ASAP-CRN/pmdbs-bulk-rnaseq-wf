@@ -59,6 +59,7 @@ task star_index_ref_genome {
 	}
 
 	String primary_assembly_fasta_basename = basename(primary_assembly_fasta, ".gz")
+	String gene_annotation_gtf_basename = basename(gene_annotation_gtf, ".gz")
 
 	Int threads = 24
 	Int mem_gb = ceil(threads * 2)
@@ -67,16 +68,16 @@ task star_index_ref_genome {
 	command <<<
 		set -euo pipefail
 
-		gzip -d ~{primary_assembly_fasta}
+		gunzip ~{primary_assembly_fasta} ~{gene_annotation_gtf}
 
-		mkdir -p star_genome_dir
+		ref_path=$(dirname ~{primary_assembly_fasta})
 
 		STAR \
 			--runThreadN ~{threads - 1} \
 			--runMode genomeGenerate \
 			--genomeDir star_genome_dir \
-			--genomeFastaFiles ~{primary_assembly_fasta_basename} \
-			--sjdbGTFfile ~{gene_annotation_gtf}
+			--genomeFastaFiles "$ref_path"/~{primary_assembly_fasta_basename} \
+			--sjdbGTFfile "$ref_path"/~{gene_annotation_gtf_basename}
 
 		tar -czvf star_genome_dir.tar.gz star_genome_dir
 	>>>
