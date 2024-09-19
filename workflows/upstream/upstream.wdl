@@ -118,8 +118,8 @@ workflow upstream {
 			}
 		}
 
-		Array[File] trimmed_fastq_R1s_output = if (fastqc_trimmed_reads_complete == "false") then fastp_trimmed_fastq_R1 else select_first([trim_and_qc.trimmed_fastq_R1s]) #!FileCoercion
-	    Array[File] trimmed_fastq_R2s_output = if (fastqc_trimmed_reads_complete == "false") then fastp_trimmed_fastq_R2 else select_first([trim_and_qc.trimmed_fastq_R2s]) #!FileCoercion
+		Array[File] trimmed_fastq_R1s_output = if (fastqc_trimmed_reads_complete == "false") then select_first([trim_and_qc.trimmed_fastq_R1s]) else fastp_trimmed_fastq_R1 #!FileCoercion
+	    Array[File] trimmed_fastq_R2s_output = if (fastqc_trimmed_reads_complete == "false") then select_first([trim_and_qc.trimmed_fastq_R2s]) else fastp_trimmed_fastq_R2 #!FileCoercion
 	    File failed_paired_fastqs_tar_gz_output = select_first([trim_and_qc.failed_paired_fastqs_tar_gz, fastp_failed_paired_fastqs]) #!FileCoercion
 	    File reports_html_tar_gz_output = select_first([trim_and_qc.reports_html_tar_gz, fastp_reports_html]) #!FileCoercion
 
