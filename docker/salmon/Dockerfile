@@ -69,6 +69,7 @@ FROM ubuntu:${UBUNTU_VERSION}
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		libhwloc5 \
+		xxd \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY --from=base /usr/local/salmon/ /usr/local/
