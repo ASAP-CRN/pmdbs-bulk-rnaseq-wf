@@ -79,5 +79,6 @@ ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/lib"
 RUN echo "export PATH=$PATH" > /etc/environment
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" > /etc/environment
 
+COPY --from=scripts /usr/lib/google-cloud-sdk /opt/google-cloud-sdk
 COPY --from=scripts /opt/scripts /opt/scripts
-ENV PATH "${PATH}:/opt/scripts"
+ENV PATH "${PATH}:/opt/google-cloud-sdk/bin:/opt/scripts"
