@@ -313,7 +313,7 @@ task trim_and_qc {
 	}
 
 	Int threads = 16
-	Int mem_gb = threads
+	Int mem_gb = ceil(threads * 2)
 	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") * 2 + 50)
 
 	command <<<
