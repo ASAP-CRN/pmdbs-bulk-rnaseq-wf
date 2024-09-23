@@ -16,11 +16,11 @@ workflow upstream {
 
 		# STAR and salmon quantification option
 		Boolean run_alignment_quantification
-		File star_genome_dir_tar_gz
+		File? star_genome_dir_tar_gz
 
 		# Salmon mapping and quantification option
 		Boolean run_pseudo_mapping_quantification
-		File salmon_genome_dir_tar_gz
+		File? salmon_genome_dir_tar_gz
 
 		String workflow_name
 		String workflow_version
@@ -123,7 +123,7 @@ workflow upstream {
 	    File failed_paired_fastqs_tar_gz_output = select_first([trim_and_qc.failed_paired_fastqs_tar_gz, fastp_failed_paired_fastqs]) #!FileCoercion
 	    File reports_html_tar_gz_output = select_first([trim_and_qc.reports_html_tar_gz, fastp_reports_html]) #!FileCoercion
 
-	    String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}.trimmed_fastqc_reports.tar.gz"
+	    String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_trimmed_reads_raw_data_path}/~{sample.sample_id}.trimmed_fastqc_reports.tar.gz"
 
 		if (fastqc_trimmed_reads_complete == "false") {
 			call Fastqc.fastqc as fastqc_trimmed_reads {
@@ -157,7 +157,7 @@ workflow upstream {
 					input:
 						sample_id = sample.sample_id,
 						transcripts_fasta = transcripts_fasta,
-						star_genome_dir_tar_gz = star_genome_dir_tar_gz,
+						star_genome_dir_tar_gz = select_first([star_genome_dir_tar_gz]),
 						trimmed_fastq_R1s = trimmed_fastq_R1s_output,
 						trimmed_fastq_R2s = trimmed_fastq_R2s_output,
 						raw_data_path = star_and_salmon_alignment_mode_raw_data_path,
@@ -186,7 +186,7 @@ workflow upstream {
 				call PseudoMappingQuantification.pseudo_mapping_quantification {
 					input:
 						sample_id = sample.sample_id,
-						salmon_genome_dir_tar_gz = salmon_genome_dir_tar_gz,
+						salmon_genome_dir_tar_gz = select_first([salmon_genome_dir_tar_gz]),
 						trimmed_fastq_R1s = trimmed_fastq_R1s_output,
 						trimmed_fastq_R2s = trimmed_fastq_R2s_output,
 						raw_data_path = salmon_mapping_mode_raw_data_path,
