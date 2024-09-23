@@ -72,7 +72,7 @@ task differential_gene_expression {
 			tar -xzvf "${quant_tar_gz}"
 		done < ~{write_lines(salmon_quant_tar_gz)}
 
-		python3 pydeseq2.py \
+		python3 /opt/scripts/pydeseq2.py \
 			--cohort-id ~{project_id} \
 			--metadata ~{metadata_csv} \
 			--gene-map ~{gene_map_csv} \
