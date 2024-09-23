@@ -101,7 +101,7 @@ task alignment {
 
 		samtools index \
 			-@ ~{threads} \
-			~{sample_id}_Aligned.sortedByCoord.out.bam
+			~{sample_id}.Aligned.sortedByCoord.out.bam
 
 		upload_outputs \
 			-b ~{billing_project} \
