@@ -66,7 +66,7 @@ workflow downstream {
 	output {
 		# MultiQC report
 		File multiqc_report_html = multiqc.multiqc_report_html #!FileCoercion
-		File multiqc_data_tar_gz = multiqc.multiqc_data_tar_gz #!FileCoercion
+		File multiqc_data_zip = multiqc.multiqc_data_zip #!FileCoercion
 
 		# PyDESeq2 DGE Analysis
 		File dds_object_pkl = differential_gene_expression_analysis.dds_object_pkl #!FileCoercion

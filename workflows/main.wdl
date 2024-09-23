@@ -181,7 +181,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				alignment_mode_downstream.significant_genes_csv,
 				alignment_mode_downstream.volcano_plot_png,
 				alignment_mode_downstream.multiqc_report_html,
-				alignment_mode_downstream.multiqc_data_tar_gz
+				alignment_mode_downstream.multiqc_data_zip
 			])
 		]) #!StringCoercion
 
@@ -191,7 +191,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				mapping_mode_downstream.significant_genes_csv,
 				mapping_mode_downstream.volcano_plot_png,
 				mapping_mode_downstream.multiqc_report_html,
-				mapping_mode_downstream.multiqc_data_tar_gz
+				mapping_mode_downstream.multiqc_data_zip
 			])
 		]) #!StringCoercion
 
@@ -321,11 +321,11 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		# Downstream - Project-level outputs
 		## Multiqc for alignment-mode
 		Array[File?] salmon_alignment_mode_multiqc_report_html = alignment_mode_downstream.multiqc_report_html
-		Array[File?] salmon_alignment_mode_multiqc_data_tar_gz = alignment_mode_downstream.multiqc_data_tar_gz
+		Array[File?] salmon_alignment_mode_multiqc_data_zip = alignment_mode_downstream.multiqc_data_zip
 
 		## Multiqc for mapping-mode
 		Array[File?] salmon_mapping_mode_multiqc_report_html = mapping_mode_downstream.multiqc_report_html
-		Array[File?] salmon_mapping_mode_multiqc_data_tar_gz = mapping_mode_downstream.multiqc_data_tar_gz
+		Array[File?] salmon_mapping_mode_multiqc_data_zip = mapping_mode_downstream.multiqc_data_zip
 
 		## DGE analysis with Salmon alignment-mode counts
 		Array[File?] project_pydeseq2_alignment_mode_dds_object_pkl = alignment_mode_downstream.dds_object_pkl
