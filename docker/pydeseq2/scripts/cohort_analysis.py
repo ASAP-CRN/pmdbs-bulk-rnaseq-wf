@@ -1,16 +1,16 @@
 import argparse
 import pandas as pd
+import numpy as np
 import pickle as pkl
-import pydeseq2
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.decomposition import PCA
 
 
-def modify_tables(file_list, team_id):
+def modify_tables(file_list, team_ids):
     dfs = []
     for file, team_id in zip(file_list, team_ids):
-        df = pd.read_csv(file) # TODO - compare files with and without row names
+        df = pd.read_csv(file)
         df["team_id"] = team_id
         dfs.append(df)
     combined_dfs = pd.concat(dfs, ignore_index=True)
@@ -44,18 +44,20 @@ def main(args):
     all_metadata = []
     all_normalized_counts = []
     for dds, team_id in zip(all_dds_objects, args.project_id):
-        metadata = dds.colData
+        metadata = dds.obs
         metadata["team_id"] = team_id
         all_metadata.append(metadata)
-
-        normalized_counts = dds.normalized_counts
-        all_normalized_counts.append(normalized_counts)
-    combined_metadata = pd.concat(all_metadata, ignore_index=True)
-    all_normalized_counts = np.hstack(all_normalized_counts)
+        normalized_counts = dds.layers['normed_counts'].T
+        sample_ids = dds.obs.index
+        sample_ids.name = None
+        normalized_counts_df = pd.DataFrame(normalized_counts, index=dds.var.index, columns=sample_ids)
+        all_normalized_counts.append(normalized_counts_df)
+    combined_metadata = pd.concat(all_metadata)
+    combined_normalized_counts = pd.concat(all_normalized_counts)
 
     # PCA expects samples as rows, genes as columns
     pca = PCA(n_components=2)
-    pca_result = pca.fit_transform(all_normalized_counts.T)
+    pca_result = pca.fit_transform(combined_normalized_counts.T)
     pca_df = pd.DataFrame(pca_result, columns=["PC1", "PC2"])
     pca_df["condition"] = combined_metadata["condition"].values
     pca_df["team_id"] = combined_metadata["team_id"].values
@@ -73,8 +75,6 @@ def main(args):
     plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.2f}% variance)")
     plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.2f}% variance)")
     plt.title("PCA of Normalized Counts by Condition and Team")
-    handles, labels = scatter.get_legend_handles_labels()
-    plt.legend(handles=handles, labels=labels, loc="best")
     plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.pca_plot.png", dpi=300, bbox_inches="tight")
     plt.close("all")
 
@@ -84,14 +84,14 @@ if __name__ == "__main__":
         description="Identify overlapping PyDESeq2 differentially expressed genes and generate plots for data visualization"
     )
     parser.add_argument(
-        "-c"
+        "-c",
         "--cohort-id",
         type=str,
         required=True,
         help="Cohort ID"
     )
     parser.add_argument(
-        "-p"
+        "-p",
         "--project-id",
         type=str,
         nargs='+',
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         help="Project IDs/team names"
     )
     parser.add_argument(
-        "-g"
+        "-g",
         "--degs",
         type=str,
         nargs='+',
@@ -107,7 +107,7 @@ if __name__ == "__main__":
         help="Table containing PyDESeq2 differentially expressed genes for each team"
     )
     parser.add_argument(
-        "-d"
+        "-d",
         "--dds-object",
         type=str,
         nargs='+',
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         help="Pkl file containing the filtered DeSeqDataSet object"
     )
     parser.add_argument(
-        "-s"
+        "-s",
         "--salmon-mode",
         type=str,
         required=True,

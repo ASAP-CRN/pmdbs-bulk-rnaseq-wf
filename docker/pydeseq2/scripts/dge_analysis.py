@@ -58,7 +58,7 @@ def main(args):
         design_factors=["batch", "condition"],
     )
 
-    # TODO - Remove blacklist genes. This file contains regions, not genes. Also contains PD genes.
+    # TODO - Remove blacklist genes? This file contains regions, not genes. Also contains PD genes.
     #dds.counts = dds.counts.loc[~dds.counts.index.isin(blacklist_genes)]
 
     # Fit dispersions and LFCs
