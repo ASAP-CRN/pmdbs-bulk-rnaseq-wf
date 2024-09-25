@@ -4,7 +4,8 @@
   "pmdbs_bulk_rnaseq_analysis.reference": {
     "primary_assembly_fasta": "File",
     "gene_annotation_gtf": "File",
-    "transcripts_fasta": "File"
+    "transcripts_fasta": "File",
+    "all_transcripts_fasta": "File"
   },
   "pmdbs_bulk_rnaseq_analysis.run_alignment_quantification": "Boolean (optional, default = true); this and/or 'run_pseudo_mapping_quantification' must be set to true",
   "pmdbs_bulk_rnaseq_analysis.run_star_index_ref_genome": "Boolean (optional, default = false); if set to false, 'star_genome_dir_tar_gz' must be provided",
