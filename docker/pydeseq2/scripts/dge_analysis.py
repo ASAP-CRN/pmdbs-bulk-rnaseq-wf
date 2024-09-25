@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import argparse
 import pandas as pd
 import numpy as np
@@ -27,6 +28,8 @@ def main(args):
     new_column_names = ["transcript_id", "gene_id"]
     gene_map = pd.read_csv(args.gene_map, names=new_column_names, header=0)
     blacklist_genes = pd.read_csv(args.blacklist_genes, sep="\t")
+    with open(args.gene_ids_and_names, "r") as file:
+        gtf_gene_ids_and_names = json.load(file)
 
     path = os.getcwd()
     samples = metadata.index.tolist() # TODO change to ASAP_sample_id when DTi has processed metadata
@@ -84,6 +87,7 @@ def main(args):
     )
     stat_res.summary()
     results_df = stat_res.results_df
+    results_df["gene_name"] = results_df.index.map(gtf_gene_ids_and_names)
     sig_genes = results_df[(results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"].abs() > log2_fc_threshold)]
     sig_genes.to_csv(f"{args.cohort_id}.{args.salmon_mode}.pydeseq2_significant_genes.csv")
 
@@ -117,7 +121,7 @@ def main(args):
     top_ten_genes = results_df.nsmallest(10, "padj")
     for i, row in top_ten_genes.iterrows():
         plt.annotate(
-            i,
+            row["gene_name"],
             (row["log2FoldChange"], row["-log10(padj)"]),
             textcoords="offset points",
             xytext=(0,10),
@@ -161,6 +165,13 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="BED file containing the ENCODE Blacklist genes"
+    )
+    parser.add_argument(
+        "-n",
+        "--gene-ids-and-names",
+        type=str,
+        required=True,
+        help="JSON containing mapped gene IDs and gene names"
     )
     parser.add_argument(
         "-s",

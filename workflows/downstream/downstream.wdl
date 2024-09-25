@@ -15,6 +15,7 @@ workflow downstream {
 		File metadata_csv
 		File gene_map_csv
 		File blacklist_genes_bed
+		File gene_ids_and_names_json
 
 		String salmon_mode
 		Array[File] salmon_quant_tar_gz
@@ -54,6 +55,7 @@ workflow downstream {
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
 			blacklist_genes_bed = blacklist_genes_bed,
+			gene_ids_and_names_json = gene_ids_and_names_json,
 			salmon_mode = salmon_mode,
 			salmon_quant_tar_gz = salmon_quant_tar_gz,
 			raw_data_path = raw_data_path,

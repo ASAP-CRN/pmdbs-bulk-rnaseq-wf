@@ -19,6 +19,7 @@
   "pmdbs_bulk_rnaseq_analysis.metadata_csv": "File",
   "pmdbs_bulk_rnaseq_analysis.gene_map_csv": "File",
   "pmdbs_bulk_rnaseq_analysis.blacklist_genes_bed": "File",
+  "pmdbs_bulk_rnaseq_analysis.gene_ids_and_names_json": "File",
   "pmdbs_bulk_rnaseq_analysis.container_registry": "String",
   "pmdbs_bulk_rnaseq_analysis.zones": "String (optional, default = \"us-central1-c us-central1-f\")"
 }

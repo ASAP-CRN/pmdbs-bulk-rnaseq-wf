@@ -66,6 +66,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | File | metadata_csv | CSV containing all sample information including batch, condition, etc. |
 | File | gene_map_csv | CSV containing mapped transcript IDs and gene IDs that must be in this order. |
 | File | blacklist_genes_bed | BED file containing the ENCODE Blacklist genes. |
+| File | gene_ids_and_names_json | JSON file containing mapped gene IDs and gene names created from the gene annotation GTF. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
 | String? | zones | Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f'] |
 
@@ -101,6 +102,7 @@ See [reference data](#reference-data) notes for more details.
 | File | primary_assembly_fasta | Nucleotide sequence of the GRCh38 primary genome assembly (chromosomes and scaffolds). |
 | File | gene_annotation_gtf | Comprehensive gene annotation on the reference chromosomes only. |
 | File | transcripts_fasta | Nucleotide sequences of all transcripts on the reference chromosomes. |
+| File | all_transcripts_fasta | Manually generated all transcripts on the reference chromosomes with the `primary_assembly_fasta` and `gene_annotation_gtf`. |
 
 ## Generating the inputs JSON
 
@@ -282,7 +284,7 @@ docker
     ├── Dockerfile
     ├── requirements.txt
     └── scripts
-    	├── pydeseq2.py
+    	├── dge_analysis.py
     	└── cohort_analysis.py
 ```
 
@@ -350,4 +352,21 @@ write.csv(tx2gene, "tx2gene.gencode.v46.csv", row.names = FALSE)
 ```bash
 # Install gffread
 gffread -w gencode.v46.all_transcripts.fa -g GRCh38.primary_assembly.genome.fa gencode.v46.annotation.gtf
+```
+
+[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/)'s gene annotation was used to create a JSON that maps gene IDs and gene names for easier readability:
+```python
+import json
+
+with open("gencode.v46.annotation.gtf") as f:
+	gtf = list(f)
+
+gtf = [x for x in gtf if not x.startswith('#')]
+gtf = [x for x in gtf if 'gene_id "' in x and 'gene_name "' in x]
+gtf = list(map(lambda x: (x.split('gene_id "')[1].split('"')[0], x.split('gene_name "')[1].split('"')[0]), gtf))
+gtf = list(set(gtf))
+gtf = dict(gtf)
+
+with open("gencode.v46.gene_id_and_gene_name.json", "w") as file:
+    json.dump(gtf, file)
 ```
