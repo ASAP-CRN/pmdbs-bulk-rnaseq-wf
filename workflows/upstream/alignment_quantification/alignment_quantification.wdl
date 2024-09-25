@@ -6,7 +6,7 @@ workflow alignment_quantification {
 	input {
 		String sample_id
 
-		File transcripts_fasta
+		File all_transcripts_fasta
 		File star_genome_dir_tar_gz
 
 		Array[File] trimmed_fastq_R1s
@@ -35,9 +35,8 @@ workflow alignment_quantification {
 	call quantification {
 		input:
 			sample_id = sample_id,
-			transcripts_fasta = transcripts_fasta,
-			aligned_bam = alignment.aligned_bam, #!FileCoercion
-			aligned_bam_index = alignment.aligned_bam_index, #!FileCoercion
+			all_transcripts_fasta = all_transcripts_fasta,
+			aligned_to_transcriptome_bam = alignment.aligned_to_transcriptome_bam, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -49,6 +48,7 @@ workflow alignment_quantification {
 		# STAR alignment
 		File aligned_bam = alignment.aligned_bam #!FileCoercion
 		File aligned_bam_index = alignment.aligned_bam_index #!FileCoercion
+		File aligned_to_transcriptome_bam = alignment.aligned_to_transcriptome_bam #!FileCoercion
 		File unmapped_mate1 = alignment.unmapped_mate1 #!FileCoercion
 		File unmapped_mate2 = alignment.unmapped_mate2 #!FileCoercion
 		File log = alignment.log #!FileCoercion
@@ -97,7 +97,8 @@ task alignment {
 			--outFilterType BySJout \
 			--alignIntronMax 1000000 \
 			--alignMatesGapMax 1000000 \
-			--twopassMode Basic
+			--twopassMode Basic \
+			--quantMode TranscriptomeSAM
 
 		samtools index \
 			-@ ~{threads} \
@@ -109,6 +110,7 @@ task alignment {
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{sample_id}.Aligned.sortedByCoord.out.bam" \
 			-o "~{sample_id}.Aligned.sortedByCoord.out.bam.bai" \
+			-o "~{sample_id}.Aligned.toTranscriptome.out.bam" \
 			-o "~{sample_id}.Unmapped.out.mate1" \
 			-o "~{sample_id}.Unmapped.out.mate2" \
 			-o "~{sample_id}.Log.out" \
@@ -120,6 +122,7 @@ task alignment {
 	output {
 		String aligned_bam = "~{raw_data_path}/~{sample_id}.Aligned.sortedByCoord.out.bam"
 		String aligned_bam_index = "~{raw_data_path}/~{sample_id}.Aligned.sortedByCoord.out.bam.bai"
+		String aligned_to_transcriptome_bam = "~{raw_data_path}/~{sample_id}.Aligned.toTranscriptome.out.bam"
 		String unmapped_mate1 = "~{raw_data_path}/~{sample_id}.Unmapped.out.mate1"
 		String unmapped_mate2 = "~{raw_data_path}/~{sample_id}.Unmapped.out.mate2"
 		String log = "~{raw_data_path}/~{sample_id}.Log.out"
@@ -142,10 +145,9 @@ task quantification {
 	input {
 		String sample_id
 
-		File transcripts_fasta
+		File all_transcripts_fasta
 
-		File aligned_bam
-		File aligned_bam_index
+		File aligned_to_transcriptome_bam
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -156,20 +158,17 @@ task quantification {
 
 	Int threads = 24
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([transcripts_fasta, aligned_bam, aligned_bam_index], "GB") * 2 + 50)
+	Int disk_size = ceil(size([all_transcripts_fasta, aligned_to_transcriptome_bam], "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
 		salmon quant \
-			--transcripts ~{transcripts_fasta} \
+			--targets ~{all_transcripts_fasta} \
 			--libType A \
-			--alignments ~{aligned_bam} \
+			--alignments ~{aligned_to_transcriptome_bam} \
 			--output ~{sample_id}_salmon_quant \
-			--validateMappings \
 			--threads ~{threads} \
-			--rangeFactorizationBins 4 \
-			--useErrorModel \
 			--gcBias
 
 		# Outputs must remain in folder and unmodified for downstream analysis

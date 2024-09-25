@@ -345,3 +345,9 @@ k <- keys(txdb, keytype = "TXNAME")
 tx2gene <- select(txdb, k, "GENEID", "TXNAME")
 write.csv(tx2gene, "tx2gene.gencode.v46.csv", row.names = FALSE)
 ```
+
+[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/)'s primary assembly and gene annotation were used to create a transcriptome FASTA file with [GffRead](https://github.com/gpertea/gffread). This is used for `salmon quant` alignment-mode (see [issue](https://github.com/COMBINE-lab/salmon/issues/104) for full context):
+```bash
+# Install gffread
+gffread -w gencode.v46.all_transcripts.fa -g GRCh38.primary_assembly.genome.fa gencode.v46.annotation.gtf
+```

@@ -66,7 +66,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			input:
 				project_id = project.project_id,
 				samples = project.samples,
-				transcripts_fasta = reference.transcripts_fasta,
+				all_transcripts_fasta = reference.all_transcripts_fasta,
 				run_alignment_quantification = run_alignment_quantification,
 				star_genome_dir_tar_gz = if (defined (star_genome_dir_tar_gz)) then star_genome_dir_tar_gz else index_ref_genome.star_genome_dir_tar_gz,
 				run_pseudo_mapping_quantification = run_pseudo_mapping_quantification,
@@ -91,6 +91,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				upstream.trimmed_fastqc_reports_tar_gz,
 				upstream.aligned_bam,
 				upstream.aligned_bam_index,
+				upstream.aligned_to_transcriptome_bam,
 				upstream.unmapped_mate1,
 				upstream.unmapped_mate2,
 				upstream.log,
@@ -307,6 +308,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		## Alignment and quantification
 		Array[Array[File?]] star_aligned_bam = upstream.aligned_bam
 		Array[Array[File?]] star_aligned_bam_index = upstream.aligned_bam_index
+		Array[Array[File?]] star_aligned_to_transcriptome_bam = upstream.aligned_to_transcriptome_bam
 		Array[Array[File?]] star_unmapped_mate1 = upstream.unmapped_mate1
 		Array[Array[File?]] star_unmapped_mate2 = upstream.unmapped_mate2
 		Array[Array[File?]] star_log = upstream.log

@@ -12,7 +12,7 @@ workflow upstream {
 		String project_id
 		Array[Sample] samples
 
-		File transcripts_fasta
+		File all_transcripts_fasta
 
 		# STAR and salmon quantification option
 		Boolean run_alignment_quantification
@@ -144,6 +144,7 @@ workflow upstream {
 		if (run_alignment_quantification) {
 			String star_aligned_bam = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Aligned.sortedByCoord.out.bam"
 			String star_aligned_bam_index = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Aligned.sortedByCoord.out.bam.bai"
+			String star_aligned_to_transcriptome_bam = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Aligned.toTranscriptome.out.bam"
 			String star_unmapped_mate1 = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Unmapped.out.mate1"
 			String star_unmapped_mate2 = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Unmapped.out.mate2"
 			String star_log = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Log.out"
@@ -156,7 +157,7 @@ workflow upstream {
 				call AlignmentQuantification.alignment_quantification {
 					input:
 						sample_id = sample.sample_id,
-						transcripts_fasta = transcripts_fasta,
+						all_transcripts_fasta = all_transcripts_fasta,
 						star_genome_dir_tar_gz = select_first([star_genome_dir_tar_gz]),
 						trimmed_fastq_R1s = trimmed_fastq_R1s_output,
 						trimmed_fastq_R2s = trimmed_fastq_R2s_output,
@@ -170,6 +171,7 @@ workflow upstream {
 
 			File aligned_bam_output = select_first([alignment_quantification.aligned_bam, star_aligned_bam]) #!FileCoercion
 			File aligned_bam_index_output = select_first([alignment_quantification.aligned_bam_index, star_aligned_bam_index]) #!FileCoercion
+			File aligned_to_transcriptome_bam_output = select_first([alignment_quantification.aligned_to_transcriptome_bam, star_aligned_to_transcriptome_bam]) #!FileCoercion
 			File unmapped_mate1_output = select_first([alignment_quantification.unmapped_mate1, star_unmapped_mate1]) #!FileCoercion
 			File unmapped_mate2_output = select_first([alignment_quantification.unmapped_mate2, star_unmapped_mate2]) #!FileCoercion
 			File log_output = select_first([alignment_quantification.log, star_log]) #!FileCoercion
@@ -220,6 +222,7 @@ workflow upstream {
 		# STAR alignment
 		Array[File?] aligned_bam = aligned_bam_output #!FileCoercion
 		Array[File?] aligned_bam_index = aligned_bam_index_output #!FileCoercion
+		Array[File?] aligned_to_transcriptome_bam = aligned_to_transcriptome_bam_output #!FileCoercion
 		Array[File?] unmapped_mate1 = unmapped_mate1_output #!FileCoercion
 		Array[File?] unmapped_mate2 = unmapped_mate2_output #!FileCoercion
 		Array[File?] log = log_output #!FileCoercion
