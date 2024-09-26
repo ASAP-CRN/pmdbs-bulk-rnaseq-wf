@@ -123,7 +123,7 @@ workflow upstream {
 		File failed_paired_fastqs_tar_gz_output = select_first([trim_and_qc.failed_paired_fastqs_tar_gz, fastp_failed_paired_fastqs]) #!FileCoercion
 		File reports_html_tar_gz_output = select_first([trim_and_qc.reports_html_tar_gz, fastp_reports_html]) #!FileCoercion
 
-	    String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_trimmed_reads_raw_data_path}/~{sample.sample_id}.trimmed_fastqc_reports.tar.gz"
+		String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_trimmed_reads_raw_data_path}/~{sample.sample_id}.trimmed_fastqc_reports.tar.gz"
 
 		if (fastqc_trimmed_reads_complete == "false") {
 			call Fastqc.fastqc as fastqc_trimmed_reads {
