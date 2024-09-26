@@ -66,7 +66,7 @@ task differential_gene_expression {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size([metadata_csv, gene_map_csv, blacklist_genes_bed], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 50)
+	Int disk_size = ceil((size([metadata_csv, gene_map_csv, blacklist_genes_bed], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
 
 	command <<<
 		set -euo pipefail

@@ -104,9 +104,9 @@ task generate_decoy {
 		String zones
 	}
 
-	Int threads = 4
+	Int threads = 2
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([primary_assembly_fasta, transcripts_fasta], "GB") * 2 + 50)
+	Int disk_size = ceil(size([primary_assembly_fasta, transcripts_fasta], "GB") * 2 + 20)
 
 	command <<<
 		set -euo pipefail
@@ -141,7 +141,7 @@ task salmon_index_ref_genome {
 
 	Int threads = 24
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([gentrome_fasta, decoys_txt], "GB") * 2 + 100)
+	Int disk_size = ceil(size([gentrome_fasta, decoys_txt], "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail

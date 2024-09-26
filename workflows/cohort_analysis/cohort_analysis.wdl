@@ -132,9 +132,9 @@ task degs_and_plot {
 		String zones
 	}
 
-	Int threads = 24
+	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size(cohort_sample_list, "GB") + size(flatten([significant_genes_csv, dds_object_pkl]), "GB")) * 2 + 50)
+	Int disk_size = ceil((size(cohort_sample_list, "GB") + size(flatten([significant_genes_csv, dds_object_pkl]), "GB")) * 2 + 20)
 
 	command <<<
 		set -euo pipefail
