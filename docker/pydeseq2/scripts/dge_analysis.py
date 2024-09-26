@@ -10,6 +10,7 @@ from pydeseq2.dds import DeseqDataSet
 from pydeseq2.ds import DeseqStats
 import matplotlib.pyplot as plt
 import seaborn as sns
+from adjustText import adjust_text
 
 
 def main(args):
@@ -66,7 +67,6 @@ def main(args):
 
     # Fit dispersions and LFCs
     dds.deseq2()
-    # Save DeSeqDataSet (dds) object with pickle
     with open(f"{args.cohort_id}.{args.salmon_mode}.dds.pkl", "wb") as f:
         pkl.dump(dds, f)
 
@@ -113,20 +113,24 @@ def main(args):
         palette={"red": "red", "blue": "blue", "grey": "grey"},
         alpha=0.6,
         edgecolor=None,
+        legend=False,
     )
     plt.axhline(y=-np.log10(padj_threshold), color="black", linestyle="--", linewidth=1)
     plt.axvline(x=log2_fc_threshold, color="black", linestyle="--", linewidth=1)
     plt.axvline(x=-log2_fc_threshold, color="black", linestyle="--", linewidth=1)
 
+    texts = []
     top_ten_genes = results_df.nsmallest(10, "padj")
     for i, row in top_ten_genes.iterrows():
-        plt.annotate(
+        texts.append(plt.annotate(
             row["gene_name"],
             (row["log2FoldChange"], row["-log10(padj)"]),
             textcoords="offset points",
             xytext=(0,10),
             ha="center",
-        )
+        ))
+
+    adjust_text(texts, arrowprops=dict(arrowstyle="->", color='black', lw=0.5))
 
     plt.xlabel("Log2 Fold Change")
     plt.ylabel("-Log10 Adjusted P-value")
