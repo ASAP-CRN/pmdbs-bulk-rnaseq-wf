@@ -142,7 +142,7 @@ Example usage:
 
 The raw data bucket will contain *some* artifacts generated as part of workflow execution. Following successful workflow execution, the artifacts will also be copied into the staging bucket as final outputs.
 
-In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L84-L114), downstream analysis final outputs are defined at [downstream.wdl](workflows/main.wdl#L178-196), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L85-93).
+In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L85-L116), downstream analysis final outputs are defined at [downstream.wdl](workflows/main.wdl#L182-200), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L85-93).
 
 ```bash
 asap-raw-data-{cohort,team-xxyy}
@@ -337,7 +337,9 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 # Notes
 ## Reference data
 
-[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/) and the [ENCODE hg38 blacklist genes](https://github.com/Boyle-Lab/Blacklist/blob/master/lists/hg38-blacklist.v2.bed.gz) were used in this pipeline. The GENCODE GTF file was used to create a tx2gene dataframe in R:
+[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/) and the [ENCODE hg38 blacklist genes](https://github.com/Boyle-Lab/Blacklist/blob/master/lists/hg38-blacklist.v2.bed.gz) were used in this pipeline.
+
+The GENCODE gene annotation file was used to create a tx2gene dataframe in R:
 ```R
 library(GenomicFeatures)
 
@@ -348,13 +350,13 @@ tx2gene <- select(txdb, k, "GENEID", "TXNAME")
 write.csv(tx2gene, "tx2gene.gencode.v46.csv", row.names = FALSE)
 ```
 
-[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/)'s primary assembly and gene annotation were used to create a transcriptome FASTA file with [GffRead](https://github.com/gpertea/gffread). This is used for `salmon quant` alignment-mode (see [issue](https://github.com/COMBINE-lab/salmon/issues/104) for full context):
+The GENCODE primary assembly and gene annotation files were used to create a transcriptome FASTA file with [GffRead](https://github.com/gpertea/gffread). This is used for `salmon quant` alignment-mode (see [issue](https://github.com/COMBINE-lab/salmon/issues/104) for full context):
 ```bash
 # Install gffread
 gffread -w gencode.v46.all_transcripts.fa -g GRCh38.primary_assembly.genome.fa gencode.v46.annotation.gtf
 ```
 
-[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/)'s gene annotation was used to create a JSON that maps gene IDs and gene names for easier readability:
+The GENCODE gene annotation file was used to create a JSON that maps gene IDs and gene names for easier readability:
 ```python
 import json
 
