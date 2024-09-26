@@ -86,8 +86,8 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
+		if (degs_and_plot.cross_team) then [degs_and_plot.overlapping_significant_genes_csv] else [],
 		[
-			select_first([degs_and_plot.overlapping_significant_genes_csv]),
 			degs_and_plot.pca_plot_png
 		]
 	]) #!StringCoercion
@@ -105,7 +105,7 @@ workflow cohort_analysis {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
 		# Overlapping differentially expressed genes
-		File? overlapping_significant_genes_csv = degs_and_plot.overlapping_significant_genes_csv #!FileCoercion
+		File overlapping_significant_genes_csv = if (degs_and_plot.cross_team) then degs_and_plot.overlapping_significant_genes_csv else "" #!FileCoercion
 		# PCA plot
 		File pca_plot_png = degs_and_plot.pca_plot_png #!FileCoercion
 
@@ -157,16 +157,20 @@ task degs_and_plot {
 
 		project_id_length=$(echo "$project_ids" | wc -w)
 		if [[ "$project_id_length" -gt 1 ]]; then
+			echo "true" > cross_team.txt
 			upload_outputs \
 				-b ~{billing_project} \
 				-d ~{raw_data_path} \
 				-i ~{write_tsv(workflow_info)} \
 				-o "~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv"
+		else
+			echo "false" > cross_team.txt
 		fi
 	>>>
 
 	output {
-		String? overlapping_significant_genes_csv = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv" #!UnnecessaryQuantifier
+		Boolean cross_team = read_boolean("cross_team.txt")
+		String overlapping_significant_genes_csv = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv"
 		String pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.pca_plot.png"
 	}
 	runtime {
