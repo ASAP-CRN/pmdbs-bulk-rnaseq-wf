@@ -139,7 +139,7 @@ task degs_and_plot {
 	command <<<
 		set -euo pipefail
 
-		project_id_column_no=$(tr '\t' '\n' < <(head -1 ~{cohort_sample_list}) | grep -n "sample_id" | cut -d : -f 1)
+		project_id_column_no=$(tr '\t' '\n' < <(head -1 ~{cohort_sample_list}) | grep -n "project_id" | cut -d : -f 1)
 		project_ids=$(cut -f "$project_id_column_no" ~{cohort_sample_list} | sed -r '/^\s*$/d' | tail -n +2 | uniq | tr '\n' ' ') # Do not sort to preserve order
 
 		python /opt/scripts/cohort_analysis.py \
