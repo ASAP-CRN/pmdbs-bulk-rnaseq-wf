@@ -185,12 +185,12 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 asap-dev-{collection}-{modality}-{cohort,team-xxyy}
 ├── cohort_analysis
 │   ├── ${cohort_id}.sample_list.tsv
-│	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross-team
+│	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # File contains N/A for project cohort analysis
 │	├──	${cohort_id}.${salmon_mode}.pca_plot.png
 │	└── MANIFEST.tsv
 ├── downstream
-│   ├── ${project_id}.${output_name}.html # Includes salmon_mode
-│   ├── ${project_id}.${output_name}_data.tar.gz # Includes salmon_mode
+│   ├── ${project_id}.${output_name}.html # Includes ${salmon_mode} in output_name
+│   ├── ${project_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
 │   ├── ${project_id}.${salmon_mode}.dds.pkl
 │   ├── ${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv
 │   ├── ${project_id}.${salmon_mode}.volcano_plot.png

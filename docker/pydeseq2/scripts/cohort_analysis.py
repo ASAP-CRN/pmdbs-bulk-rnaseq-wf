@@ -28,7 +28,9 @@ def main(args):
         grouped = combined_degs.groupby("team_id").apply(lambda x: set(x.index))
         common_degs = set.intersection(*grouped)
         common_degs_df = combined_degs.loc[combined_degs.index[combined_degs.index.isin(common_degs)]]
-        common_degs_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.overlapping_significant_genes.csv")
+    else:
+        common_degs_df = pd.DataFrame([["N/A"]])
+    common_degs_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.overlapping_significant_genes.csv")
 
 
     ###################
