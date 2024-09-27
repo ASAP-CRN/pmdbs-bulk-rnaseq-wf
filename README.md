@@ -204,6 +204,7 @@ asap-dev-{collection}-{modality}-{cohort,team-xxyy}
     ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
     ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
     ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
+    ├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
     ├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
     ├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
     ├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
@@ -220,6 +221,7 @@ asap-dev-{collection}-{modality}-{cohort,team-xxyy}
     ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
     ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
     ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
+    ├── ${sampleN_id}.Aligned.toTranscriptome.out.bam
     ├── ${sampleN_id}.Unmapped.out.mate1
     ├── ${sampleN_id}.Unmapped.out.mate2
     ├── ${sampleN_id}.Log.out
