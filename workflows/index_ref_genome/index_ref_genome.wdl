@@ -104,6 +104,8 @@ task generate_decoy {
 		String zones
 	}
 
+	String ref_basename = basename(transcripts_fasta, ".transcripts.fa.gz")
+
 	Int threads = 2
 	Int mem_gb = ceil(threads * 2)
 	Int disk_size = ceil(size([primary_assembly_fasta, transcripts_fasta], "GB") * 2 + 20)
@@ -111,14 +113,14 @@ task generate_decoy {
 	command <<<
 		set -euo pipefail
 
-		grep "^>" <(gunzip -c ~{primary_assembly_fasta}) | cut -d " " -f 1 > decoys.txt
-		sed -i.bak -e 's/>//g' decoys.txt
-		cat ~{transcripts_fasta} ~{primary_assembly_fasta} > gentrome.fa.gz
+		grep "^>" <(gunzip -c ~{primary_assembly_fasta}) | cut -d " " -f 1 > ~{ref_basename}.decoys.txt
+		sed -i -e 's/>//g' ~{ref_basename}.decoys.txt
+		cat ~{transcripts_fasta} ~{primary_assembly_fasta} > ~{ref_basename}.gentrome.fa.gz
 	>>>
 
 	output {
-		File decoys_txt = "decoys.txt"
-		File gentrome_fasta = "gentrome.fa.gz"
+		File decoys_txt = "~{ref_basename}.decoys.txt"
+		File gentrome_fasta = "~{ref_basename}.gentrome.fa.gz"
 	}
 
 	runtime {
