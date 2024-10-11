@@ -322,8 +322,6 @@ task trim_and_qc {
 	command <<<
 		set -euo pipefail
 
-		trimmed_fastq_R1s_list=
-		trimmed_fastq_R2s_list=
 		while read -r fastq_R1 fastq_R2 || [[ -n "${fastq_R1}" ]] || [[ -n "${fastq_R2}" ]]; do
 			fastq_R1_basename=$(basename "${fastq_R1}" | sed -E 's/\.(fastq|fq)(\.gz)?$//')
 			fastq_R2_basename=$(basename "${fastq_R2}" | sed -E 's/\.(fastq|fq)(\.gz)?$//')
@@ -350,17 +348,10 @@ task trim_and_qc {
 				-o "${fastq_R1_basename}.trimmed.fastq.gz" \
 				-o "${fastq_R2_basename}.trimmed.fastq.gz"
 
-			trimmed_fastq_R1s_list+="${fastq_R1_basename}.trimmed.fastq.gz"
-			trimmed_fastq_R2s_list+="${fastq_R2_basename}.trimmed.fastq.gz"
+			# Get list of trimmed fastqs in order to save into Array[String]
+			echo "~{raw_data_path}/${fastq_R1_basename}.trimmed.fastq.gz" > trimmed_fastq_R1s_path.txt
+			echo "~{raw_data_path}/${fastq_R2_basename}.trimmed.fastq.gz" > trimmed_fastq_R2s_path.txt
 		done < <(paste ~{write_lines(fastq_R1s)} ~{write_lines(fastq_R2s)})
-
-		# Get list of trimmed fastqs in order to save into Array[String]
-		# shellcheck disable=SC2116
-		gs_path=$(echo ~{raw_data_path})
-		# shellcheck disable=SC2001
-		echo "${trimmed_fastq_R1s_list}" | sed "s;^;${gs_path}/;"> trimmed_fastq_R1s_path.txt
-		# shellcheck disable=SC2001
-		echo "${trimmed_fastq_R2s_list}" | sed "s;^;${gs_path}/;" > trimmed_fastq_R2s_path.txt
 
 		mkdir -p ~{sample_id}_fastp_failed_paired_fastqs
 		find . -maxdepth 1 -type f -name "*failed.fastq.gz" -exec mv {} ~{sample_id}_fastp_failed_paired_fastqs/ \;
