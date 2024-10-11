@@ -8,7 +8,6 @@ workflow differential_gene_expression_analysis {
 		
 		File metadata_csv # TODO - ASAP_sample_id will be metadata once DTi processes them (SAMPLE.csv)
 		File gene_map_csv
-		File blacklist_genes_bed
 		File gene_ids_and_names_json
 
 		String salmon_mode
@@ -26,7 +25,6 @@ workflow differential_gene_expression_analysis {
 			project_id = project_id,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
-			blacklist_genes_bed = blacklist_genes_bed,
 			gene_ids_and_names_json = gene_ids_and_names_json,
 			salmon_mode = salmon_mode,
 			salmon_quant_tar_gz = salmon_quant_tar_gz,
@@ -51,7 +49,6 @@ task differential_gene_expression {
 		
 		File metadata_csv
 		File gene_map_csv
-		File blacklist_genes_bed
 		File gene_ids_and_names_json
 
 		String salmon_mode
@@ -66,7 +63,7 @@ task differential_gene_expression {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size([metadata_csv, gene_map_csv, blacklist_genes_bed], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
+	Int disk_size = ceil((size([metadata_csv, gene_map_csv], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
 
 	command <<<
 		set -euo pipefail
@@ -79,7 +76,6 @@ task differential_gene_expression {
 			--cohort-id ~{project_id} \
 			--metadata ~{metadata_csv} \
 			--gene-map ~{gene_map_csv} \
-			--blacklist-genes ~{blacklist_genes_bed} \
 			--gene-ids-and-names ~{gene_ids_and_names_json} \
 			--salmon-mode ~{salmon_mode}
 

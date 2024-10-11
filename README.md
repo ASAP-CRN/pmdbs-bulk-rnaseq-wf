@@ -65,7 +65,6 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team downstream analysis outputs to. |
 | File | metadata_csv | CSV containing all sample information including batch, condition, etc. |
 | File | gene_map_csv | CSV containing mapped transcript IDs and gene IDs that must be in this order. |
-| File | blacklist_genes_bed | BED file containing the ENCODE Blacklist genes. |
 | File | gene_ids_and_names_json | JSON file containing mapped gene IDs and gene names created from the gene annotation GTF. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
 | String? | zones | Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f'] |
@@ -339,7 +338,7 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 # Notes
 ## Reference data
 
-[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/) and the [ENCODE hg38 blacklist genes](https://github.com/Boyle-Lab/Blacklist/blob/master/lists/hg38-blacklist.v2.bed.gz) were used in this pipeline.
+[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/) was used in this pipeline.
 
 The GENCODE gene annotation file was used to create a tx2gene dataframe in R:
 ```R

@@ -33,7 +33,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 
 		File metadata_csv
 		File gene_map_csv
-		File blacklist_genes_bed
 		File gene_ids_and_names_json
 
 		String container_registry
@@ -134,7 +133,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					output_name = "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
 					metadata_csv = metadata_csv,
 					gene_map_csv = gene_map_csv,
-					blacklist_genes_bed = blacklist_genes_bed,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "alignment_mode",
 					salmon_quant_tar_gz = select_all(upstream.alignment_mode_quant_tar_gz),
@@ -164,7 +162,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					output_name = "multiqc_fastqc_fastp_salmon_mapping_mode_report",
 					metadata_csv = metadata_csv,
 					gene_map_csv = gene_map_csv,
-					blacklist_genes_bed = blacklist_genes_bed,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "mapping_mode",
 					salmon_quant_tar_gz = select_all(upstream.mapping_mode_quant_tar_gz),
@@ -396,7 +393,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
 		metadata_csv: {help: "CSV containing all sample information including batch, condition, etc."}
 		gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
-		blacklist_genes_bed: {help: "BED file containing the ENCODE Blacklist genes."}
 		gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
 		zones: {help: "Space-delimited set of GCP zones where compute will take place."}

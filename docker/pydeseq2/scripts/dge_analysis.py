@@ -27,7 +27,6 @@ def main(args):
     ############
     new_column_names = ["transcript_id", "gene_id"]
     gene_map = pd.read_csv(args.gene_map, names=new_column_names, header=0)
-    blacklist_genes = pd.read_csv(args.blacklist_genes, sep="\t")
     with open(args.gene_ids_and_names, "r") as file:
         gtf_gene_ids_and_names = json.load(file)
 
@@ -60,9 +59,6 @@ def main(args):
         metadata=metadata,
         design_factors=["batch", "condition"],
     )
-
-    # TODO - Remove blacklist genes? This file contains regions, not genes. Also contains PD genes.
-    #dds.counts = dds.counts.loc[~dds.counts.index.isin(blacklist_genes)]
 
     # Fit dispersions and LFCs
     dds.deseq2()
@@ -158,13 +154,6 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Table containing mapped transcript IDs and gene IDs that must be in this order"
-    )
-    parser.add_argument(
-        "-b",
-        "--blacklist-genes",
-        type=str,
-        required=True,
-        help="BED file containing the ENCODE Blacklist genes"
     )
     parser.add_argument(
         "-n",
