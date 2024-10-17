@@ -3,7 +3,7 @@ version 1.0
 # Perform QC, trim, align, and quantify reads
 
 import "../pmdbs_bulk_rnaseq_analysis_structs.wdl"
-import "../wf-common/wdl/tasks/fastqc.wdl" as Fastqc
+import "../../wf-common/wdl/tasks/fastqc.wdl" as Fastqc
 import "alignment_quantification/alignment_quantification.wdl" as AlignmentQuantification
 import "pseudo_mapping_quantification/pseudo_mapping_quantification.wdl" as PseudoMappingQuantification
 

@@ -1,6 +1,6 @@
 version 1.0
 
-import "wf-common/wdl/structs.wdl"
+import "../wf-common/wdl/structs.wdl"
 
 struct ReferenceData {
 	File primary_assembly_fasta

@@ -2,7 +2,7 @@ version 1.0
 
 # Downstream analysis including generating a single HTML report for multiple bioinformatics analyses across many samples and DGE analysis across multiple groups
 
-import "../wf-common/wdl/tasks/multiqc.wdl" as Multiqc
+import "../../wf-common/wdl/tasks/multiqc.wdl" as Multiqc
 import "differential_gene_expression_analysis/differential_gene_expression_analysis.wdl" as DifferentialGeneExpressionAnalysis
 
 workflow downstream {

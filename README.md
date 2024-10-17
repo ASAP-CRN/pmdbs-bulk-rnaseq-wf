@@ -1,5 +1,8 @@
 # pmdbs-bulk-rnaseq-wf
+
 Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human bulk RNA sequencing data.
+
+Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](wf-common).
 
 
 # Table of contents
@@ -105,7 +108,7 @@ See [reference data](#reference-data) notes for more details.
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON. The script requires the libraries outlined in [the requirements.txt file](util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON. The script requires the libraries outlined in [the requirements.txt file](wf-common/util/requirements.txt) and the following inputs:
 
 - `project-tsv`: One or more project TSVs with one row per sample and columns project_id, sample_id, batch, fastq_path. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
     - `project_id`: A unique identifier for the project from which the sample(s) arose
@@ -120,7 +123,7 @@ The inputs JSON may be generated manually, however when running a large number o
 Example usage:
 
 ```bash
-./util/generate_inputs \
+./wf-common/util/generate_inputs \
     --project-tsv sample_info.tsv \
     --fastq-locs-txt fastq_locs.txt \
     --inputs-template workflows/inputs.json \
@@ -233,7 +236,7 @@ asap-dev-{collection}-{modality}-{cohort,team-xxyy}
 
 ## Promoting staging data
 
-The [`promote_staging_data` script](util/promote_staging_data) can be used to promote staging data that has been approved to the curated data bucket for a team or set of teams.
+The [`promote_staging_data` script](wf-common/util/promote_staging_data) can be used to promote staging data that has been approved to the curated data bucket for a team or set of teams.
 
 This script compiles bucket and file information for both the initial (staging) and target (prod) environment. It also runs data integrity tests to ensure staging data can be promoted and generates a Markdown report. It (1) checks that files are not empty and are not less than or equal to 10 bytes (factoring in white space) and (2) checks that files have associated metadata and is present in MANIFEST.tsv.
 
@@ -258,13 +261,13 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 # List available teams
-./util/promote_staging_data -l
+./wf-common/util/promote_staging_data -l
 
 # Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy, team-wood, and cohort
-./util/promote_staging_data -t team-hardy,team-wood,cohort
+./wf-common/util/promote_staging_data -t team-hardy,team-wood,cohort
 
 # Promote data for team-hardy, team-lee, team-wood, and cohort
-./util/promote_staging_data -a -p -s dev
+./wf-common/util/promote_staging_data -a -p -s dev
 ```
 
 # Docker images
@@ -325,7 +328,7 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 | salmon | <ul><li>[salmon v1.10.3](https://github.com/COMBINE-lab/salmon/releases/tag/v1.10.3)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/salmon) |
 | pydeseq2 | Python (v3.12.5) libraries: <ul><li>[pydeseq2 v0.4.11](https://github.com/owkin/PyDESeq2/releases/tag/v0.4.11)</li><li>[scikit-learn 1.5.2](https://github.com/scikit-learn/scikit-learn/releases/tag/1.5.2)</li><li>[scipy v1.13.0](https://github.com/scipy/scipy/releases/tag/v1.13.0)</li><li>[pytximport 0.8.0](https://github.com/complextissue/pytximport/releases/tag/0.8.0)</li><li>[matplotlib v3.9.2](https://github.com/matplotlib/matplotlib/releases/tag/v3.9.2)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/pydeseq2) |
 | multiqc | <ul><li>[multiqc v1.24.1](https://github.com/MultiQC/MultiQC/releases/tag/v1.24.1)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/multiqc) |
-| util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/util) |
+| util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) |
 
 
 # wdl-ci

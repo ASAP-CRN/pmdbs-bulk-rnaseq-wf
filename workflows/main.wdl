@@ -3,7 +3,7 @@ version 1.0
 # Harmonized human PMDBS bulk RNAseq workflow entrypoint
 
 import "pmdbs_bulk_rnaseq_analysis_structs.wdl"
-import "wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
+import "../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "index_ref_genome/index_ref_genome.wdl" as IndexRefGenome
 import "upstream/upstream.wdl" as Upstream
 import "downstream/downstream.wdl" as Downstream
