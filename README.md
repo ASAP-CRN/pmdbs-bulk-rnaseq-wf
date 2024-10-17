@@ -199,8 +199,6 @@ asap-dev-{collection}-{modality}-{cohort,team-xxyy}
 │   └── MANIFEST.tsv
 └── upstream
     ├── ${sampleA_id}.fastqc_reports.tar.gz
-    ├── ${fastq_R1_basename}.trimmed.fastq.gz # Multiple fastqs per sample
-    ├── ${fastq_R2_basename}.trimmed.fastq.gz # Multiple fastqs per sample
     ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
     ├── ${sampleA_id}.fastp_reports.tar.gz
     ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
@@ -216,8 +214,6 @@ asap-dev-{collection}-{modality}-{cohort,team-xxyy}
     ├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
     ├── ...
     ├── ${sampleN_id}.fastqc_reports.tar.gz
-    ├── ${fastq_R1_basename}.trimmed.fastq.gz
-    ├── ${fastq_R2_basename}.trimmed.fastq.gz
     ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
     ├── ${sampleN_id}.fastp_reports.tar.gz
     ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz

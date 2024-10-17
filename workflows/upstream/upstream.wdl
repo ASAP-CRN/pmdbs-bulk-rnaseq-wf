@@ -340,7 +340,7 @@ task trim_and_qc {
 				--report_title "${fastq_basename}" \
 				--thread ~{threads - 1}
 
-			# TODO - Organize trimmed fastqs into individual sample folders in bucket?
+			# Trimmed fastqs will live alongside sample-level upstream outputs in workflow execution raw bucket
 			upload_outputs \
 				-b ~{billing_project} \
 				-d ~{raw_data_path} \

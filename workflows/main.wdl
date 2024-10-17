@@ -84,8 +84,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[String] alignment_mode_upstream_output_file_paths = select_all(
 			flatten([
 				upstream.fastqc_reports_tar_gz,
-				flatten(upstream.trimmed_fastq_R1s),
-				flatten(upstream.trimmed_fastq_R2s),
 				upstream.failed_paired_fastqs_tar_gz,
 				upstream.reports_html_tar_gz,
 				upstream.trimmed_fastqc_reports_tar_gz,
@@ -105,8 +103,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[String] mapping_mode_upstream_output_file_paths = select_all(
 			flatten([
 				upstream.fastqc_reports_tar_gz,
-				flatten(upstream.trimmed_fastq_R1s),
-				flatten(upstream.trimmed_fastq_R2s),
 				upstream.failed_paired_fastqs_tar_gz,
 				upstream.reports_html_tar_gz,
 				upstream.trimmed_fastqc_reports_tar_gz,
