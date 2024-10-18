@@ -46,7 +46,7 @@ def main(args):
         metadata = dds.obs
         metadata["team_id"] = team_id
         all_metadata.append(metadata)
-        normalized_counts = dds.layers['normed_counts'].T
+        normalized_counts = dds.layers["normed_counts"].T
         sample_ids = dds.obs.index
         sample_ids.name = None
         normalized_counts_df = pd.DataFrame(normalized_counts, index=dds.var.index, columns=sample_ids)
@@ -58,13 +58,32 @@ def main(args):
     pca = PCA(n_components=2)
     pca_result = pca.fit_transform(combined_normalized_counts.T)
     pca_df = pd.DataFrame(pca_result, columns=["PC1", "PC2"])
-    pca_df["condition"] = combined_metadata["condition"].values
     pca_df["team_id"] = combined_metadata["team_id"].values
+    pca_df["intervention_id"] = combined_metadata["intervention_id"].values
     plt.figure(figsize=(8, 6))
     sns.scatterplot(
         x="PC1",
         y="PC2",
-        hue="condition",
+        hue="intervention_id",
+        style="team_id",
+        data=pca_df,
+        s=100,
+        palette="Set2",
+        alpha=0.7,
+    )
+    plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.2f}% variance)")
+    plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.2f}% variance)")
+    plt.title("PCA of Normalized Counts by Intervention and Team")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.intervention_pca_plot.png", dpi=300, bbox_inches="tight")
+    plt.close("all")
+
+    pca_df["condition_id"] = combined_metadata["condition_id"].values
+    plt.figure(figsize=(8, 6))
+    sns.scatterplot(
+        x="PC1",
+        y="PC2",
+        hue="condition_id",
         style="team_id",
         data=pca_df,
         s=100,
@@ -75,7 +94,7 @@ def main(args):
     plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.2f}% variance)")
     plt.title("PCA of Normalized Counts by Condition and Team")
     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
-    plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.pca_plot.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.condition_pca_plot.png", dpi=300, bbox_inches="tight")
     plt.close("all")
 
 
