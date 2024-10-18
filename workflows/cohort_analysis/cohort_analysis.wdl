@@ -8,6 +8,7 @@ import "../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutput
 workflow cohort_analysis {
 	input {
 		String cohort_id
+		Array[String] project_ids
 		Array[Array[String]] project_sample_ids
 
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
@@ -53,7 +54,7 @@ workflow cohort_analysis {
 	call degs_and_plot {
 		input:
 			cohort_id = cohort_id,
-			cohort_sample_list = write_cohort_sample_list.cohort_sample_list, #!FileCoercion
+			project_ids = project_ids,
 			significant_genes_csv = significant_genes_csv,
 			dds_object_pkl = dds_object_pkl,
 			salmon_mode = salmon_mode,
@@ -118,7 +119,7 @@ workflow cohort_analysis {
 task degs_and_plot {
 	input {
 		String cohort_id
-		File cohort_sample_list
+		Array[String] project_ids
 
 		Array[File] significant_genes_csv
 		Array[File] dds_object_pkl
@@ -134,17 +135,14 @@ task degs_and_plot {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size(cohort_sample_list, "GB") + size(flatten([significant_genes_csv, dds_object_pkl]), "GB")) * 2 + 20)
+	Int disk_size = ceil(size(flatten([significant_genes_csv, dds_object_pkl]), "GB") * 2 + 20)
 
 	command <<<
 		set -euo pipefail
 
-		project_id_column_no=$(tr '\t' '\n' < <(head -1 ~{cohort_sample_list}) | grep -n "project_id" | cut -d : -f 1)
-		project_ids=$(cut -f "$project_id_column_no" ~{cohort_sample_list} | sed -r '/^\s*$/d' | tail -n +2 | uniq | tr '\n' ' ') # Do not sort to preserve order
-
 		python3 /opt/scripts/cohort_analysis.py \
 			--cohort-id ~{cohort_id} \
-			--project-id "${project_ids}" \
+			--project-id ~{sep=' ' project_ids} \
 			--degs ~{sep=' ' significant_genes_csv} \
 			--dds-object ~{sep=' ' dds_object_pkl} \
 			--salmon-mode ~{salmon_mode}

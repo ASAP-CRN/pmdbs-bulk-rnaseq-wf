@@ -63,9 +63,11 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		# Add workflow name or else intermediate files will be uploaded to the same folder as harmonized_pmdbs
 		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
 
+		String project_id = project.project_id
+
 		call Upstream.upstream {
 			input:
-				project_id = project.project_id,
+				project_id = project_id,
 				samples = project.samples,
 				all_transcripts_fasta = reference.all_transcripts_fasta,
 				run_alignment_quantification = run_alignment_quantification,
@@ -114,7 +116,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		if (run_alignment_quantification) {
 			call Downstream.downstream as alignment_mode_downstream {
 				input:
-					project_id = project.project_id,
+					project_id = project_id,
 					output_files = select_all(
 						flatten([
 							upstream.fastqc_reports_tar_gz,
@@ -148,7 +150,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		if (run_pseudo_mapping_quantification) {
 			call Downstream.downstream as mapping_mode_downstream {
 				input:
-					project_id = project.project_id,
+					project_id = project_id,
 					output_files = select_all(
 						flatten([
 							upstream.fastqc_reports_tar_gz,
@@ -199,7 +201,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			if (run_alignment_quantification) {
 				call CohortAnalysis.cohort_analysis as alignment_mode_project_cohort_analysis {
 					input:
-						cohort_id = project.project_id,
+						cohort_id = project_id,
+						project_ids = [project_id],
 						project_sample_ids = upstream.project_sample_ids,
 						upstream_output_file_paths = alignment_mode_upstream_output_file_paths,
 						downstream_output_file_paths = alignment_mode_downstream_output_file_paths,
@@ -221,7 +224,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			if (run_pseudo_mapping_quantification) {
 				call CohortAnalysis.cohort_analysis as mapping_mode_project_cohort_analysis {
 					input:
-						cohort_id = project.project_id,
+						cohort_id = project_id,
+						project_ids = [project_id],
 						project_sample_ids = upstream.project_sample_ids,
 						upstream_output_file_paths = mapping_mode_upstream_output_file_paths,
 						downstream_output_file_paths = mapping_mode_downstream_output_file_paths,
@@ -243,6 +247,9 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		}
 	}
 
+	# Order of project IDs must be preserved
+	Array[String] project_ids = project_id
+
 	if (run_cross_team_cohort_analysis) {
 		String cohort_raw_data_path_prefix = "~{cohort_raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
 
@@ -250,6 +257,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			call CohortAnalysis.cohort_analysis as alignment_mode_cross_team_cohort_analysis {
 				input:
 					cohort_id = cohort_id,
+					project_ids = project_ids,
 					project_sample_ids = flatten(upstream.project_sample_ids),
 					upstream_output_file_paths = flatten(alignment_mode_upstream_output_file_paths),
 					downstream_output_file_paths = flatten(alignment_mode_downstream_output_file_paths),
@@ -272,6 +280,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			call CohortAnalysis.cohort_analysis  as mapping_mode_cross_team_cohort_analysis {
 				input:
 					cohort_id = cohort_id,
+					project_ids = project_ids,
 					project_sample_ids = flatten(upstream.project_sample_ids),
 					upstream_output_file_paths = flatten(mapping_mode_upstream_output_file_paths),
 					downstream_output_file_paths = flatten(mapping_mode_downstream_output_file_paths),
