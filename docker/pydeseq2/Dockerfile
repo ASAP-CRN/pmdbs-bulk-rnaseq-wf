@@ -44,7 +44,8 @@ RUN cd /opt/Python-${PYTHON3_VERSION} && \
 
 ENV PATH "${PATH}:/opt/Python-${PYTHON3_VERSION}"
 
-RUN ln -s /opt/Python-${PYTHON3_VERSION}/python /opt/Python-${PYTHON3_VERSION}/python3
+RUN rm -f /usr/bin/python3
+RUN ln -s /opt/Python-${PYTHON3_VERSION}/python /usr/bin/python3
 
 COPY ./requirements.txt /opt/requirements.txt
 RUN python3 -m pip install -r /opt/requirements.txt
