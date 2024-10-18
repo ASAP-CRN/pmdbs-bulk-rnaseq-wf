@@ -75,7 +75,7 @@ task differential_gene_expression {
 			tar -xzvf "${quant_tar_gz}"
 		done < ~{write_lines(salmon_quant_tar_gz)}
 
-		python /opt/scripts/dge_analysis.py \
+		python3 /opt/scripts/dge_analysis.py \
 			--cohort-id ~{project_id} \
 			--condition-dict ~{condition_csv} \
 			--metadata ~{metadata_csv} \
