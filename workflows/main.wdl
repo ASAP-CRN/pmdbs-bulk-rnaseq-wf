@@ -45,6 +45,9 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	String workflow_version = "v1.0.0"
 	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-~{workflow_version}"
 
+	String source = "pmdbs"
+	String collection_name = "bulk_rnaseq"
+
 	call GetWorkflowMetadata.get_workflow_metadata {
 		input:
 			zones = zones
@@ -60,8 +63,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	scatter (project in projects) {
-		# Add workflow name or else intermediate files will be uploaded to the same folder as harmonized_pmdbs
-		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
+		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{source}/~{collection_name}/~{workflow_name}"
 
 		String project_id = project.project_id
 
