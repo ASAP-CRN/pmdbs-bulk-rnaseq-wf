@@ -1,6 +1,6 @@
 {
   "pmdbs_bulk_rnaseq_analysis.cohort_id": "String",
-  "pmdbs_bulk_rnaseq_analysis.projects": "Array[WomCompositeType {\n samples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nsample_id -> String\nfastq_R1s -> Array[File]+\nbatch -> String?\nfastq_I2s -> Array[File]\nfastq_R2s -> Array[File]+ \n}]\nproject_id -> String\nstaging_data_buckets -> Array[String]\nrun_project_cohort_analysis -> Boolean\nraw_data_bucket -> String \n}]",
+  "pmdbs_bulk_rnaseq_analysis.projects": "Array[WomCompositeType {\n samples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nsample_id -> String\nfastq_R1s -> Array[File]+\nbatch -> String?\nfastq_I2s -> Array[File]\nfastq_R2s -> Array[File]+ \n}]\nproject_id -> String\nstaging_data_buckets -> Array[String]\nproject_sample_metadata_csv -> File?\nrun_project_cohort_analysis -> Boolean\nraw_data_bucket -> String \n}]",
   "pmdbs_bulk_rnaseq_analysis.reference": {
     "primary_assembly_fasta": "File",
     "gene_annotation_gtf": "File",
@@ -17,7 +17,6 @@
   "pmdbs_bulk_rnaseq_analysis.cohort_raw_data_bucket": "String",
   "pmdbs_bulk_rnaseq_analysis.cohort_staging_data_buckets": "Array[String]",
   "pmdbs_bulk_rnaseq_analysis.condition_csv": "File",
-  "pmdbs_bulk_rnaseq_analysis.metadata_csv": "File",
   "pmdbs_bulk_rnaseq_analysis.gene_map_csv": "File",
   "pmdbs_bulk_rnaseq_analysis.gene_ids_and_names_json": "File",
   "pmdbs_bulk_rnaseq_analysis.container_registry": "String",

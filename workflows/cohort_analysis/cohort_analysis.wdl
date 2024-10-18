@@ -159,7 +159,7 @@ task degs_and_plot {
 			--dds-object ~{sep=' ' dds_object_pkl} \
 			--salmon-mode ~{salmon_mode}
 
-		if [[ ~{n_teams} > 1 ]]; then
+		if [[ ~{n_teams} -gt 1 ]]; then
 			upload_outputs \
 				-b ~{billing_project} \
 				-d ~{raw_data_path} \

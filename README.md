@@ -67,7 +67,6 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | String | cohort_raw_data_bucket | Bucket to upload cross-team downstream intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team downstream analysis outputs to. |
 | File | condition_csv | CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition. |
-| File | metadata_csv | CSV containing all sample information including batch, condition, etc. |
 | File | gene_map_csv | CSV containing mapped transcript IDs and gene IDs that must be in this order. |
 | File | gene_ids_and_names_json | JSON file containing mapped gene IDs and gene names created from the gene annotation GTF. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
@@ -81,6 +80,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | :- | :- | :- |
 | String | project_id | Unique identifier for project; used for naming output files. |
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
+| File? | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. This is required for the bulk RNAseq pipeline. |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
