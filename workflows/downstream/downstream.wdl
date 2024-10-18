@@ -12,6 +12,7 @@ workflow downstream {
 		Array[File] output_files
 		String output_name
 
+		File condition_csv
 		File metadata_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
@@ -51,6 +52,7 @@ workflow downstream {
 	call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis {
 		input:
 			project_id = project_id,
+			condition_csv = condition_csv,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
 			gene_ids_and_names_json = gene_ids_and_names_json,

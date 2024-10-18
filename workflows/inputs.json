@@ -16,6 +16,7 @@
   "pmdbs_bulk_rnaseq_analysis.run_cross_team_cohort_analysis": "Boolean (optional, default = false)",
   "pmdbs_bulk_rnaseq_analysis.cohort_raw_data_bucket": "String",
   "pmdbs_bulk_rnaseq_analysis.cohort_staging_data_buckets": "Array[String]",
+  "pmdbs_bulk_rnaseq_analysis.condition_csv": "File",
   "pmdbs_bulk_rnaseq_analysis.metadata_csv": "File",
   "pmdbs_bulk_rnaseq_analysis.gene_map_csv": "File",
   "pmdbs_bulk_rnaseq_analysis.gene_ids_and_names_json": "File",

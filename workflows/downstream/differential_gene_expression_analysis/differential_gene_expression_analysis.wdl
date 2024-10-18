@@ -6,7 +6,8 @@ workflow differential_gene_expression_analysis {
 	input {
 		String project_id
 		
-		File metadata_csv # TODO - ASAP_sample_id will be metadata once DTi processes them (SAMPLE.csv)
+		File condition_csv
+		File metadata_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
 
@@ -23,6 +24,7 @@ workflow differential_gene_expression_analysis {
 	call differential_gene_expression {
 		input:
 			project_id = project_id,
+			condition_csv = condition_csv,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
 			gene_ids_and_names_json = gene_ids_and_names_json,
@@ -47,6 +49,7 @@ task differential_gene_expression {
 	input {
 		String project_id
 		
+		File condition_csv
 		File metadata_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
@@ -63,7 +66,7 @@ task differential_gene_expression {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size([metadata_csv, gene_map_csv], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
+	Int disk_size = ceil((size([condition_csv, metadata_csv, gene_map_csv], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
 
 	command <<<
 		set -euo pipefail
@@ -74,6 +77,7 @@ task differential_gene_expression {
 
 		python /opt/scripts/dge_analysis.py \
 			--cohort-id ~{project_id} \
+			--condition-dict ~{condition_csv} \
 			--metadata ~{metadata_csv} \
 			--gene-map ~{gene_map_csv} \
 			--gene-ids-and-names ~{gene_ids_and_names_json} \

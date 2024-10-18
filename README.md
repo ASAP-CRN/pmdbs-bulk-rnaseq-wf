@@ -66,6 +66,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only upstream steps (QC, align/map, and quantify) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team downstream intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team downstream analysis outputs to. |
+| File | condition_csv | CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition. |
 | File | metadata_csv | CSV containing all sample information including batch, condition, etc. |
 | File | gene_map_csv | CSV containing mapped transcript IDs and gene IDs that must be in this order. |
 | File | gene_ids_and_names_json | JSON file containing mapped gene IDs and gene names created from the gene annotation GTF. |

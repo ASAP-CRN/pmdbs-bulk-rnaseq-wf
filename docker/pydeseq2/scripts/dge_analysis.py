@@ -18,8 +18,13 @@ def main(args):
     ##############
     # Remove samples with missing annotations
     metadata = pd.read_csv(args.metadata, index_col="sample_id")
-    samples_to_keep =  ~(metadata.batch.isna() | metadata.condition.isna())
+    samples_to_keep =  ~(metadata.batch.isna() | metadata.condition_id.isna())
     metadata = metadata.loc[samples_to_keep]
+
+    # Map condition_id to intervention_id (i.e. grouping conditions to "Case", "Control", and "Other")
+    condition_dict = pd.read_csv(args.condition_dict)
+    metadata_merged = pd.merge(metadata, condition_dict[["condition_id", "intervention_id"]], on="condition_id", how="left")
+    metadata_merged.set_index(metadata.index, inplace=True)
 
 
     ############
@@ -31,7 +36,7 @@ def main(args):
         gtf_gene_ids_and_names = json.load(file)
 
     path = os.getcwd()
-    samples = metadata.index.tolist() # TODO change to ASAP_sample_id when DTi has processed metadata
+    samples = metadata_merged.index.tolist()
     files = [os.path.join(path, f"{sample}_salmon_quant/quant.sf") for sample in samples]
     files_dict = dict(zip(samples, files))
 
@@ -56,8 +61,8 @@ def main(args):
     # Note: Single factor analysis vs. multifactor analysis requires more manual coding
     dds = DeseqDataSet(
         counts=counts_int,
-        metadata=metadata,
-        design_factors=["batch", "condition"],
+        metadata=metadata_merged,
+        design_factors=["batch", "intervention_id"],
     )
 
     # Fit dispersions and LFCs
@@ -68,17 +73,13 @@ def main(args):
     # Statistical analysis
     log2_fc_threshold = 1
     padj_threshold = 0.05
-    unique_conditions = metadata["condition"].unique().tolist()
-    # Ensure "control" is at the end of the list so it's ref_level
-    pattern = re.compile(r'^(control|ctl)$', re.IGNORECASE) # TODO make control arg?
-    control_conds = [cond for cond in unique_conditions if pattern.match(cond)]
-    filtered_conds = [cond for cond in unique_conditions if not pattern.match(cond)]
-    final_conditions = filtered_conds + control_conds
-    final_conditions.insert(0, "condition")
-    print(f"Levels used for contrast: {final_conditions}")
+    excluded_samples = metadata_merged[metadata_merged["intervention_id"] == "Other"]
+    excluded_samples_filtered = excluded_samples[["batch", "condition_id", "intervention_id"]]
+    print(f"[WARNING] Samples and levels excluded for contrast:\n{excluded_samples_filtered}")
+    # Ensure "Control" is at the end of the list so it's ref_level
     stat_res = DeseqStats(
         dds,
-        contrast=final_conditions, # Comparing condition only but model uses information from both the condition and batch variables
+        contrast=["intervention_id", "Case", "Control"], # Comparing intervention_id (adjusted condition) only but model uses information from both the intervention_id and batch variables
     )
     stat_res.summary()
     results_df = stat_res.results_df
@@ -140,6 +141,13 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Cohort ID"
+    )
+    parser.add_argument(
+        "-d",
+        "--condition-dict",
+        type=str,
+        required=True,
+        help="Table containing condition and intervention IDs used to categorize conditions into broader groups for pairwise condition"
     )
     parser.add_argument(
         "-m",
