@@ -37,8 +37,10 @@ workflow cohort_analysis {
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
 	String raw_data_path = "~{raw_data_path_prefix}/~{sub_workflow_name}/~{sub_workflow_version}/~{salmon_mode}/~{run_timestamp}"
-	String downstream_staging_data_path = "downstream/~{salmon_mode}"
-	String cohort_analysis_staging_data_path = "~{sub_workflow_name}/~{salmon_mode}"
+	String staging_data_path_prefix = "~{workflow_name}"
+	String upstream_staging_data_path = "~{staging_data_path_prefix}/upstream"
+	String downstream_staging_data_path = "~{staging_data_path_prefix}/downstream/~{salmon_mode}"
+	String cohort_analysis_staging_data_path = "~{staging_data_path_prefix}/~{sub_workflow_name}/~{salmon_mode}"
 
 	call WriteCohortSampleList.write_cohort_sample_list {
 		input:
@@ -70,7 +72,7 @@ workflow cohort_analysis {
 		input:
 			output_file_paths = upstream_output_file_paths,
 			staging_data_buckets = staging_data_buckets,
-			staging_data_path = "upstream",
+			staging_data_path = upstream_staging_data_path,
 			billing_project = billing_project,
 			zones = zones
 	}
