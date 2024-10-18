@@ -18,19 +18,16 @@ def modify_tables(file_list, team_ids):
 
 
 def main(args):
-    ######################
-    ## OVERLAPPING DEGS ##
-    ######################
-    if len(args.project_id) > 1:
-        combined_degs = modify_tables(args.degs, args.project_id)
-
+    ##########################################################
+    ## OVERLAPPING DEGS ONLY FOR CROSS TEAM COHORT ANALYSIS ##
+    ##########################################################
+    if args.n_teams > 1:
+        combined_degs = modify_tables(args.degs, args.project_ids)
         combined_degs.set_index(combined_degs.columns[0], inplace=True)
         grouped = combined_degs.groupby("team_id").apply(lambda x: set(x.index))
         common_degs = set.intersection(*grouped)
         common_degs_df = combined_degs.loc[combined_degs.index[combined_degs.index.isin(common_degs)]]
-    else:
-        common_degs_df = pd.DataFrame([["N/A"]])
-    common_degs_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.overlapping_significant_genes.csv")
+        common_degs_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.overlapping_significant_genes.csv")
 
 
     ###################
@@ -45,7 +42,7 @@ def main(args):
 
     all_metadata = []
     all_normalized_counts = []
-    for dds, team_id in zip(all_dds_objects, args.project_id):
+    for dds, team_id in zip(all_dds_objects, args.project_ids):
         metadata = dds.obs
         metadata["team_id"] = team_id
         all_metadata.append(metadata)
@@ -95,11 +92,18 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-p",
-        "--project-id",
+        "--project-ids",
         type=str,
         nargs='+',
         required=True,
         help="Project IDs/team names"
+    )
+    parser.add_argument(
+        "-n",
+        "--n-teams",
+        type=int,
+        required=True,
+        help="Number of teams"
     )
     parser.add_argument(
         "-g",

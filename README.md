@@ -188,7 +188,7 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 asap-dev-{collection}-{modality}-{cohort,team-xxyy}
 ├── cohort_analysis
 │   ├── ${cohort_id}.sample_list.tsv
-│	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # File contains N/A for project cohort analysis
+│	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
 │	├──	${cohort_id}.${salmon_mode}.pca_plot.png
 │	└── MANIFEST.tsv
 ├── downstream

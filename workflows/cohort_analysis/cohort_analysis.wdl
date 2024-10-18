@@ -55,6 +55,7 @@ workflow cohort_analysis {
 		input:
 			cohort_id = cohort_id,
 			project_ids = project_ids,
+			n_teams = length(project_ids),
 			significant_genes_csv = significant_genes_csv,
 			dds_object_pkl = dds_object_pkl,
 			salmon_mode = salmon_mode,
@@ -87,8 +88,10 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
+		select_all([
+			degs_and_plot.overlapping_significant_genes_csv
+		]),
 		[
-			degs_and_plot.overlapping_significant_genes_csv,
 			degs_and_plot.pca_plot_png
 		]
 	]) #!StringCoercion
@@ -105,8 +108,8 @@ workflow cohort_analysis {
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
-		# Overlapping differentially expressed genes
-		File overlapping_significant_genes_csv = degs_and_plot.overlapping_significant_genes_csv #!FileCoercion
+		# Overlapping differentially expressed genes only for cross_team_cohort_analysis
+		File? overlapping_significant_genes_csv = degs_and_plot.overlapping_significant_genes_csv #!FileCoercion
 		# PCA plot
 		File pca_plot_png = degs_and_plot.pca_plot_png #!FileCoercion
 
@@ -120,6 +123,7 @@ task degs_and_plot {
 	input {
 		String cohort_id
 		Array[String] project_ids
+		Int n_teams
 
 		Array[File] significant_genes_csv
 		Array[File] dds_object_pkl
@@ -131,6 +135,9 @@ task degs_and_plot {
 		String billing_project
 		String container_registry
 		String zones
+
+		# Purposefully unset
+		String? my_none
 	}
 
 	Int threads = 4
@@ -142,21 +149,29 @@ task degs_and_plot {
 
 		python3 /opt/scripts/cohort_analysis.py \
 			--cohort-id ~{cohort_id} \
-			--project-id ~{sep=' ' project_ids} \
+			--project-ids ~{sep=' ' project_ids} \
+			--n-teams ~{n_teams} \
 			--degs ~{sep=' ' significant_genes_csv} \
 			--dds-object ~{sep=' ' dds_object_pkl} \
 			--salmon-mode ~{salmon_mode}
+
+		if [[ ~{n_teams} > 1 ]]; then
+			upload_outputs \
+				-b ~{billing_project} \
+				-d ~{raw_data_path} \
+				-i ~{write_tsv(workflow_info)} \
+				-o "~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv"
+		fi
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv" \
 			-o "~{cohort_id}.~{salmon_mode}.pca_plot.png"
 	>>>
 
 	output {
-		String overlapping_significant_genes_csv = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv"
+		String? overlapping_significant_genes_csv = if (n_teams > 1) then "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv" else my_none
 		String pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.pca_plot.png"
 	}
 	runtime {
