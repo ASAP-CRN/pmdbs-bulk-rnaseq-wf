@@ -62,7 +62,7 @@ def main(args):
     dds = DeseqDataSet(
         counts=counts_int,
         metadata=metadata_merged,
-        design_factors=["batch", "intervention_id"],
+        design_factors=["batch", "intervention_id"], # From PyDESeq2: "UserWarning: Same factor names in the design contain underscores ('_'). They will be converted to hyphens ('-')."
     )
 
     # Fit dispersions and LFCs
@@ -75,11 +75,12 @@ def main(args):
     padj_threshold = 0.05
     excluded_samples = metadata_merged[metadata_merged["intervention_id"] == "Other"]
     excluded_samples_filtered = excluded_samples[["batch", "condition_id", "intervention_id"]]
-    print(f"[WARNING] Samples and levels excluded for contrast:\n{excluded_samples_filtered}")
+    if not excluded_samples_filtered.empty:
+        print(f"[WARNING] Samples and levels excluded for contrast:\n{excluded_samples_filtered}")
     # Ensure "Control" is at the end of the list so it's ref_level
     stat_res = DeseqStats(
         dds,
-        contrast=["intervention_id", "Case", "Control"], # Comparing intervention_id (adjusted condition) only but model uses information from both the intervention_id and batch variables
+        contrast=["intervention-id", "Case", "Control"], # Comparing intervention_id (adjusted condition) only but model uses information from both the intervention_id and batch variables
     )
     stat_res.summary()
     results_df = stat_res.results_df
