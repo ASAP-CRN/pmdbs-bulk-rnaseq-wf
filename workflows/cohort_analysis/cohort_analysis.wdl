@@ -171,7 +171,8 @@ task degs_and_plot {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.~{salmon_mode}.pca_plot.png"
+			-o "~{cohort_id}.~{salmon_mode}.intervention_pca_plot.png" \
+			-o "~{cohort_id}.~{salmon_mode}.condition_pca_plot.png"
 	>>>
 
 	output {
