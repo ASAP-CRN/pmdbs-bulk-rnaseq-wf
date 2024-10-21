@@ -94,8 +94,7 @@ workflow cohort_analysis {
 			degs_and_plot.overlapping_significant_genes_csv
 		]),
 		[
-			degs_and_plot.intervention_pca_plot_png,
-			degs_and_plot.condition_pca_plot_png
+			degs_and_plot.pca_plot_png
 		]
 	]) #!StringCoercion
 
@@ -114,8 +113,7 @@ workflow cohort_analysis {
 		# Overlapping differentially expressed genes only for cross_team_cohort_analysis
 		File? overlapping_significant_genes_csv = degs_and_plot.overlapping_significant_genes_csv #!FileCoercion
 		# PCA plots
-		File intervention_pca_plot_png = degs_and_plot.intervention_pca_plot_png #!FileCoercion
-		File condition_pca_plot_png = degs_and_plot.condition_pca_plot_png #!FileCoercion
+		File pca_plot_png = degs_and_plot.pca_plot_png #!FileCoercion
 
 		Array[File] upstream_manifest_tsvs = upload_upstream_files.manifests #!FileCoercion
 		Array[File] downstream_manifest_tsvs = upload_downstream_files.manifests #!FileCoercion
@@ -171,14 +169,12 @@ task degs_and_plot {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.~{salmon_mode}.intervention_pca_plot.png" \
-			-o "~{cohort_id}.~{salmon_mode}.condition_pca_plot.png"
+			-o "~{cohort_id}.~{salmon_mode}.pca_plot.png"
 	>>>
 
 	output {
 		String? overlapping_significant_genes_csv = if (n_teams > 1) then "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv" else my_none
-		String intervention_pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.intervention_pca_plot.png"
-		String condition_pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.condition_pca_plot.png"
+		String pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.pca_plot.png"
 	}
 	runtime {
 		docker: "~{container_registry}/pydeseq2:0.4.11"

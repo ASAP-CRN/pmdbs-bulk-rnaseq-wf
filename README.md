@@ -189,8 +189,7 @@ asap-dev-{collection}-{modality}-{cohort,team-xxyy}
 ├── cohort_analysis
 │   ├── ${cohort_id}.sample_list.tsv
 │	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
-│   ├── ${cohort_id}.${salmon_mode}.intervention_pca_plot.png
-│	├──	${cohort_id}.${salmon_mode}.condition_pca_plot.png
+│   ├── ${cohort_id}.${salmon_mode}.pca_plot.png
 │	└── MANIFEST.tsv
 ├── downstream
 │   ├── ${project_id}.${output_name}.html # Includes ${salmon_mode} in output_name

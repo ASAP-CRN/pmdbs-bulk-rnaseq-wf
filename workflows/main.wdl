@@ -353,12 +353,10 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[File?] project_cohort_sample_list = alignment_mode_project_cohort_analysis.cohort_sample_list
 
 		## PCA plot for alignment-mode
-		Array[File?] project_alignment_mode_intervention_pca_plot_png = alignment_mode_project_cohort_analysis.intervention_pca_plot_png
-		Array[File?] project_alignment_mode_condition_pca_plot_png = alignment_mode_project_cohort_analysis.condition_pca_plot_png
+		Array[File?] project_alignment_mode_pca_plot_png = alignment_mode_project_cohort_analysis.pca_plot_png
 
 		## PCA plot for mapping-mode
-		Array[File?] project_mapping_mode_intervention_pca_plot_png = mapping_mode_project_cohort_analysis.intervention_pca_plot_png
-		Array[File?] project_mapping_mode_condition_pca_plot_png = mapping_mode_project_cohort_analysis.condition_pca_plot_png
+		Array[File?] project_mapping_mode_pca_plot_png = mapping_mode_project_cohort_analysis.pca_plot_png
 
 		Array[Array[File]?] alignment_mode_upstream_manifests = alignment_mode_project_cohort_analysis.upstream_manifest_tsvs
 		Array[Array[File]?] alignment_mode_downstream_manifests = alignment_mode_project_cohort_analysis.downstream_manifest_tsvs
@@ -374,13 +372,11 @@ workflow pmdbs_bulk_rnaseq_analysis {
 
 		## Overlapping DEGs and PCA plot for alignment-mode
 		File? cohort_alignment_mode_overlapping_significant_genes_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
-		File? cohort_alignment_mode_intervention_pca_plot_png = alignment_mode_cross_team_cohort_analysis.intervention_pca_plot_png
-		File? cohort_alignment_mode_pca_condition_plot_png = alignment_mode_cross_team_cohort_analysis.condition_pca_plot_png
+		File? cohort_alignment_mode_pca_plot_png = alignment_mode_cross_team_cohort_analysis.pca_plot_png
 
 		## Overlapping DEGs and PCA plot for mapping-mode
 		File? cohort_mapping_mode_overlapping_significant_genes_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
-		File? cohort_mapping_mode_intervention_pca_plot_png = mapping_mode_cross_team_cohort_analysis.intervention_pca_plot_png
-		File? cohort_mapping_mode_pca_condition_plot_png = mapping_mode_cross_team_cohort_analysis.condition_pca_plot_png
+		File? cohort_mapping_mode_pca_plot_png = mapping_mode_cross_team_cohort_analysis.pca_plot_png
 
 		Array[File]? alignment_mode_cohort_manifests = alignment_mode_cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 
