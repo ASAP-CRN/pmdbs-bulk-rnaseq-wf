@@ -5,6 +5,7 @@ import pickle as pkl
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.decomposition import PCA
+from sklearn.impute import SimpleImputer
 
 
 def modify_tables(file_list, team_ids):
@@ -54,9 +55,13 @@ def main(args):
     combined_metadata = pd.concat(all_metadata)
     combined_normalized_counts = pd.concat(all_normalized_counts)
 
+    # Impute missing values with the mean of each feature
+    imputer = SimpleImputer(strategy="mean")
+    combined_normalized_counts_imputed = imputer.fit_transform(combined_normalized_counts)
+
     # PCA expects samples as rows, genes as columns
     pca = PCA(n_components=2)
-    pca_result = pca.fit_transform(combined_normalized_counts.T)
+    pca_result = pca.fit_transform(combined_normalized_counts_imputed.T)
     pca_df = pd.DataFrame(pca_result, columns=["PC1", "PC2"])
     pca_df["team_id"] = combined_metadata["team_id"].values
     pca_df["intervention_id"] = combined_metadata["intervention-id"].values
@@ -76,25 +81,6 @@ def main(args):
     plt.title("PCA of Normalized Counts by Intervention and Team")
     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
     plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.intervention_pca_plot.png", dpi=300, bbox_inches="tight")
-    plt.close("all")
-
-    pca_df["condition_id"] = combined_metadata["condition_id"].values
-    plt.figure(figsize=(8, 6))
-    sns.scatterplot(
-        x="PC1",
-        y="PC2",
-        hue="condition_id",
-        style="team_id",
-        data=pca_df,
-        s=100,
-        palette="Set2",
-        alpha=0.7,
-    )
-    plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.2f}% variance)")
-    plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.2f}% variance)")
-    plt.title("PCA of Normalized Counts by Condition and Team")
-    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
-    plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.condition_pca_plot.png", dpi=300, bbox_inches="tight")
     plt.close("all")
 
 
