@@ -80,7 +80,7 @@ def main(args):
     plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.2f}% variance)")
     plt.title("PCA of Normalized Counts by Intervention and Team")
     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
-    plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.intervention_pca_plot.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.pca_plot.png", dpi=300, bbox_inches="tight")
     plt.close("all")
 
 
