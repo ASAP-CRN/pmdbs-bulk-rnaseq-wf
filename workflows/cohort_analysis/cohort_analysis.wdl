@@ -68,6 +68,7 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
+	# This task will be repeated twice because of ~{salmon_mode}
 	call UploadFinalOutputs.upload_final_outputs as upload_upstream_files {
 		input:
 			output_file_paths = upstream_output_file_paths,

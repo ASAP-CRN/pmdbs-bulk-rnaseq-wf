@@ -148,19 +148,19 @@ The raw data bucket will contain *some* artifacts generated as part of workflow 
 In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L85-L116), downstream analysis final outputs are defined at [downstream.wdl](workflows/main.wdl#L182-200), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L85-93).
 
 ```bash
-asap-raw-data-{cohort,team-xxyy}
+asap-raw-{cohort,team-xxyy}-{source}-{dataset_name}
 └── workflow_execution
 	├── cohort_analysis
 	│	└──${cohort_analysis_workflow_version}
 	│		└── ${salmon_mode}
 	│			└── ${workflow_run_timestamp}
 	│				└── <cohort_analysis outputs>
-	├── downstream // only produced in project raw data buckets, not in the full cohort bucket
+	├── downstream
 	│	└──${downstream_workflow_version}
 	│		└── ${salmon_mode}
 	│			└── ${workflow_run_timestamp}
 	│				└── <downstream outputs>
-	└── upstream  // only produced in project raw data buckets, not in the full cohort bucket
+	└── upstream
 		├── fastqc_raw_reads
 		│	└── ${upstream_workflow_version}
 		│		└── <fastqc_raw_reads output>
@@ -172,10 +172,12 @@ asap-raw-data-{cohort,team-xxyy}
 		│		└── <fastqc_trimmed_reads output>
 		├── alignment_quantification
 		│	└── ${alignment_quantification_workflow_version}
-		│		└── <alignment_quantification output>
+        │       └── alignment_mode
+		│		   └── <alignment_quantification output>
 		└── pseudo_mapping_quantification
 			└── ${pseudo_mapping_quantification_workflow_version}
-				└── <pseudo_mapping_quantification output>
+                └── mapping_mode
+				    └── <pseudo_mapping_quantification output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -185,50 +187,55 @@ Following QC by researchers, the objects in the dev or uat bucket are synced int
 Data may be synced using [the `promote_staging_data` script](#promoting-staging-data).
 
 ```bash
-asap-dev-{collection}-{modality}-{cohort,team-xxyy}
+asap-dev-{cohort,team-xxyy}-{source}-{pipeline_name}
 ├── cohort_analysis
-│   ├── ${cohort_id}.sample_list.tsv
-│	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
-│   ├── ${cohort_id}.${salmon_mode}.pca_plot.png
-│	└── MANIFEST.tsv
+│   └── ${salmon_mode}
+│       ├── ${cohort_id}.sample_list.tsv
+│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
+│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
+│    	└── MANIFEST.tsv
 ├── downstream
-│   ├── ${project_id}.${output_name}.html # Includes ${salmon_mode} in output_name
-│   ├── ${project_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
-│   ├── ${project_id}.${salmon_mode}.dds.pkl
-│   ├── ${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv
-│   ├── ${project_id}.${salmon_mode}.volcano_plot.png
-│   └── MANIFEST.tsv
+│   └── ${salmon_mode}
+│       ├── ${project_id}.${output_name}.html # Includes ${salmon_mode} in output_name
+│       ├── ${project_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
+│       ├── ${project_id}.${salmon_mode}.dds.pkl
+│       ├── ${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv
+│       ├── ${project_id}.${salmon_mode}.volcano_plot.png
+│       └── MANIFEST.tsv
 └── upstream
     ├── ${sampleA_id}.fastqc_reports.tar.gz
     ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
     ├── ${sampleA_id}.fastp_reports.tar.gz
     ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
-    ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
-    ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
-    ├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
-    ├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
-    ├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
-    ├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
-    ├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
-    ├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
-    ├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
-    ├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
+    ├── MANIFEST.tsv
+    ├── ${salmon_mode}
+    │   ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
+    │   ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
+    │   ├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
+    │   ├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
+    │   ├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
+    │   ├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
+    │   ├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
+    │   ├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
+    │   ├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
+    │   └── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
     ├── ...
     ├── ${sampleN_id}.fastqc_reports.tar.gz
     ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
     ├── ${sampleN_id}.fastp_reports.tar.gz
     ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
-    ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
-    ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
-    ├── ${sampleN_id}.Aligned.toTranscriptome.out.bam
-    ├── ${sampleN_id}.Unmapped.out.mate1
-    ├── ${sampleN_id}.Unmapped.out.mate2
-    ├── ${sampleN_id}.Log.out
-    ├── ${sampleN_id}.Log.final.out
-    ├── ${sampleN_id}.Log.progress.out
-    ├── ${sampleN_id}.SJ.out.tab
-    ├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
-    └── MANIFEST.tsv
+    ├── MANIFEST.tsv
+    └──  ${salmon_mode}
+        ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
+        ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
+        ├── ${sampleN_id}.Aligned.toTranscriptome.out.bam
+        ├── ${sampleN_id}.Unmapped.out.mate1
+        ├── ${sampleN_id}.Unmapped.out.mate2
+        ├── ${sampleN_id}.Log.out
+        ├── ${sampleN_id}.Log.final.out
+        ├── ${sampleN_id}.Log.progress.out
+        ├── ${sampleN_id}.SJ.out.tab
+        └── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
 ```
 
 ## Promoting staging data
