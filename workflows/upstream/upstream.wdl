@@ -44,8 +44,8 @@ workflow upstream {
 	String fastqc_raw_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_raw_reads/~{sub_workflow_version}"
 	String fastp_raw_data_path = "~{workflow_raw_data_path_prefix}/trim_and_qc/~{sub_workflow_version}"
 	String fastqc_trimmed_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_trimmed_reads/~{sub_workflow_version}"
-	String star_and_salmon_alignment_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/alignment_quantification/~{alignment_quantification_workflow_version}"
-	String salmon_mapping_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/mapping_quantification/~{pseudo_mapping_quantification_workflow_version}"
+	String star_and_salmon_alignment_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/alignment_quantification/~{alignment_quantification_workflow_version}/alignment_mode"
+	String salmon_mapping_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/mapping_quantification/~{pseudo_mapping_quantification_workflow_version}/mapping_mode"
 
 	scatter (sample_object in samples) {
 		String fastqc_raw_reads_output = "~{fastqc_raw_reads_raw_data_path}/~{sample_object.sample_id}.fastqc_reports.tar.gz"
