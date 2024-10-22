@@ -59,10 +59,15 @@ def main(args):
     counts_int = counts_int[genes_to_keep]
 
     # Note: Single factor analysis vs. multifactor analysis requires more manual coding
+    if metadata_merged["batch"].nunique() > 1:
+        design_factors = ["batch", "intervention_id"]
+    else:
+        design_factors = ["intervention_id"]
+
     dds = DeseqDataSet(
         counts=counts_int,
         metadata=metadata_merged,
-        design_factors=["batch", "intervention_id"], # From PyDESeq2: "UserWarning: Same factor names in the design contain underscores ('_'). They will be converted to hyphens ('-')."
+        design_factors=design_factors, # From PyDESeq2: "UserWarning: Same factor names in the design contain underscores ('_'). They will be converted to hyphens ('-')."
     )
 
     # Fit dispersions and LFCs
@@ -80,7 +85,7 @@ def main(args):
     # Ensure "Control" is at the end of the list so it's ref_level
     stat_res = DeseqStats(
         dds,
-        contrast=["intervention-id", "Case", "Control"], # Comparing intervention_id (adjusted condition) only but model uses information from both the intervention_id and batch variables
+        contrast=["intervention-id", "Case", "Control"], # Comparing intervention_id (adjusted condition) only but model uses information from design factors
     )
     stat_res.summary()
     results_df = stat_res.results_df
