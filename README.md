@@ -174,7 +174,7 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset_name}
 		│	└── ${alignment_quantification_workflow_version}
         │       └── <alignment_quantification output>
 		└── pseudo_mapping_quantification
-			└── ${pseudo_mapping_quantification_workflow_version}
+            └── ${pseudo_mapping_quantification_workflow_version}
                 └── <pseudo_mapping_quantification output>
 ```
 
