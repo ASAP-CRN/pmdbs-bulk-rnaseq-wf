@@ -10,7 +10,7 @@ Common workflows, tasks, utility scripts, and docker images reused across harmon
 - [Workflows](#workflows)
 - [Inputs](#inputs)
 - [Outputs](#outputs)
-    - [Output structure](#output-structure)
+	- [Output structure](#output-structure)
 - [Docker images](#docker-images)
 
 
@@ -112,10 +112,10 @@ See [reference data](#reference-data) notes for more details.
 The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON. The script requires the libraries outlined in [the requirements.txt file](wf-common/util/requirements.txt) and the following inputs:
 
 - `project-tsv`: One or more project TSVs with one row per sample and columns project_id, sample_id, batch, fastq_path. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
-    - `project_id`: A unique identifier for the project from which the sample(s) arose
-    - `sample_id`: A unique identifier for the sample within the project
-    - `batch`: The sample's batch
-    - `fastq_path`: The directory in which paired sample FASTQs may be found, including the gs:// bucket name and path
+	- `project_id`: A unique identifier for the project from which the sample(s) arose
+	- `sample_id`: A unique identifier for the sample within the project
+	- `batch`: The sample's batch
+	- `fastq_path`: The directory in which paired sample FASTQs may be found, including the gs:// bucket name and path
 - `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`, one per line. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 1 file should include 'R1' somewhere in the filename; the read 2 file should inclue 'R2' somewhere in the filename. Generate this file e.g. by running `gsutil ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`
 - `inputs-template`: The inputs template JSON file into which the `projects` information derived from the `project-tsv` will be inserted. Must have a key ending in `*.projects`. Other default values filled out in the inputs template will be written to the output inputs.json file.
 - `run-project-cohort-analysis`: Optionally run project-level cohort analysis for provided projects. This value will apply to all projcets. [false]
@@ -125,11 +125,11 @@ Example usage:
 
 ```bash
 ./wf-common/util/generate_inputs \
-    --project-tsv sample_info.tsv \
-    --fastq-locs-txt fastq_locs.txt \
-    --inputs-template workflows/inputs.json \
-    --run-project-cohort-analysis \
-    --output-file harmony_workflow_inputs.json
+	--project-tsv sample_info.tsv \
+	--fastq-locs-txt fastq_locs.txt \
+	--inputs-template workflows/inputs.json \
+	--run-project-cohort-analysis \
+	--output-file harmony_workflow_inputs.json
 ```
 
 # Outputs
@@ -172,10 +172,10 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset_name}
 		│		└── <fastqc_trimmed_reads output>
 		├── alignment_quantification
 		│	└── ${alignment_quantification_workflow_version}
-        │       └── <alignment_quantification output>
+		│		└── <alignment_quantification output>
 		└── pseudo_mapping_quantification
-            └── ${pseudo_mapping_quantification_workflow_version}
-                └── <pseudo_mapping_quantification output>
+			└── ${pseudo_mapping_quantification_workflow_version}
+				└── <pseudo_mapping_quantification output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -201,42 +201,42 @@ asap-dev-{cohort,team-xxyy}-{source}-{pipeline_name}
 │       ├── ${project_id}.${salmon_mode}.volcano_plot.png
 │       └── MANIFEST.tsv
 └── upstream
-    ├── qc
-    │   ├── ${sampleA_id}.fastqc_reports.tar.gz
-    │   ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
-    │   ├── ${sampleA_id}.fastp_reports.tar.gz
-    │   ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
-    │   ├──  MANIFEST.tsv
-    │   ├── ...
-    │   ├── ${sampleN_id}.fastqc_reports.tar.gz
-    │   ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
-    │   ├── ${sampleN_id}.fastp_reports.tar.gz
-    │   ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
-    │   └── MANIFEST.tsv
-    └── ${salmon_mode}
-        ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
-        ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
-        ├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
-        ├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
-        ├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
-        ├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
-        ├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
-        ├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
-        ├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
-        ├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
-        ├── MANIFEST.tsv
-        ├── ...
-        ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
-        ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
-        ├── ${sampleN_id}.Aligned.toTranscriptome.out.bam
-        ├── ${sampleN_id}.Unmapped.out.mate1
-        ├── ${sampleN_id}.Unmapped.out.mate2
-        ├── ${sampleN_id}.Log.out
-        ├── ${sampleN_id}.Log.final.out
-        ├── ${sampleN_id}.Log.progress.out
-        ├── ${sampleN_id}.SJ.out.tab
-        ├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
-        └── MANIFEST.tsv
+	├── qc
+	│   ├── ${sampleA_id}.fastqc_reports.tar.gz
+	│   ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
+	│   ├── ${sampleA_id}.fastp_reports.tar.gz
+	│   ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
+	│   ├──  MANIFEST.tsv
+	│   ├── ...
+	│   ├── ${sampleN_id}.fastqc_reports.tar.gz
+	│   ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
+	│   ├── ${sampleN_id}.fastp_reports.tar.gz
+	│   ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
+	│   └── MANIFEST.tsv
+	└── ${salmon_mode}
+		├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
+		├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
+		├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
+		├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
+		├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
+		├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
+		├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
+		├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
+		├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
+		├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
+		├── MANIFEST.tsv
+		├── ...
+		├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
+		├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
+		├── ${sampleN_id}.Aligned.toTranscriptome.out.bam
+		├── ${sampleN_id}.Unmapped.out.mate1
+		├── ${sampleN_id}.Unmapped.out.mate2
+		├── ${sampleN_id}.Log.out
+		├── ${sampleN_id}.Log.final.out
+		├── ${sampleN_id}.Log.progress.out
+		├── ${sampleN_id}.SJ.out.tab
+		├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
+		└── MANIFEST.tsv
 ```
 
 ## Promoting staging data
@@ -289,12 +289,12 @@ docker
 │   ├── build.env
 │   └── Dockerfile
 └── pydeseq2
-    ├── build.env
-    ├── Dockerfile
-    ├── requirements.txt
-    └── scripts
-    	├── dge_analysis.py
-    	└── cohort_analysis.py
+	├── build.env
+	├── Dockerfile
+	├── requirements.txt
+	└── scripts
+		├── dge_analysis.py
+		└── cohort_analysis.py
 ```
 
 ## The `build.env` file
@@ -379,5 +379,5 @@ gtf = list(set(gtf))
 gtf = dict(gtf)
 
 with open("gencode.v46.gene_id_and_gene_name.json", "w") as file:
-    json.dump(gtf, file)
+	json.dump(gtf, file)
 ```
