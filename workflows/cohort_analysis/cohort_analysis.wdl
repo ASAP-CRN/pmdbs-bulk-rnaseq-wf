@@ -38,7 +38,7 @@ workflow cohort_analysis {
 
 	String raw_data_path = "~{raw_data_path_prefix}/~{sub_workflow_name}/~{sub_workflow_version}/~{salmon_mode}/~{run_timestamp}"
 	String staging_data_path_prefix = "~{workflow_name}"
-	String upstream_staging_data_path = "~{staging_data_path_prefix}/upstream"
+	String upstream_staging_data_path = "~{staging_data_path_prefix}/upstream/~{salmon_mode}"
 	String downstream_staging_data_path = "~{staging_data_path_prefix}/downstream/~{salmon_mode}"
 	String cohort_analysis_staging_data_path = "~{staging_data_path_prefix}/~{sub_workflow_name}/~{salmon_mode}"
 
@@ -68,7 +68,6 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	# This task will be repeated twice because of ~{salmon_mode}
 	call UploadFinalOutputs.upload_final_outputs as upload_upstream_files {
 		input:
 			output_file_paths = upstream_output_file_paths,

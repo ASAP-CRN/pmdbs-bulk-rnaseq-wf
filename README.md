@@ -172,12 +172,10 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset_name}
 		│		└── <fastqc_trimmed_reads output>
 		├── alignment_quantification
 		│	└── ${alignment_quantification_workflow_version}
-        │       └── alignment_mode
-		│		   └── <alignment_quantification output>
+        │       └── <alignment_quantification output>
 		└── pseudo_mapping_quantification
 			└── ${pseudo_mapping_quantification_workflow_version}
-                └── mapping_mode
-				    └── <pseudo_mapping_quantification output>
+                └── <pseudo_mapping_quantification output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -203,29 +201,31 @@ asap-dev-{cohort,team-xxyy}-{source}-{pipeline_name}
 │       ├── ${project_id}.${salmon_mode}.volcano_plot.png
 │       └── MANIFEST.tsv
 └── upstream
-    ├── ${sampleA_id}.fastqc_reports.tar.gz
-    ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
-    ├── ${sampleA_id}.fastp_reports.tar.gz
-    ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
-    ├── MANIFEST.tsv
-    ├── ${salmon_mode}
-    │   ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
-    │   ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
-    │   ├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
-    │   ├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
-    │   ├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
-    │   ├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
-    │   ├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
-    │   ├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
-    │   ├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
-    │   └── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
-    ├── ...
-    ├── ${sampleN_id}.fastqc_reports.tar.gz
-    ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
-    ├── ${sampleN_id}.fastp_reports.tar.gz
-    ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
-    ├── MANIFEST.tsv
-    └──  ${salmon_mode}
+    ├── qc
+    │   ├── ${sampleA_id}.fastqc_reports.tar.gz
+    │   ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
+    │   ├── ${sampleA_id}.fastp_reports.tar.gz
+    │   ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
+    │   ├──  MANIFEST.tsv
+    │   ├── ...
+    │   ├── ${sampleN_id}.fastqc_reports.tar.gz
+    │   ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
+    │   ├── ${sampleN_id}.fastp_reports.tar.gz
+    │   ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
+    │   └── MANIFEST.tsv
+    └── ${salmon_mode}
+        ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
+        ├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
+        ├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
+        ├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
+        ├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
+        ├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
+        ├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
+        ├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
+        ├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
+        ├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
+        ├── MANIFEST.tsv
+        ├── ...
         ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
         ├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
         ├── ${sampleN_id}.Aligned.toTranscriptome.out.bam
@@ -235,7 +235,8 @@ asap-dev-{cohort,team-xxyy}-{source}-{pipeline_name}
         ├── ${sampleN_id}.Log.final.out
         ├── ${sampleN_id}.Log.progress.out
         ├── ${sampleN_id}.SJ.out.tab
-        └── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
+        ├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
+        └── MANIFEST.tsv
 ```
 
 ## Promoting staging data
