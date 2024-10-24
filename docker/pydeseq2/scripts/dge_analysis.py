@@ -10,6 +10,7 @@ from pydeseq2.dds import DeseqDataSet
 from pydeseq2.ds import DeseqStats
 import matplotlib.pyplot as plt
 import seaborn as sns
+from adjustText import adjust_text
 
 
 def main(args):
@@ -123,14 +124,27 @@ def main(args):
     plt.axvline(x=-log2_fc_threshold, color="black", linestyle="--", linewidth=1)
 
     top_ten_genes = results_df.nsmallest(10, "padj")
+    texts = []
+    x_list = []
+    y_list = []
     for i, row in top_ten_genes.iterrows():
-        plt.annotate(
+        text = plt.text(
+            row["log2FoldChange"],
+            row["-log10(padj)"],
             row["gene_name"],
-            (row["log2FoldChange"], row["-log10(padj)"]),
-            textcoords="offset points",
-            xytext=(0,10),
             ha="center",
+            fontsize=8,
+            color="black",
         )
+        texts.append(text)
+        x_list.append(row["log2FoldChange"])
+        y_list.append(row["-log10(padj)"])
+
+    adjust_text(
+        texts,
+        x=x_list,
+        y=y_list,
+    )
 
     plt.xlabel("Log2 Fold Change")
     plt.ylabel("-Log10 Adjusted P-value")
