@@ -18,7 +18,7 @@ def main(args):
     ## METADATA ##
     ##############
     # Remove samples with missing annotations
-    metadata = pd.read_csv(args.metadata, index_col="sample_id")
+    metadata = pd.read_csv(args.metadata, index_col="ASAP_sample_id")
     samples_to_keep =  ~(metadata.batch.isna() | metadata.condition_id.isna())
     metadata = metadata.loc[samples_to_keep]
 
