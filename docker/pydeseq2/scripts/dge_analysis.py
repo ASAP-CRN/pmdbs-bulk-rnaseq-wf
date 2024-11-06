@@ -60,7 +60,7 @@ def main(args):
     counts_int = counts_int[genes_to_keep]
 
     # Note: Single factor analysis vs. multifactor analysis requires more manual coding
-    if (metadata_merged.groupby("batch").size() > 1).any():
+    if metadata_merged["batch"].nunique() > 1:
         design_factors = ["batch", "intervention_id"]
     else:
         design_factors = ["intervention_id"]
