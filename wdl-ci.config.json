@@ -1,0 +1,185 @@
+{
+  "workflows": {
+    "wf-common/wdl/structs.wdl": {
+      "key": "wf-common/wdl/structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "wf-common/wdl/tasks/upload_final_outputs.wdl": {
+      "key": "wf-common/wdl/tasks/upload_final_outputs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "upload_final_outputs": {
+          "key": "upload_final_outputs",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/write_cohort_sample_list.wdl": {
+      "key": "wf-common/wdl/tasks/write_cohort_sample_list.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "write_cohort_sample_list": {
+          "key": "write_cohort_sample_list",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/multiqc.wdl": {
+      "key": "wf-common/wdl/tasks/multiqc.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "multiqc": {
+          "key": "multiqc",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/fastqc.wdl": {
+      "key": "wf-common/wdl/tasks/fastqc.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "fastqc": {
+          "key": "fastqc",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/get_workflow_metadata.wdl": {
+      "key": "wf-common/wdl/tasks/get_workflow_metadata.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "get_workflow_metadata": {
+          "key": "get_workflow_metadata",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/main.wdl": {
+      "key": "workflows/main.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/pmdbs_bulk_rnaseq_analysis_structs.wdl": {
+      "key": "workflows/pmdbs_bulk_rnaseq_analysis_structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/cohort_analysis/cohort_analysis.wdl": {
+      "key": "workflows/cohort_analysis/cohort_analysis.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "degs_and_plot": {
+          "key": "degs_and_plot",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/downstream/downstream.wdl": {
+      "key": "workflows/downstream/downstream.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/downstream/differential_gene_expression_analysis/differential_gene_expression_analysis.wdl": {
+      "key": "workflows/downstream/differential_gene_expression_analysis/differential_gene_expression_analysis.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "differential_gene_expression": {
+          "key": "differential_gene_expression",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/index_ref_genome/index_ref_genome.wdl": {
+      "key": "workflows/index_ref_genome/index_ref_genome.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "star_index_ref_genome": {
+          "key": "star_index_ref_genome",
+          "digest": "",
+          "tests": []
+        },
+        "generate_decoy": {
+          "key": "generate_decoy",
+          "digest": "",
+          "tests": []
+        },
+        "salmon_index_ref_genome": {
+          "key": "salmon_index_ref_genome",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/upstream/upstream.wdl": {
+      "key": "workflows/upstream/upstream.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "check_output_files_exist": {
+          "key": "check_output_files_exist",
+          "digest": "",
+          "tests": []
+        },
+        "trim_and_qc": {
+          "key": "trim_and_qc",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/upstream/pseudo_mapping_quantification/pseudo_mapping_quantification.wdl": {
+      "key": "workflows/upstream/pseudo_mapping_quantification/pseudo_mapping_quantification.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "mapping_quantification": {
+          "key": "mapping_quantification",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/upstream/alignment_quantification/alignment_quantification.wdl": {
+      "key": "workflows/upstream/alignment_quantification/alignment_quantification.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "alignment": {
+          "key": "alignment",
+          "digest": "",
+          "tests": []
+        },
+        "quantification": {
+          "key": "quantification",
+          "digest": "",
+          "tests": []
+        }
+      }
+    }
+  },
+  "engines": {},
+  "test_params": {
+    "global_params": {},
+    "engine_params": {}
+  }
+}
