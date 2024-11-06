@@ -248,9 +248,9 @@ The [`promote_staging_data` script](wf-common/util/promote_staging_data) can be 
 
 This script compiles bucket and file information for both the initial (staging) and target (prod) environment. It also runs data integrity tests to ensure staging data can be promoted and generates a Markdown report. It (1) checks that files are not empty and are not less than or equal to 10 bytes (factoring in white space) and (2) checks that files have associated metadata and is present in MANIFEST.tsv.
 
-If data integrity tests pass, this script will upload a combined MANIFEST.tsv and the data promotion Markdown report under a metadata/{timestamp} directory in the staging bucket. Previous manifest files and reports will be kept. Next, it will rsync all files in the staging bucket to the curated bucket's preprocess, cohort_analysis, and metadata directories. **Exercise caution when using this script**; files that are not present in the source (staging) bucket will be deleted at the destination (curated) bucket.
+If data integrity tests pass, this script will upload a combined MANIFEST.tsv and the data promotion Markdown report under a metadata/{timestamp} directory in the staging bucket. Previous manifest files and reports will be kept. Next, it will rsync all files in the staging bucket to the curated bucket's upstream, downstream, cohort_analysis, and metadata directories. **Exercise caution when using this script**; files that are not present in the source (staging) bucket will be deleted at the destination (curated) bucket.
 
-If data integrity tests fail, staging data cannot be promoted. The combined MANFIEST.tsv and Markdown report will be locally available.
+If data integrity tests fail, staging data cannot be promoted. The combined MANFIEST.tsv, Markdown report, and promote_staging_data_script.log will be locally available.
 
 The script defaults to a dry run, printing out the files that would be copied or deleted for each selected team.
 
@@ -258,24 +258,26 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 -h  Display this message and exit
--t  Comma-separated set of teams to promote data for
--a  Promote all teams' data
+-t  Space-delimited team(s) to promote data for
 -l  List available teams
+-s  Source name in bucket name
+-d  Space-delimited dataset name(s) in team bucket name, must follow the same order as {team}
+-w  Workflow name used as a directory in bucket
 -p  Promote data. If this option is not selected, data that would be copied or deleted is printed out, but files are not actually changed (dry run)
--s  Staging bucket type; options are 'uat' or 'dev' ['uat']
+-e  Staging bucket type; options are 'uat' or 'dev' ['uat']
 ```
 
 ### Usage
 
 ```bash
 # List available teams
-./wf-common/util/promote_staging_data -l
+./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq
 
-# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy, team-wood, and cohort
-./wf-common/util/promote_staging_data -t team-hardy,team-wood,cohort
+# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy and team-wood
+./wf-common/util/promote_staging_data -t team-hardy team-wood -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq
 
-# Promote data for team-hardy, team-lee, team-wood, and cohort
-./wf-common/util/promote_staging_data -a -p -s dev
+# Promote data for team-hardy and cohort
+./wf-common/util/promote_staging_data -t team-hardy cohort -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq -p -e dev
 ```
 
 # Docker images

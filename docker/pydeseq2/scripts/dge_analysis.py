@@ -18,7 +18,7 @@ def main(args):
     ## METADATA ##
     ##############
     # Remove samples with missing annotations
-    metadata = pd.read_csv(args.metadata, index_col="sample_id")
+    metadata = pd.read_csv(args.metadata, index_col="ASAP_sample_id")
     samples_to_keep =  ~(metadata.batch.isna() | metadata.condition_id.isna())
     metadata = metadata.loc[samples_to_keep]
 
@@ -60,7 +60,7 @@ def main(args):
     counts_int = counts_int[genes_to_keep]
 
     # Note: Single factor analysis vs. multifactor analysis requires more manual coding
-    if (metadata_merged.groupby("batch").size() > 1).any():
+    if metadata_merged["batch"].nunique() > 1:
         design_factors = ["batch", "intervention_id"]
     else:
         design_factors = ["intervention_id"]
