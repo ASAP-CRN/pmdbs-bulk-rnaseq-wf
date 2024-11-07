@@ -20,38 +20,22 @@ task check_pkl {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		current_run_pkl_file=~{current_run_output}
-		validated_pkl_file=~{validated_output}
+		validate_pkl() {
+			test_file=$1
 
-		python3 - <<EOF
-		import pickle
+			python3.9 -c "import pickle; with open('$test_file', 'rb') as f: data = pickle.load(f)"
+		}
 
-		try:
-			with open("$validated_pkl_file", "rb") as f:
-				data = pickle.load(f)
-			print("Validated PKL file loaded successfully")
-		except (pickle.UnpicklingError, EOFError, FileNotFoundError) as e:
-			print("Error loading validated PKL file:", e)
-			exit(1)
-
-		try:
-			with open("$current_run_pkl_file", "rb") as f:
-				data = pickle.load(f)
-			print("Current run PKL file loaded successfully")
-		except (pickle.UnpicklingError, EOFError, FileNotFoundError) as e:
-			print("Error loading current run PKL file:", e)
-			exit(1)
-		EOF
-
-		if [[ $? -ne 0 ]]; then
-			err "PKL file failed validation: 
-				Expected output: [$validated_pkl_file]
-				Current run output: [$current_run_pkl_file]"
+		if ! (validate_pkl {~{validated_output}); then
+			err "Validated output file [~{basename(validated_output)}] is not a valid pkl file"
 			exit 1
+		fi
+		
+		if (validate_pkl ~{current_run_output}); then
+			echo "Current run output [~{basename(current_run_output)}] is a valid pkl file"
 		else
-			echo "PKL file succeeded validation:
-				Expected output: [$validated_pkl_file]
-				Current run output: [$current_run_pkl_file]"
+			err "Current run output [~{basename(current_run_output)}] is not a valid pkl file"
+			exit 1
 		fi
 	>>>
 
