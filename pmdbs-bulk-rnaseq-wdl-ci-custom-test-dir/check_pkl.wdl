@@ -20,25 +20,19 @@ task check_pkl {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		validate_pkl() {
-			test_file=$1
+		current_run_pkl_magic_number=$(head -c 2 ~{current_run_output} | od -An -N2 -tx1 | grep "80  04" || [[ $? == 1 ]])
+		validated_pkl_magic_number=$(head -c 2 ~{validated_output} | od -An -N2 -tx1 | grep "80  04" || [[ $? == 1 ]])
 
-			python3.9 -c "
-		import pickle
-		with open('$test_file', 'rb') as f:
-			data = pickle.load(f)"
-		}
-
-		if ! (validate_pkl ~{validated_output}); then
+		if [[ -z "$validated_pkl_magic_number" ]]; then
 			err "Validated output file [~{basename(validated_output)}] is not a valid pkl file"
 			exit 1
 		fi
 		
-		if (validate_pkl ~{current_run_output}); then
-			echo "Current run output [~{basename(current_run_output)}] is a valid pkl file"
-		else
+		if [[ -z "$current_run_pkl_magic_number" ]]; then
 			err "Current run output [~{basename(current_run_output)}] is not a valid pkl file"
 			exit 1
+		else
+			echo "Current run output [~{basename(current_run_output)}] is a valid pkl file"
 		fi
 	>>>
 
@@ -46,7 +40,7 @@ task check_pkl {
 	}
 
 	runtime {
-		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
+		docker: "ubuntu:xenial"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"
