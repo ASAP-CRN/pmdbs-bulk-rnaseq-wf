@@ -25,7 +25,7 @@
       "tasks": {
         "write_cohort_sample_list": {
           "key": "write_cohort_sample_list",
-          "digest": "",
+          "digest": "cve3yantcy3stjk7ggvycomu3qo7rizb",
           "tests": [
             {
               "inputs": {
@@ -122,7 +122,7 @@
       "tasks": {
         "fastqc": {
           "key": "fastqc",
-          "digest": "",
+          "digest": "bhllguwdae3ynfe7nbgxn7ihq4qjec3d",
           "tests": [
             {
               "inputs": {
@@ -190,7 +190,7 @@
       "tasks": {
         "degs_and_plot": {
           "key": "degs_and_plot",
-          "digest": "",
+          "digest": "drsnhopqrkle7gryqy2cjjihpqvavf5n",
           "tests": [
             {
               "inputs": {
@@ -352,7 +352,7 @@
         },
         "trim_and_qc": {
           "key": "trim_and_qc",
-          "digest": "",
+          "digest": "3ywtzmnanys3zqltfpjcusspzlyvuwll",
           "tests": [
             {
               "inputs": {
@@ -423,7 +423,7 @@
       "tasks": {
         "mapping_quantification": {
           "key": "mapping_quantification",
-          "digest": "",
+          "digest": "7lojrdsynokyyniwotrmsjuzdginko3p",
           "tests": [
             {
               "inputs": {
@@ -565,7 +565,7 @@
         },
         "quantification": {
           "key": "quantification",
-          "digest": "",
+          "digest": "shhexvankc6qbwsdca6lgxw4qi25pn6c",
           "tests": [
             {
               "inputs": {
