@@ -20,8 +20,8 @@ task check_pkl {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		current_run_pkl_magic_number=$(head -c 2 ~{current_run_output} | od -An -N2 -tx1 | grep "80  04" || [[ $? == 1 ]])
-		validated_pkl_magic_number=$(head -c 2 ~{validated_output} | od -An -N2 -tx1 | grep "80  04" || [[ $? == 1 ]])
+		current_run_pkl_magic_number=$(head -c 2 ~{current_run_output} | od -An -N2 -tx1 | grep "80 04" || [[ $? == 1 ]])
+		validated_pkl_magic_number=$(head -c 2 ~{validated_output} | od -An -N2 -tx1 | grep "80 04" || [[ $? == 1 ]])
 
 		if [[ -z "$validated_pkl_magic_number" ]]; then
 			err "Validated output file [~{basename(validated_output)}] is not a valid pkl file"
