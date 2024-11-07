@@ -23,7 +23,10 @@ task check_pkl {
 		validate_pkl() {
 			test_file=$1
 
-			python3.9 -c "import pickle; with open('$test_file', 'rb') as f: data = pickle.load(f)"
+			python3.9 -c "
+		import pickle
+		with open('$test_file', 'rb') as f:
+			data = pickle.load(f)"
 		}
 
 		if ! (validate_pkl ~{validated_output}); then
