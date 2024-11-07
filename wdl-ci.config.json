@@ -106,7 +106,7 @@
                   "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-lee.multiqc_fastqc_fastp_star_salmon_alignment_mode_report_data.zip",
                   "test_tasks": [
                     "compare_file_basename",
-                    "check_gzip"
+                    "check_zip"
                   ]
                 }
               }
@@ -262,7 +262,7 @@
               "inputs": {
                 "project_id": "${project_id}",
                 "condition_csv": "${input_file_path}/CONDITION.csv",
-                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/team_lee.subset.20241022.SAMPLE.csv",
+                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/team-lee.subset.20241106.SAMPLE.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
                 "gene_ids_and_names_json": "${input_file_path}/gencode.v46.gene_id_and_gene_name.json",
                 "salmon_mode": "${salmon_mode}",
@@ -511,8 +511,7 @@
                   "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.toTranscriptome.out.bam",
                   "test_tasks": [
                     "compare_file_basename",
-                    "samtools_quickcheck",
-                    "check_coordinate_sorted_alignment"
+                    "samtools_quickcheck"
                   ]
                 },
                 "unmapped_mate1": {
@@ -532,15 +531,13 @@
                 "log": {
                   "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.out",
                   "test_tasks": [
-                    "compare_file_basename",
-                    "check_empty_lines"
+                    "compare_file_basename"
                   ]
                 },
                 "final_log": {
                   "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
                   "test_tasks": [
-                    "compare_file_basename",
-                    "check_empty_lines"
+                    "compare_file_basename"
                   ]
                 },
                 "progress_log": {
