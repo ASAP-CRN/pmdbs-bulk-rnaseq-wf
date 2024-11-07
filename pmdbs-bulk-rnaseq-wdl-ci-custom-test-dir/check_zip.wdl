@@ -20,11 +20,11 @@ task check_zip {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if ! zip -T ~{validated_output}; then
+		if ! unzip -t ~{validated_output}; then
 			err "Validated file: [~{basename(validated_output)}] did not pass zip check"
 			exit 1
 		else
-			if ! zip -T ~{current_run_output}; then
+			if ! unzip -t ~{current_run_output}; then
 				err "Current run file: [~{basename(current_run_output)}] did not pass zip check"
 				exit 1
 			else
@@ -37,7 +37,7 @@ task check_zip {
 	}
 
 	runtime {
-		docker: "ubuntu:xenial"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

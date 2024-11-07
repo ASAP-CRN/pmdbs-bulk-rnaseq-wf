@@ -26,7 +26,7 @@ task check_pkl {
 			python3.9 -c "import pickle; with open('$test_file', 'rb') as f: data = pickle.load(f)"
 		}
 
-		if ! (validate_pkl {~{validated_output}); then
+		if ! (validate_pkl ~{validated_output}); then
 			err "Validated output file [~{basename(validated_output)}] is not a valid pkl file"
 			exit 1
 		fi
