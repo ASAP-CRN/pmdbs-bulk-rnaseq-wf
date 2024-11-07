@@ -70,7 +70,7 @@
           "tests": [
             {
               "inputs": {
-                "project_id": "team-lee",
+                "project_id": "${project_id}",
                 "output_files": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
@@ -191,7 +191,55 @@
         "degs_and_plot": {
           "key": "degs_and_plot",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "cohort_id": "${cohort_id}",
+                "project_id": [
+                  "team-hardy",
+                  "${project_id}"
+                ],
+                "n_teams": 2,
+                "significant_genes_csv": [
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
+                ],
+                "dds_object_pkl": [
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.dds.pkl",
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.dds.pkl"
+                ],
+                "salmon_mode": "${salmon_mode}",
+                "raw_data_path": "${cohort_raw_data_path}",
+                "workflow_info": [
+                  [
+                    "${run_timestamp}",
+                    "${cohort_workflow_name}",
+                    "${cohort_workflow_version}"
+                  ]
+                ],
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "overlapping_significant_genes_csv": {
+                  "value": "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "pca_plot_png": {
+                  "value": "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.pca_plot.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator"
+                  ]
+                }
+              }
+            }
+          ]
         }
       }
     },
@@ -209,7 +257,64 @@
         "differential_gene_expression": {
           "key": "differential_gene_expression",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "project_id": "${project_id}",
+                "condition_csv": "${input_file_path}/CONDITION.csv",
+                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/team_lee.subset.20241022.SAMPLE.csv",
+                "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
+                "gene_ids_and_names_json": "${input_file_path}/gencode.v46.gene_id_and_gene_name.json",
+                "salmon_mode": "${salmon_mode}",
+                "salmon_quant_tar_gz": [
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000002_s002.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000003_s002.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000004_s002.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000008_s002.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000024_s002.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000025_s002.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000009_s002.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000010_s002.${salmon_mode}.salmon_quant.tar.gz"
+                ],
+                "raw_data_path": "${downstream_raw_data_path}",
+                "workflow_info": [
+                  [
+                    "${run_timestamp}",
+                    "${downstream_workflow_name}",
+                    "${downstream_workflow_version}"
+                  ]
+                ],
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "dds_object_pkl": {
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.dds.pkl",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_pkl"
+                  ]
+                },
+                "significant_genes_csv": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "volcano_plot_png": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.volcano_plot.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator"
+                  ]
+                }
+              }
+            }
+          ]
         }
       }
     },
@@ -504,6 +609,7 @@
   "test_params": {
     "global_params": {
       "sample_id": "ASAP_PMBDS_000001_s002",
+      "project_id": "team-lee",
       "cohort_id": "asap-cohort",
       "project_sample_ids": [
         [
