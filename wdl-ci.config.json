@@ -195,7 +195,7 @@
             {
               "inputs": {
                 "cohort_id": "${cohort_id}",
-                "project_id": [
+                "project_ids": [
                   "team-hardy",
                   "${project_id}"
                 ],
