@@ -20,15 +20,15 @@ task check_pkl {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		current_run_pkl_magic_number=$(head -c 2 ~{current_run_output} | od -An -N2 -tx1)
-		validated_pkl_magic_number=$(head -c 2 ~{validated_output} | od -An -N2 -tx1)
+		current_run_pkl_magic_number=$(head -c 2 ~{current_run_output} | od -An -N2 -tx1 | sed 's/^[[:space:]]*//')
+		validated_pkl_magic_number=$(head -c 2 ~{validated_output} | od -An -N2 -tx1 | sed 's/^[[:space:]]*//')
 
-		if [[ "$validated_pkl_magic_number" != "80  04" ]]; then
+		if [[ "$validated_pkl_magic_number" != "80 04" ]]; then
 			err "Validated output file [~{basename(validated_output)}] is not a valid pkl file. Magic number: [${validated_pkl_magic_number}]"
 			exit 1
 		fi
 		
-		if [[ "$current_run_pkl_magic_number" != "80  04" ]]; then
+		if [[ "$current_run_pkl_magic_number" != "80 04" ]]; then
 			err "Current run output [~{basename(current_run_output)}] is not a valid pkl file. Magic number: [${current_run_pkl_magic_number}]"
 			exit 1
 		else
