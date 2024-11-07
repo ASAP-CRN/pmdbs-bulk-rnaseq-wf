@@ -20,19 +20,19 @@ task check_pkl {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		current_run_pkl_magic_number=$(head -c 2 ~{current_run_output} | od -An -N2 -tx1 | grep "80 04" || [[ $? == 1 ]])
-		validated_pkl_magic_number=$(head -c 2 ~{validated_output} | od -An -N2 -tx1 | grep "80 04" || [[ $? == 1 ]])
+		current_run_pkl_magic_number=$(head -c 2 ~{current_run_output} | od -An -N2 -tx1)
+		validated_pkl_magic_number=$(head -c 2 ~{validated_output} | od -An -N2 -tx1)
 
-		if [[ -z "$validated_pkl_magic_number" ]]; then
-			err "Validated output file [~{basename(validated_output)}] is not a valid pkl file"
+		if [[ "$validated_pkl_magic_number" != "80  04" ]]; then
+			err "Validated output file [~{basename(validated_output)}] is not a valid pkl file. Magic number: [${validated_pkl_magic_number}]"
 			exit 1
 		fi
 		
-		if [[ -z "$current_run_pkl_magic_number" ]]; then
-			err "Current run output [~{basename(current_run_output)}] is not a valid pkl file"
+		if [[ "$current_run_pkl_magic_number" != "80  04" ]]; then
+			err "Current run output [~{basename(current_run_output)}] is not a valid pkl file. Magic number: [${current_run_pkl_magic_number}]"
 			exit 1
 		else
-			echo "Current run output [~{basename(current_run_output)}] is a valid pkl file"
+			echo "Current run output [~{basename(current_run_output)}] is a valid pkl file. Magic number: [${current_run_pkl_magic_number}]"
 		fi
 	>>>
 

@@ -298,7 +298,7 @@
                   ]
                 },
                 "significant_genes_csv": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_comma_separated",
@@ -306,7 +306,7 @@
                   ]
                 },
                 "volcano_plot_png": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.volcano_plot.png",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.volcano_plot.png",
                   "test_tasks": [
                     "compare_file_basename",
                     "png_validator"
