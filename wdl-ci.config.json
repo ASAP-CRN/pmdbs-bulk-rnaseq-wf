@@ -66,7 +66,7 @@
       "tasks": {
         "multiqc": {
           "key": "multiqc",
-          "digest": "yr2zsta6qzq3snusoi2mmvudbkshzkiu",
+          "digest": "byi3st6ejisdufloiw62caceutge57q2",
           "tests": [
             {
               "inputs": {
@@ -190,7 +190,7 @@
       "tasks": {
         "degs_and_plot": {
           "key": "degs_and_plot",
-          "digest": "drsnhopqrkle7gryqy2cjjihpqvavf5n",
+          "digest": "6qvommtwkotx4qkavteq4wowjdesoctr",
           "tests": [
             {
               "inputs": {
@@ -256,7 +256,7 @@
       "tasks": {
         "differential_gene_expression": {
           "key": "differential_gene_expression",
-          "digest": "fnyetjl5beoupoxmsggola4ci2tre6rw",
+          "digest": "zxpef6v6u7imnx4vwbt2a4wbcgx6gmbu",
           "tests": [
             {
               "inputs": {
