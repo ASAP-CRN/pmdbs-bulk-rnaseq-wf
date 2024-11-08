@@ -70,7 +70,7 @@
           "tests": [
             {
               "inputs": {
-                "project_id": "${project_id}",
+                "team_id": "${team_id}",
                 "output_files": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
@@ -195,18 +195,18 @@
             {
               "inputs": {
                 "cohort_id": "${cohort_id}",
-                "project_ids": [
+                "team_ids": [
                   "team-hardy",
-                  "${project_id}"
+                  "${team_id}"
                 ],
                 "n_teams": 2,
                 "significant_genes_csv": [
                   "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.pydeseq2_significant_genes.csv",
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
                 ],
                 "dds_object_pkl": [
                   "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.dds.pkl",
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.dds.pkl"
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.dds.pkl"
                 ],
                 "salmon_mode": "${salmon_mode}",
                 "raw_data_path": "${cohort_raw_data_path}",
@@ -260,7 +260,7 @@
           "tests": [
             {
               "inputs": {
-                "project_id": "${project_id}",
+                "team_id": "${team_id}",
                 "condition_csv": "${input_file_path}/CONDITION.csv",
                 "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/team-lee.subset.20241106.SAMPLE.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
@@ -291,14 +291,14 @@
               },
               "output_tests": {
                 "dds_object_pkl": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.dds.pkl",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.dds.pkl",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_pkl"
                   ]
                 },
                 "significant_genes_csv": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_comma_separated",
@@ -306,7 +306,7 @@
                   ]
                 },
                 "volcano_plot_png": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${project_id}.${salmon_mode}.volcano_plot.png",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.volcano_plot.png",
                   "test_tasks": [
                     "compare_file_basename",
                     "png_validator"
@@ -606,7 +606,7 @@
   "test_params": {
     "global_params": {
       "sample_id": "ASAP_PMBDS_000001_s002",
-      "project_id": "team-lee",
+      "team_id": "team-lee",
       "cohort_id": "asap-cohort",
       "project_sample_ids": [
         [
