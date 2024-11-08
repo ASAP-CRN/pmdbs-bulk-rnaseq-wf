@@ -9,7 +9,7 @@ import "pseudo_mapping_quantification/pseudo_mapping_quantification.wdl" as Pseu
 
 workflow upstream {
 	input {
-		String project_id
+		String team_id
 		Array[Sample] samples
 
 		File all_transcripts_fasta
@@ -68,7 +68,7 @@ workflow upstream {
 	scatter (sample_index in range(length(samples))) {
 		Sample sample = samples[sample_index]
 
-		Array[String] project_sample_id = [project_id, sample.sample_id]
+		Array[String] project_sample_id = [team_id, sample.sample_id]
 
 		String fastqc_raw_reads_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String fastqc_trimmed_reads_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]

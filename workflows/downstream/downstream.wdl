@@ -7,7 +7,7 @@ import "differential_gene_expression_analysis/differential_gene_expression_analy
 
 workflow downstream {
 	input {
-		String project_id
+		String team_id
 
 		Array[File] output_files
 		String output_name
@@ -39,7 +39,7 @@ workflow downstream {
 
 	call Multiqc.multiqc {
 		input:
-			project_id = project_id,
+			team_id = team_id,
 			output_files = output_files,
 			output_name = output_name,
 			raw_data_path = raw_data_path,
@@ -51,7 +51,7 @@ workflow downstream {
 
 	call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis {
 		input:
-			project_id = project_id,
+			team_id = team_id,
 			condition_csv = condition_csv,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,

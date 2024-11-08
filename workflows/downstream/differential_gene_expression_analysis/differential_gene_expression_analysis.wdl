@@ -4,7 +4,7 @@ version 1.0
 
 workflow differential_gene_expression_analysis {
 	input {
-		String project_id
+		String team_id
 		
 		File condition_csv
 		File metadata_csv
@@ -23,7 +23,7 @@ workflow differential_gene_expression_analysis {
 
 	call differential_gene_expression {
 		input:
-			project_id = project_id,
+			team_id = team_id,
 			condition_csv = condition_csv,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
@@ -47,7 +47,7 @@ workflow differential_gene_expression_analysis {
 
 task differential_gene_expression {
 	input {
-		String project_id
+		String team_id
 		
 		File condition_csv
 		File metadata_csv
@@ -76,7 +76,7 @@ task differential_gene_expression {
 		done < ~{write_lines(salmon_quant_tar_gz)}
 
 		python3 /opt/scripts/dge_analysis.py \
-			--cohort-id ~{project_id} \
+			--cohort-id ~{team_id} \
 			--condition-dict ~{condition_csv} \
 			--metadata ~{metadata_csv} \
 			--gene-map ~{gene_map_csv} \
@@ -87,15 +87,15 @@ task differential_gene_expression {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{project_id}.~{salmon_mode}.dds.pkl" \
-			-o "~{project_id}.~{salmon_mode}.pydeseq2_significant_genes.csv" \
-			-o "~{project_id}.~{salmon_mode}.volcano_plot.png"
+			-o "~{team_id}.~{salmon_mode}.dds.pkl" \
+			-o "~{team_id}.~{salmon_mode}.pydeseq2_significant_genes.csv" \
+			-o "~{team_id}.~{salmon_mode}.volcano_plot.png"
 	>>>
 
 	output {
-		String dds_object_pkl = "~{raw_data_path}/~{project_id}.~{salmon_mode}.dds.pkl"
-		String significant_genes_csv = "~{raw_data_path}/~{project_id}.~{salmon_mode}.pydeseq2_significant_genes.csv"
-		String volcano_plot_png = "~{raw_data_path}/~{project_id}.~{salmon_mode}.volcano_plot.png"
+		String dds_object_pkl = "~{raw_data_path}/~{team_id}.~{salmon_mode}.dds.pkl"
+		String significant_genes_csv = "~{raw_data_path}/~{team_id}.~{salmon_mode}.pydeseq2_significant_genes.csv"
+		String volcano_plot_png = "~{raw_data_path}/~{team_id}.~{salmon_mode}.volcano_plot.png"
 	}
 	runtime {
 		docker: "~{container_registry}/pydeseq2:0.4.11"

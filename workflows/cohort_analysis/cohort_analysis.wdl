@@ -8,7 +8,7 @@ import "../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutput
 workflow cohort_analysis {
 	input {
 		String cohort_id
-		Array[String] project_ids
+		Array[String] team_ids
 		Array[Array[String]] project_sample_ids
 
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
@@ -56,8 +56,8 @@ workflow cohort_analysis {
 	call degs_and_plot {
 		input:
 			cohort_id = cohort_id,
-			project_ids = project_ids,
-			n_teams = length(project_ids),
+			team_ids = team_ids,
+			n_teams = length(team_ids),
 			significant_genes_csv = significant_genes_csv,
 			dds_object_pkl = dds_object_pkl,
 			salmon_mode = salmon_mode,
@@ -124,7 +124,7 @@ workflow cohort_analysis {
 task degs_and_plot {
 	input {
 		String cohort_id
-		Array[String] project_ids
+		Array[String] team_ids
 		Int n_teams
 
 		Array[File] significant_genes_csv
@@ -151,7 +151,7 @@ task degs_and_plot {
 
 		python3 /opt/scripts/cohort_analysis.py \
 			--cohort-id ~{cohort_id} \
-			--project-ids ~{sep=' ' project_ids} \
+			--project-ids ~{sep=' ' team_ids} \
 			--n-teams ~{n_teams} \
 			--degs ~{sep=' ' significant_genes_csv} \
 			--dds-object ~{sep=' ' dds_object_pkl} \
