@@ -261,6 +261,7 @@
             {
               "inputs": {
                 "team_id": "${team_id}",
+                "project_sample_ids": "${project_sample_ids}",
                 "condition_csv": "${input_file_path}/CONDITION.csv",
                 "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/team-lee.subset.20241106.SAMPLE.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
@@ -268,14 +269,14 @@
                 "salmon_mode": "${salmon_mode}",
                 "salmon_quant_tar_gz": [
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000002_s002.${salmon_mode}.salmon_quant.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000003_s002.${salmon_mode}.salmon_quant.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000004_s002.${salmon_mode}.salmon_quant.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000008_s002.${salmon_mode}.salmon_quant.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000024_s002.${salmon_mode}.salmon_quant.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000025_s002.${salmon_mode}.salmon_quant.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000009_s002.${salmon_mode}.salmon_quant.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000010_s002.${salmon_mode}.salmon_quant.tar.gz"
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000002_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000003_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000004_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000008_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000024_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000025_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000009_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000010_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz"
                 ],
                 "raw_data_path": "${downstream_raw_data_path}",
                 "workflow_info": [
@@ -605,77 +606,77 @@
   },
   "test_params": {
     "global_params": {
-      "sample_id": "ASAP_PMBDS_000001_s002",
+      "sample_id": "ASAP_PMBDS_000001_s002_Rep1",
       "team_id": "team-lee",
       "cohort_id": "asap-cohort",
       "project_sample_ids": [
         [
           "team-hardy",
-          "ASAP_PMBDS_000090_s005"
+          "ASAP_PMBDS_000090_s005_Rep1"
         ],
         [
           "team-hardy",
-          "ASAP_PMBDS_000090_s006"
+          "ASAP_PMBDS_000090_s006_Rep1"
         ],
         [
           "team-hardy",
-          "ASAP_PMBDS_000055_s003"
+          "ASAP_PMBDS_000055_s003_Rep1"
         ],
         [
           "team-hardy",
-          "ASAP_PMBDS_000055_s004"
+          "ASAP_PMBDS_000055_s004_Rep1"
         ],
         [
           "team-hardy",
-          "ASAP_PMBDS_000069_s005"
+          "ASAP_PMBDS_000069_s005_Rep1"
         ],
         [
           "team-hardy",
-          "ASAP_PMBDS_000069_s006"
+          "ASAP_PMBDS_000069_s006_Rep1"
         ],
         [
           "team-hardy",
-          "ASAP_PMBDS_000093_s003"
+          "ASAP_PMBDS_000093_s003_Rep1"
         ],
         [
           "team-hardy",
-          "ASAP_PMBDS_000093_s004"
+          "ASAP_PMBDS_000093_s004_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000001_s002"
+          "ASAP_PMBDS_000001_s002_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000002_s002"
+          "ASAP_PMBDS_000002_s002_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000003_s002"
+          "ASAP_PMBDS_000003_s002_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000004_s002"
+          "ASAP_PMBDS_000004_s002_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000008_s002"
+          "ASAP_PMBDS_000008_s002_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000024_s002"
+          "ASAP_PMBDS_000024_s002_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000025_s002"
+          "ASAP_PMBDS_000025_s002_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000009_s002"
+          "ASAP_PMBDS_000009_s002_Rep1"
         ],
         [
           "team-lee",
-          "ASAP_PMBDS_000010_s002"
+          "ASAP_PMBDS_000010_s002_Rep1"
         ]
       ],
       "reference": {
