@@ -17,9 +17,13 @@ def main(args):
     ##############
     ## METADATA ##
     ##############
+    # Use input sample IDs and clean up metadata
+    metadata = pd.read_csv(args.metadata)
+    metadata = metadata.loc[:, ~metadata.columns.str.contains("^Unnamed")]
+    metadata.index = metadata["ASAP_sample_id"].astype(str) + "_" + metadata["replicate"].astype(str)
+
     # Remove samples with missing annotations
-    metadata = pd.read_csv(args.metadata, index_col="ASAP_sample_id")
-    samples_to_keep =  ~(metadata.batch.isna() | metadata.condition_id.isna())
+    samples_to_keep =  ~(metadata["batch"].isna() | metadata["condition_id"].isna())
     metadata = metadata.loc[samples_to_keep]
 
     # Remove blacklisted samples
