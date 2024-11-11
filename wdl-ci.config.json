@@ -262,7 +262,7 @@
               "inputs": {
                 "team_id": "${team_id}",
                 "project_sample_ids": "${sample_ids}",
-                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.subset.20241106.SAMPLE.csv",
+                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.SAMPLE.csv",
                 "condition_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.CONDITION.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
                 "gene_ids_and_names_json": "${input_file_path}/gencode.v46.gene_id_and_gene_name.json",
