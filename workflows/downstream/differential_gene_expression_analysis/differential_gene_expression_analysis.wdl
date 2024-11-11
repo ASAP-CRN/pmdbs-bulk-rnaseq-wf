@@ -7,8 +7,8 @@ workflow differential_gene_expression_analysis {
 		String team_id
 		Array[Array[String]] project_sample_ids
 		
-		File condition_csv
 		File metadata_csv
+		File condition_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
 
@@ -26,8 +26,8 @@ workflow differential_gene_expression_analysis {
 		input:
 			team_id = team_id,
 			project_sample_ids = project_sample_ids,
-			condition_csv = condition_csv,
 			metadata_csv = metadata_csv,
+			condition_csv = condition_csv,
 			gene_map_csv = gene_map_csv,
 			gene_ids_and_names_json = gene_ids_and_names_json,
 			salmon_mode = salmon_mode,
@@ -52,8 +52,8 @@ task differential_gene_expression {
 		String team_id
 		Array[Array[String]] project_sample_ids
 		
-		File condition_csv
 		File metadata_csv
+		File condition_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
 
@@ -69,7 +69,7 @@ task differential_gene_expression {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size([condition_csv, metadata_csv, gene_map_csv], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
+	Int disk_size = ceil((size([metadata_csv, condition_csv, gene_map_csv], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
 
 	command <<<
 		set -euo pipefail

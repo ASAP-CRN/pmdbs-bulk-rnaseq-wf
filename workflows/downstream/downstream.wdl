@@ -13,8 +13,8 @@ workflow downstream {
 		Array[File] output_files
 		String output_name
 
-		File condition_csv
 		File metadata_csv
+		File condition_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
 
@@ -54,8 +54,8 @@ workflow downstream {
 		input:
 			team_id = team_id,
 			project_sample_ids = project_sample_ids,
-			condition_csv = condition_csv,
 			metadata_csv = metadata_csv,
+			condition_csv = condition_csv,
 			gene_map_csv = gene_map_csv,
 			gene_ids_and_names_json = gene_ids_and_names_json,
 			salmon_mode = salmon_mode,
