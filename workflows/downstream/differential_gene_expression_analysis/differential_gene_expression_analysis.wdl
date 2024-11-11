@@ -5,6 +5,7 @@ version 1.0
 workflow differential_gene_expression_analysis {
 	input {
 		String team_id
+		Array[Array[String]] project_sample_ids
 		
 		File condition_csv
 		File metadata_csv
@@ -24,6 +25,7 @@ workflow differential_gene_expression_analysis {
 	call differential_gene_expression {
 		input:
 			team_id = team_id,
+			project_sample_ids = project_sample_ids,
 			condition_csv = condition_csv,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
@@ -48,6 +50,7 @@ workflow differential_gene_expression_analysis {
 task differential_gene_expression {
 	input {
 		String team_id
+		Array[Array[String]] project_sample_ids
 		
 		File condition_csv
 		File metadata_csv
@@ -76,7 +79,8 @@ task differential_gene_expression {
 		done < ~{write_lines(salmon_quant_tar_gz)}
 
 		python3 /opt/scripts/dge_analysis.py \
-			--cohort-id ~{team_id} \
+			--team-id ~{team_id} \
+			--sample-ids ~{write_tsv(project_sample_ids)} \
 			--condition-dict ~{condition_csv} \
 			--metadata ~{metadata_csv} \
 			--gene-map ~{gene_map_csv} \

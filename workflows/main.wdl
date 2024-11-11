@@ -116,6 +116,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			call Downstream.downstream as alignment_mode_downstream {
 				input:
 					team_id = team_id,
+					project_sample_ids = upstream.project_sample_ids,
 					output_files = select_all(
 						flatten([
 							upstream.fastqc_reports_tar_gz,
@@ -150,6 +151,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			call Downstream.downstream as mapping_mode_downstream {
 				input:
 					team_id = team_id,
+					project_sample_ids = upstream.project_sample_ids,
 					output_files = select_all(
 						flatten([
 							upstream.fastqc_reports_tar_gz,

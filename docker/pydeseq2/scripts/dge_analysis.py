@@ -22,6 +22,11 @@ def main(args):
     samples_to_keep =  ~(metadata.batch.isna() | metadata.condition_id.isna())
     metadata = metadata.loc[samples_to_keep]
 
+    # Remove blacklisted samples
+    sample_ids_df = pd.read_csv(args.sample_ids, sep="\t", header=None, usecols=[1])
+    sample_ids = sample_ids_df.iloc[:, 0]
+    metadata = metadata[metadata.index.isin(sample_ids)]
+
     # Map condition_id to intervention_id (i.e. grouping conditions to "Case", "Control", and "Other")
     condition_dict = pd.read_csv(args.condition_dict)
     metadata_merged = pd.merge(metadata, condition_dict[["condition_id", "intervention_id"]], on="condition_id", how="left")
@@ -74,7 +79,7 @@ def main(args):
 
     # Fit dispersions and LFCs
     dds.deseq2()
-    with open(f"{args.cohort_id}.{args.salmon_mode}.dds.pkl", "wb") as f:
+    with open(f"{args.team_id}.{args.salmon_mode}.dds.pkl", "wb") as f:
         pkl.dump(dds, f)
 
     # Statistical analysis
@@ -93,7 +98,7 @@ def main(args):
     results_df = stat_res.results_df
     results_df["gene_name"] = results_df.index.map(gtf_gene_ids_and_names)
     sig_genes = results_df[(results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"].abs() > log2_fc_threshold)]
-    sig_genes.to_csv(f"{args.cohort_id}.{args.salmon_mode}.pydeseq2_significant_genes.csv")
+    sig_genes.to_csv(f"{args.team_id}.{args.salmon_mode}.pydeseq2_significant_genes.csv")
 
 
     ###################
@@ -149,7 +154,7 @@ def main(args):
     plt.xlabel("Log2 Fold Change")
     plt.ylabel("-Log10 Adjusted P-value")
     plt.title("Volcano Plot of PyDESeq2 Results")
-    plt.savefig(f"{args.cohort_id}.{args.salmon_mode}.volcano_plot.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"{args.team_id}.{args.salmon_mode}.volcano_plot.png", dpi=300, bbox_inches="tight")
 
 
 if __name__ == "__main__":
@@ -157,11 +162,18 @@ if __name__ == "__main__":
         description="Differential gene expression analysis using Salmon quantification files with PyDESeq2"
     )
     parser.add_argument(
-        "-c",
-        "--cohort-id",
+        "-t",
+        "--team-id",
         type=str,
         required=True,
-        help="Cohort ID"
+        help="Team ID"
+    )
+    parser.add_argument(
+        "-i",
+        "--sample-ids",
+        type=str,
+        required=True,
+        help="Sample IDs in a team"
     )
     parser.add_argument(
         "-d",

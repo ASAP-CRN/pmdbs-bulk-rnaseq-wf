@@ -8,6 +8,7 @@ import "differential_gene_expression_analysis/differential_gene_expression_analy
 workflow downstream {
 	input {
 		String team_id
+		Array[Array[String]] project_sample_ids
 
 		Array[File] output_files
 		String output_name
@@ -52,6 +53,7 @@ workflow downstream {
 	call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis {
 		input:
 			team_id = team_id,
+			project_sample_ids = project_sample_ids,
 			condition_csv = condition_csv,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
