@@ -261,7 +261,7 @@
             {
               "inputs": {
                 "team_id": "${team_id}",
-                "project_sample_ids": "${project_sample_ids}",
+                "project_sample_ids": "${sample_ids}",
                 "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.subset.20241106.SAMPLE.csv",
                 "condition_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.CONDITION.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
@@ -609,6 +609,44 @@
       "sample_id": "ASAP_PMBDS_000001_s002_Rep1",
       "team_id": "team-lee",
       "cohort_id": "asap-cohort",
+      "sample_ids": [
+        [
+          "team-lee",
+          "ASAP_PMBDS_000001_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000002_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000003_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000004_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000008_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000024_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000025_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000009_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000010_s002_Rep1"
+        ]
+      ],
       "project_sample_ids": [
         [
           "team-hardy",
