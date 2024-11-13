@@ -285,7 +285,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		}
 
 		if (run_pseudo_mapping_quantification) {
-			call CohortAnalysis.cohort_analysis  as mapping_mode_cross_team_cohort_analysis {
+			call CohortAnalysis.cohort_analysis as mapping_mode_cross_team_cohort_analysis {
 				input:
 					cohort_id = cohort_id,
 					team_ids = team_ids,
