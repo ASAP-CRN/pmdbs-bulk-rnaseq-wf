@@ -677,7 +677,7 @@
           "${run_timestamp}",
           "${workflow_name}",
           "${workflow_version}",
-          "${workflow_release}",
+          "${workflow_release}"
         ]
       ],
       "upstream_workflow_name": "upstream",
