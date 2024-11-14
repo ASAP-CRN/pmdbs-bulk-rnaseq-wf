@@ -8,3 +8,4 @@ pydeseq2== 0.4.11
 pytximport==0.8.0
 matplotlib==3.9.2
 seaborn==0.13.2
+adjustText==1.2.0

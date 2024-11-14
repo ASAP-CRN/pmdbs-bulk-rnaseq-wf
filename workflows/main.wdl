@@ -32,7 +32,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		String cohort_raw_data_bucket
 		Array[String] cohort_staging_data_buckets
 
-		File condition_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
 
@@ -65,11 +64,11 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	scatter (project in projects) {
 		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
 
-		String project_id = project.project_id
+		String team_id = project.team_id
 
 		call Upstream.upstream {
 			input:
-				project_id = project_id,
+				team_id = team_id,
 				samples = project.samples,
 				all_transcripts_fasta = reference.all_transcripts_fasta,
 				run_alignment_quantification = run_alignment_quantification,
@@ -115,7 +114,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		if (run_alignment_quantification) {
 			call Downstream.downstream as alignment_mode_downstream {
 				input:
-					project_id = project_id,
+					team_id = team_id,
+					project_sample_ids = upstream.project_sample_ids,
 					output_files = select_all(
 						flatten([
 							upstream.fastqc_reports_tar_gz,
@@ -129,8 +129,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						])
 					),
 					output_name = "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
-					condition_csv = condition_csv,
 					metadata_csv = select_first([project.project_sample_metadata_csv]),
+					condition_csv = select_first([project.project_condition_metadata_csv]),
 					gene_map_csv = gene_map_csv,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "alignment_mode",
@@ -149,7 +149,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		if (run_pseudo_mapping_quantification) {
 			call Downstream.downstream as mapping_mode_downstream {
 				input:
-					project_id = project_id,
+					team_id = team_id,
+					project_sample_ids = upstream.project_sample_ids,
 					output_files = select_all(
 						flatten([
 							upstream.fastqc_reports_tar_gz,
@@ -159,8 +160,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						])
 					),
 					output_name = "multiqc_fastqc_fastp_salmon_mapping_mode_report",
-					condition_csv = condition_csv,
 					metadata_csv = select_first([project.project_sample_metadata_csv]),
+					condition_csv = select_first([project.project_condition_metadata_csv]),
 					gene_map_csv = gene_map_csv,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "mapping_mode",
@@ -200,8 +201,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			if (run_alignment_quantification) {
 				call CohortAnalysis.cohort_analysis as alignment_mode_project_cohort_analysis {
 					input:
-						cohort_id = project_id,
-						project_ids = [project_id],
+						cohort_id = team_id,
+						team_ids = [team_id],
 						project_sample_ids = upstream.project_sample_ids,
 						upstream_output_file_paths = alignment_mode_upstream_output_file_paths,
 						downstream_output_file_paths = alignment_mode_downstream_output_file_paths,
@@ -223,8 +224,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			if (run_pseudo_mapping_quantification) {
 				call CohortAnalysis.cohort_analysis as mapping_mode_project_cohort_analysis {
 					input:
-						cohort_id = project_id,
-						project_ids = [project_id],
+						cohort_id = team_id,
+						team_ids = [team_id],
 						project_sample_ids = upstream.project_sample_ids,
 						upstream_output_file_paths = mapping_mode_upstream_output_file_paths,
 						downstream_output_file_paths = mapping_mode_downstream_output_file_paths,
@@ -255,7 +256,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	# Order of project IDs must be preserved
-	Array[String] project_ids = project_id
+	Array[String] team_ids = team_id
 
 	if (run_cross_team_cohort_analysis) {
 		String cohort_raw_data_path_prefix = "~{cohort_raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
@@ -264,7 +265,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			call CohortAnalysis.cohort_analysis as alignment_mode_cross_team_cohort_analysis {
 				input:
 					cohort_id = cohort_id,
-					project_ids = project_ids,
+					team_ids = team_ids,
 					project_sample_ids = flatten(upstream.project_sample_ids),
 					upstream_output_file_paths = flatten(alignment_mode_upstream_output_file_paths),
 					downstream_output_file_paths = flatten(alignment_mode_downstream_output_file_paths),
@@ -284,10 +285,10 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		}
 
 		if (run_pseudo_mapping_quantification) {
-			call CohortAnalysis.cohort_analysis  as mapping_mode_cross_team_cohort_analysis {
+			call CohortAnalysis.cohort_analysis as mapping_mode_cross_team_cohort_analysis {
 				input:
 					cohort_id = cohort_id,
-					project_ids = project_ids,
+					team_ids = team_ids,
 					project_sample_ids = flatten(upstream.project_sample_ids),
 					upstream_output_file_paths = flatten(mapping_mode_upstream_output_file_paths),
 					downstream_output_file_paths = flatten(mapping_mode_downstream_output_file_paths),
@@ -419,7 +420,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only upstream steps (QC, align/map, and quantify) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
-		condition_csv: {help: "CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition."}
 		gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
 		gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}

@@ -1,0 +1,708 @@
+{
+  "workflows": {
+    "wf-common/wdl/structs.wdl": {
+      "key": "wf-common/wdl/structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "wf-common/wdl/tasks/upload_final_outputs.wdl": {
+      "key": "wf-common/wdl/tasks/upload_final_outputs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "upload_final_outputs": {
+          "key": "upload_final_outputs",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/write_cohort_sample_list.wdl": {
+      "key": "wf-common/wdl/tasks/write_cohort_sample_list.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "write_cohort_sample_list": {
+          "key": "write_cohort_sample_list",
+          "digest": "cve3yantcy3stjk7ggvycomu3qo7rizb",
+          "tests": [
+            {
+              "inputs": {
+                "cohort_id": "${cohort_id}",
+                "project_sample_ids": "${project_sample_ids}",
+                "raw_data_path": "${cohort_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "cohort_sample_list": {
+                  "value": "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/asap-cohort.sample_list.tsv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_tab_delimited",
+                    "count_columns"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "wf-common/wdl/tasks/multiqc.wdl": {
+      "key": "wf-common/wdl/tasks/multiqc.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "multiqc": {
+          "key": "multiqc",
+          "digest": "byi3st6ejisdufloiw62caceutge57q2",
+          "tests": [
+            {
+              "inputs": {
+                "team_id": "${team_id}",
+                "output_files": [
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.trimmed_fastqc_reports.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.out",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.progress.out",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.SJ.out.tab",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz"
+                ],
+                "output_name": "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
+                "raw_data_path": "${downstream_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "multiqc_report_html": {
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-lee.multiqc_fastqc_fastp_star_salmon_alignment_mode_report.html",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_html"
+                  ]
+                },
+                "multiqc_data_zip": {
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-lee.multiqc_fastqc_fastp_star_salmon_alignment_mode_report_data.zip",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_zip"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "wf-common/wdl/tasks/fastqc.wdl": {
+      "key": "wf-common/wdl/tasks/fastqc.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "fastqc": {
+          "key": "fastqc",
+          "digest": "bhllguwdae3ynfe7nbgxn7ihq4qjec3d",
+          "tests": [
+            {
+              "inputs": {
+                "sample_id": "${sample_id}",
+                "fastq_R1s": [
+                  "gs://asap-raw-team-lee-pmdbs-bulk-rnaseq-mfg/fastqs/1225HC_MFG_bulk_L000_R1_001.fastq.gz"
+                ],
+                "fastq_R2s": [
+                  "gs://asap-raw-team-lee-pmdbs-bulk-rnaseq-mfg/fastqs/1225HC_MFG_bulk_L000_R2_001.fastq.gz"
+                ],
+                "raw_data_path": "${fastqc_raw_reads_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "fastqc_reports_tar_gz": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_gzip"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "wf-common/wdl/tasks/get_workflow_metadata.wdl": {
+      "key": "wf-common/wdl/tasks/get_workflow_metadata.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "get_workflow_metadata": {
+          "key": "get_workflow_metadata",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/main.wdl": {
+      "key": "workflows/main.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/pmdbs_bulk_rnaseq_analysis_structs.wdl": {
+      "key": "workflows/pmdbs_bulk_rnaseq_analysis_structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/cohort_analysis/cohort_analysis.wdl": {
+      "key": "workflows/cohort_analysis/cohort_analysis.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "degs_and_plot": {
+          "key": "degs_and_plot",
+          "digest": "6qvommtwkotx4qkavteq4wowjdesoctr",
+          "tests": [
+            {
+              "inputs": {
+                "cohort_id": "${cohort_id}",
+                "team_ids": [
+                  "team-hardy",
+                  "${team_id}"
+                ],
+                "n_teams": 2,
+                "significant_genes_csv": [
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
+                ],
+                "dds_object_pkl": [
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.dds.pkl",
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.dds.pkl"
+                ],
+                "salmon_mode": "${salmon_mode}",
+                "raw_data_path": "${cohort_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "overlapping_significant_genes_csv": {
+                  "value": "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "pca_plot_png": {
+                  "value": "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.pca_plot.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "workflows/downstream/downstream.wdl": {
+      "key": "workflows/downstream/downstream.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/downstream/differential_gene_expression_analysis/differential_gene_expression_analysis.wdl": {
+      "key": "workflows/downstream/differential_gene_expression_analysis/differential_gene_expression_analysis.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "differential_gene_expression": {
+          "key": "differential_gene_expression",
+          "digest": "tjayrke5sfxdqptlqbzy7n4wqe2tbcht",
+          "tests": [
+            {
+              "inputs": {
+                "team_id": "${team_id}",
+                "project_sample_ids": "${sample_ids}",
+                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.SAMPLE.csv",
+                "condition_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.CONDITION.csv",
+                "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
+                "gene_ids_and_names_json": "${input_file_path}/gencode.v46.gene_id_and_gene_name.json",
+                "salmon_mode": "${salmon_mode}",
+                "salmon_quant_tar_gz": [
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000002_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000003_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000004_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000008_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000024_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000025_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000009_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000010_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz"
+                ],
+                "raw_data_path": "${downstream_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "dds_object_pkl": {
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.dds.pkl",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_pkl"
+                  ]
+                },
+                "significant_genes_csv": {
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "volcano_plot_png": {
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.volcano_plot.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "workflows/index_ref_genome/index_ref_genome.wdl": {
+      "key": "workflows/index_ref_genome/index_ref_genome.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "star_index_ref_genome": {
+          "key": "star_index_ref_genome",
+          "digest": "",
+          "tests": []
+        },
+        "generate_decoy": {
+          "key": "generate_decoy",
+          "digest": "",
+          "tests": []
+        },
+        "salmon_index_ref_genome": {
+          "key": "salmon_index_ref_genome",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/upstream/upstream.wdl": {
+      "key": "workflows/upstream/upstream.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "check_output_files_exist": {
+          "key": "check_output_files_exist",
+          "digest": "",
+          "tests": []
+        },
+        "trim_and_qc": {
+          "key": "trim_and_qc",
+          "digest": "3ywtzmnanys3zqltfpjcusspzlyvuwll",
+          "tests": [
+            {
+              "inputs": {
+                "sample_id": "${sample_id}",
+                "fastq_R1s": [
+                  "gs://asap-raw-team-lee-pmdbs-bulk-rnaseq-mfg/fastqs/1225HC_MFG_bulk_L000_R1_001.fastq.gz"
+                ],
+                "fastq_R2s": [
+                  "gs://asap-raw-team-lee-pmdbs-bulk-rnaseq-mfg/fastqs/1225HC_MFG_bulk_L000_R2_001.fastq.gz"
+                ],
+                "raw_data_path": "${fastp_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "trimmed_fastq_R1s": {
+                  "value": [
+                    "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R1_001.trimmed.fastq.gz"
+                  ],
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_gzip"
+                  ]
+                },
+                "trimmed_fastq_R2s": {
+                  "value": [
+                    "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R2_001.trimmed.fastq.gz"
+                  ],
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_gzip"
+                  ]
+                },
+                "failed_paired_fastqs_tar_gz": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_failed_paired_fastqs.tar.gz",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_gzip"
+                  ]
+                },
+                "reports_html_tar_gz": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_gzip"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "workflows/upstream/pseudo_mapping_quantification/pseudo_mapping_quantification.wdl": {
+      "key": "workflows/upstream/pseudo_mapping_quantification/pseudo_mapping_quantification.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "mapping_quantification": {
+          "key": "mapping_quantification",
+          "digest": "7lojrdsynokyyniwotrmsjuzdginko3p",
+          "tests": [
+            {
+              "inputs": {
+                "sample_id": "${sample_id}",
+                "salmon_genome_dir_tar_gz": "${input_file_path}/salmon_genome_dir.tar.gz",
+                "trimmed_fastq_R1s": [
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R1_001.trimmed.fastq.gz"
+                ],
+                "trimmed_fastq_R2s": [
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R2_001.trimmed.fastq.gz"
+                ],
+                "raw_data_path": "${salmon_mapping_mode_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "quant_tar_gz": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/mapping_mode/${sample_id}.mapping_mode.salmon_quant.tar.gz",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_gzip"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "workflows/upstream/alignment_quantification/alignment_quantification.wdl": {
+      "key": "workflows/upstream/alignment_quantification/alignment_quantification.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "alignment": {
+          "key": "alignment",
+          "digest": "flxykowhis4bbjax5vqgwpf6jo6alaj5",
+          "tests": [
+            {
+              "inputs": {
+                "sample_id": "${sample_id}",
+                "star_genome_dir_tar_gz": "${input_file_path}/star_genome_dir.tar.gz",
+                "trimmed_fastq_R1s": [
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R1_001.trimmed.fastq.gz"
+                ],
+                "trimmed_fastq_R2s": [
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R2_001.trimmed.fastq.gz"
+                ],
+                "raw_data_path": "${star_and_salmon_alignment_mode_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "aligned_bam": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.sortedByCoord.out.bam",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "samtools_quickcheck",
+                    "check_coordinate_sorted_alignment"
+                  ]
+                },
+                "aligned_bam_index": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.sortedByCoord.out.bam.bai",
+                  "test_tasks": [
+                    "compare_file_basename"
+                  ]
+                },
+                "aligned_to_transcriptome_bam": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.toTranscriptome.out.bam",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "samtools_quickcheck"
+                  ]
+                },
+                "unmapped_mate1": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Unmapped.out.mate1",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines"
+                  ]
+                },
+                "unmapped_mate2": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Unmapped.out.mate2",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines"
+                  ]
+                },
+                "log": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.out",
+                  "test_tasks": [
+                    "compare_file_basename"
+                  ]
+                },
+                "final_log": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
+                  "test_tasks": [
+                    "compare_file_basename"
+                  ]
+                },
+                "progress_log": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.progress.out",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines"
+                  ]
+                },
+                "sj_out_tab": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.SJ.out.tab",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_tab_delimited",
+                    "count_columns"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "quantification": {
+          "key": "quantification",
+          "digest": "shhexvankc6qbwsdca6lgxw4qi25pn6c",
+          "tests": [
+            {
+              "inputs": {
+                "sample_id": "${sample_id}",
+                "all_transcripts_fasta": "${reference.all_transcripts_fasta}",
+                "aligned_to_transcriptome_bam": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.toTranscriptome.out.bam",
+                "raw_data_path": "${star_and_salmon_alignment_mode_raw_data_path}",
+                "workflow_info": "${workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "quant_tar_gz": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_gzip"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "engines": {
+    "asap-cromwell": {
+      "key": "asap-cromwell",
+      "enabled": true,
+      "name": ""
+    }
+  },
+  "test_params": {
+    "global_params": {
+      "sample_id": "ASAP_PMBDS_000001_s002_Rep1",
+      "team_id": "team-lee",
+      "cohort_id": "asap-cohort",
+      "sample_ids": [
+        [
+          "team-lee",
+          "ASAP_PMBDS_000001_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000002_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000003_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000004_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000008_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000024_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000025_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000009_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000010_s002_Rep1"
+        ]
+      ],
+      "project_sample_ids": [
+        [
+          "team-hardy",
+          "ASAP_PMBDS_000090_s005_Rep1"
+        ],
+        [
+          "team-hardy",
+          "ASAP_PMBDS_000090_s006_Rep1"
+        ],
+        [
+          "team-hardy",
+          "ASAP_PMBDS_000055_s003_Rep1"
+        ],
+        [
+          "team-hardy",
+          "ASAP_PMBDS_000055_s004_Rep1"
+        ],
+        [
+          "team-hardy",
+          "ASAP_PMBDS_000069_s005_Rep1"
+        ],
+        [
+          "team-hardy",
+          "ASAP_PMBDS_000069_s006_Rep1"
+        ],
+        [
+          "team-hardy",
+          "ASAP_PMBDS_000093_s003_Rep1"
+        ],
+        [
+          "team-hardy",
+          "ASAP_PMBDS_000093_s004_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000001_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000002_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000003_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000004_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000008_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000024_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000025_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000009_s002_Rep1"
+        ],
+        [
+          "team-lee",
+          "ASAP_PMBDS_000010_s002_Rep1"
+        ]
+      ],
+      "reference": {
+        "primary_assembly_fasta": "${input_file_path}/GRCh38.primary_assembly.genome.fa.gz",
+        "gene_annotation_gtf": "${input_file_path}/gencode.v46.annotation.gtf.gz",
+        "transcripts_fasta": "${input_file_path}/gencode.v46.transcripts.fa.gz",
+        "all_transcripts_fasta": "${input_file_path}/gencode.v46.all_transcripts.fa.gz"
+      },
+      "workflow_name": "pmdbs_bulk_rnaseq",
+      "workflow_version": "v1.0.0",
+      "workflow_release": "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-${workflow_version}",
+      "workflow_info": [
+        [
+          "${run_timestamp}",
+          "${workflow_name}",
+          "${workflow_version}",
+          "${workflow_release}"
+        ]
+      ],
+      "upstream_workflow_name": "upstream",
+      "upstream_workflow_version": "1.0.0",
+      "fastqc_raw_reads_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/fastqc_raw_reads/${upstream_workflow_version}",
+      "fastp_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/trim_and_qc/${upstream_workflow_version}",
+      "star_and_salmon_alignment_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/alignment_quantification/${upstream_workflow_version}",
+      "salmon_mapping_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/mapping_quantification/${upstream_workflow_version}",
+      "salmon_mode": "alignment_mode",
+      "downstream_workflow_name": "downstream",
+      "downstream_workflow_version": "1.0.0",
+      "downstream_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${downstream_workflow_name}/${downstream_workflow_version}/${salmon_mode}/${run_timestamp}",
+      "cohort_workflow_name": "cohort_analysis",
+      "cohort_workflow_version": "1.0.0",
+      "cohort_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${cohort_workflow_name}/${cohort_workflow_version}/${salmon_mode}/${run_timestamp}",
+      "run_timestamp": "2024-11-06T00-00-00Z",
+      "billing_project": "dnastack-asap-parkinsons",
+      "container_registry": "us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images",
+      "zones": "us-central1-c us-central1-f"
+    },
+    "engine_params": {
+      "asap-cromwell": {
+        "input_file_path": "gs://asap-workflow-dev/workflow-resources",
+        "input_resources_file_path": "gs://asap-wdl-ci/pmdbs_bulk_rnaseq"
+      }
+    }
+  }
+}
