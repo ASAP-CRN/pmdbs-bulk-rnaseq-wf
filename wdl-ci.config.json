@@ -67,7 +67,6 @@
                 "team_id": "${team_id}",
                 "output_files": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.trimmed_fastqc_reports.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.out",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
@@ -361,14 +360,21 @@
                     "check_gzip"
                   ]
                 },
-                "failed_paired_fastqs_tar_gz": {
+                "qc_failed_paired_fastqs_tar_gz": {
                   "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_failed_paired_fastqs.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
                   ]
                 },
-                "reports_html_tar_gz": {
+                "qc_reports_html_tar_gz": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_gzip"
+                  ]
+                },
+                "qc_json_tar_gz": {
                   "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
