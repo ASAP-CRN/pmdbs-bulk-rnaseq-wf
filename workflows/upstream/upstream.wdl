@@ -34,17 +34,17 @@ workflow upstream {
 
 	# Task and subworkflow versions
 	String sub_workflow_name = "upstream"
-	String sub_workflow_version = "1.0.0"
-	String trim_and_qc_workflow_version = "1.0.1"
+	String fastqc_task_version = "1.0.0"
+	String trim_and_qc_task_version = "1.0.1"
 	String alignment_quantification_workflow_version = "1.0.0"
 	String pseudo_mapping_quantification_workflow_version = "1.0.0"
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
 	String workflow_raw_data_path_prefix = "~{raw_data_path_prefix}/~{sub_workflow_name}"
-	String fastqc_raw_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_raw_reads/~{sub_workflow_version}"
-	String fastp_raw_data_path = "~{workflow_raw_data_path_prefix}/trim_and_qc/~{trim_and_qc_workflow_version}"
-	String fastqc_trimmed_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_trimmed_reads/~{sub_workflow_version}"
+	String fastqc_raw_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_raw_reads/~{fastqc_task_version}"
+	String fastp_raw_data_path = "~{workflow_raw_data_path_prefix}/trim_and_qc/~{trim_and_qc_task_version}"
+	String fastqc_trimmed_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_trimmed_reads/~{fastqc_task_version}"
 	String star_and_salmon_alignment_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/alignment_quantification/~{alignment_quantification_workflow_version}"
 	String salmon_mapping_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/mapping_quantification/~{pseudo_mapping_quantification_workflow_version}"
 

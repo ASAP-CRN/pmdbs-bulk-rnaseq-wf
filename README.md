@@ -154,7 +154,7 @@ The raw data bucket will contain *some* artifacts generated as part of workflow 
 In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L85-L116), downstream analysis final outputs are defined at [downstream.wdl](workflows/main.wdl#L182-200), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L85-93).
 
 ```bash
-asap-raw-{cohort,team-xxyy}-{source}-{dataset_name}
+asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
 	├── cohort_analysis
 	│	└──${cohort_analysis_workflow_version}
@@ -168,13 +168,13 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset_name}
 	│				└── <downstream outputs>
 	└── upstream
 		├── fastqc_raw_reads
-		│	└── ${upstream_workflow_version}
+		│	└── ${fastqc_task_version}
 		│		└── <fastqc_raw_reads output>
 		├── trim_and_qc
-		│	└── ${upstream_workflow_version}
+		│	└── ${trim_and_qc_task_version}
 		│		└── <trim_and_qc output>
 		├── fastqc_trimmed_reads
-		│	└── ${upstream_workflow_version}
+		│	└── ${fastqc_task_version}
 		│		└── <fastqc_trimmed_reads output>
 		├── alignment_quantification
 		│	└── ${alignment_quantification_workflow_version}
@@ -186,12 +186,12 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset_name}
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
 
-Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{collection}-{modality}-{cohort,team-xxyy}`.
+Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{cohort,team-xxyy}-{source}-{dataset}`.
 
 Data may be synced using [the `promote_staging_data` script](#promoting-staging-data).
 
 ```bash
-asap-dev-{cohort,team-xxyy}-{source}-{pipeline_name}
+asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 ├── cohort_analysis
 │   └── ${salmon_mode}
 │       ├── ${cohort_id}.sample_list.tsv
@@ -207,42 +207,10 @@ asap-dev-{cohort,team-xxyy}-{source}-{pipeline_name}
 │       ├── ${team_id}.${salmon_mode}.volcano_plot.png
 │       └── MANIFEST.tsv
 └── upstream
-	├── qc
-	│   ├── ${sampleA_id}.fastqc_reports.tar.gz
-	│   ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
-	│   ├── ${sampleA_id}.fastp_reports.tar.gz
-	│   ├── ${sampleA_id}.fastp_json.tar.gz
-	│   ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
-	│   ├──  MANIFEST.tsv
-	│   ├── ...
-	│   ├── ${sampleN_id}.fastqc_reports.tar.gz
-	│   ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
-	│   ├── ${sampleN_id}.fastp_reports.tar.gz
-	│   ├── ${sampleN_id}.fastp_json.tar.gz
-	│   ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
-	│   └── MANIFEST.tsv
 	└── ${salmon_mode}
-		├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
-		├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
-		├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
-		├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
-		├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
-		├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
-		├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
-		├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
-		├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
 		├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
 		├── MANIFEST.tsv
 		├── ...
-		├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
-		├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
-		├── ${sampleN_id}.Aligned.toTranscriptome.out.bam
-		├── ${sampleN_id}.Unmapped.out.mate1
-		├── ${sampleN_id}.Unmapped.out.mate2
-		├── ${sampleN_id}.Log.out
-		├── ${sampleN_id}.Log.final.out
-		├── ${sampleN_id}.Log.progress.out
-		├── ${sampleN_id}.SJ.out.tab
 		├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
 		└── MANIFEST.tsv
 ```

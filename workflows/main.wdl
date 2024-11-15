@@ -83,15 +83,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 
 		Array[String] alignment_mode_upstream_output_file_paths = select_all(
 			flatten([
-				upstream.aligned_bam,
-				upstream.aligned_bam_index,
-				upstream.aligned_to_transcriptome_bam,
-				upstream.unmapped_mate1,
-				upstream.unmapped_mate2,
-				upstream.log,
-				upstream.final_log,
-				upstream.progress_log,
-				upstream.sj_out_tab,
 				upstream.alignment_mode_quant_tar_gz
 			])
 		) #!StringCoercion
