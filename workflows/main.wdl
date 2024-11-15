@@ -87,8 +87,9 @@ workflow pmdbs_bulk_rnaseq_analysis {
 
 		Array[String] upstream_qc_output_file_paths = flatten([
 			upstream.fastqc_reports_tar_gz,
-			upstream.failed_paired_fastqs_tar_gz,
-			upstream.reports_html_tar_gz,
+			upstream.qc_failed_paired_fastqs_tar_gz,
+			upstream.qc_reports_html_tar_gz,
+			upstream.qc_json_tar_gz,
 			upstream.trimmed_fastqc_reports_tar_gz
 		]) #!StringCoercion
 
@@ -119,7 +120,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					output_files = select_all(
 						flatten([
 							upstream.fastqc_reports_tar_gz,
-							upstream.reports_html_tar_gz,
+							upstream.qc_json_tar_gz,
 							upstream.trimmed_fastqc_reports_tar_gz,
 							upstream.log,
 							upstream.final_log,
@@ -154,7 +155,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					output_files = select_all(
 						flatten([
 							upstream.fastqc_reports_tar_gz,
-							upstream.reports_html_tar_gz,
+							upstream.qc_json_tar_gz,
 							upstream.trimmed_fastqc_reports_tar_gz,
 							upstream.mapping_mode_quant_tar_gz
 						])
@@ -326,8 +327,9 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[Array[File]] fastqc_raw_reads_reports_tar_gz = upstream.fastqc_reports_tar_gz
 		Array[Array[Array[File]]] fastp_trimmed_fastq_R1s = upstream.trimmed_fastq_R1s
 		Array[Array[Array[File]]] fastp_trimmed_fastq_R2s = upstream.trimmed_fastq_R2s
-		Array[Array[File]] fastp_failed_paired_fastqs_tar_gz = upstream.failed_paired_fastqs_tar_gz
-		Array[Array[File]] fastp_report_html_tar_gz = upstream.reports_html_tar_gz
+		Array[Array[File]] fastp_failed_paired_fastqs_tar_gz = upstream.qc_failed_paired_fastqs_tar_gz
+		Array[Array[File]] fastp_report_html_tar_gz = upstream.qc_reports_html_tar_gz
+		Array[Array[File]] fastp_json_tar_gz = upstream.qc_json_tar_gz
 		Array[Array[File]] fastqc_trimmed_reads_reports_tar_gz = upstream.trimmed_fastqc_reports_tar_gz
 
 		## Alignment and quantification

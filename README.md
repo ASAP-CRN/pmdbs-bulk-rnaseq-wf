@@ -211,12 +211,14 @@ asap-dev-{cohort,team-xxyy}-{source}-{pipeline_name}
 	│   ├── ${sampleA_id}.fastqc_reports.tar.gz
 	│   ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
 	│   ├── ${sampleA_id}.fastp_reports.tar.gz
+	│   ├── ${sampleA_id}.fastp_json.tar.gz
 	│   ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
 	│   ├──  MANIFEST.tsv
 	│   ├── ...
 	│   ├── ${sampleN_id}.fastqc_reports.tar.gz
 	│   ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
 	│   ├── ${sampleN_id}.fastp_reports.tar.gz
+	│   ├── ${sampleN_id}.fastp_json.tar.gz
 	│   ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
 	│   └── MANIFEST.tsv
 	└── ${salmon_mode}
