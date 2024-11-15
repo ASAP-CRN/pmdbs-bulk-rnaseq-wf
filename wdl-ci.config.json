@@ -381,7 +381,7 @@
                     "compare_file_basename",
                     "check_gzip"
                   ]
-                },
+                }
               }
             }
           ]
