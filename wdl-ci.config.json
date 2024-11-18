@@ -60,7 +60,7 @@
       "tasks": {
         "multiqc": {
           "key": "multiqc",
-          "digest": "byi3st6ejisdufloiw62caceutge57q2",
+          "digest": "5w46ex5ujnhuzphujdfhmtev6tnw2atf",
           "tests": [
             {
               "inputs": {
