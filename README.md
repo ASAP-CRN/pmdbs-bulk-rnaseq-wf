@@ -156,32 +156,33 @@ In the workflow, task outputs are either specified as `String` (final outputs, w
 ```bash
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-	├── cohort_analysis
-	│	└──${cohort_analysis_workflow_version}
-	│		└── ${salmon_mode}
-	│			└── ${workflow_run_timestamp}
-	│				└── <cohort_analysis outputs>
-	├── downstream
-	│	└──${downstream_workflow_version}
-	│		└── ${salmon_mode}
-	│			└── ${workflow_run_timestamp}
-	│				└── <downstream outputs>
-	└── upstream
-		├── fastqc_raw_reads
-		│	└── ${fastqc_task_version}
-		│		└── <fastqc_raw_reads output>
-		├── trim_and_qc
-		│	└── ${trim_and_qc_task_version}
-		│		└── <trim_and_qc output>
-		├── fastqc_trimmed_reads
-		│	└── ${fastqc_task_version}
-		│		└── <fastqc_trimmed_reads output>
-		├── alignment_quantification
-		│	└── ${alignment_quantification_workflow_version}
-		│		└── <alignment_quantification output>
-		└── pseudo_mapping_quantification
-			└── ${pseudo_mapping_quantification_workflow_version}
-				└── <pseudo_mapping_quantification output>
+	└── pmdbs_bulk_rnaseq
+		├── cohort_analysis
+		│	└──${cohort_analysis_workflow_version}
+		│		└── ${salmon_mode}
+		│			└── ${workflow_run_timestamp}
+		│				└── <cohort_analysis outputs>
+		├── downstream
+		│	└──${downstream_workflow_version}
+		│		└── ${salmon_mode}
+		│			└── ${workflow_run_timestamp}
+		│				└── <downstream outputs>
+		└── upstream
+			├── fastqc_raw_reads
+			│	└── ${fastqc_task_version}
+			│		└── <fastqc_raw_reads output>
+			├── trim_and_qc
+			│	└── ${trim_and_qc_task_version}
+			│		└── <trim_and_qc output>
+			├── fastqc_trimmed_reads
+			│	└── ${fastqc_task_version}
+			│		└── <fastqc_trimmed_reads output>
+			├── alignment_quantification
+			│	└── ${alignment_quantification_workflow_version}
+			│		└── <alignment_quantification output>
+			└── pseudo_mapping_quantification
+				└── ${pseudo_mapping_quantification_workflow_version}
+					└── <pseudo_mapping_quantification output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -192,27 +193,28 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 
 ```bash
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
-├── cohort_analysis
-│   └── ${salmon_mode}
-│       ├── ${cohort_id}.sample_list.tsv
-│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
-│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
-│    	└── MANIFEST.tsv
-├── downstream
-│   └── ${salmon_mode}
-│       ├── ${team_id}.${output_name}.html # Includes ${salmon_mode} in output_name
-│       ├── ${team_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
-│       ├── ${team_id}.${salmon_mode}.dds.pkl
-│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
-│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
-│       └── MANIFEST.tsv
-└── upstream
-	└── ${salmon_mode}
-		├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
-		├── MANIFEST.tsv
-		├── ...
-		├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
-		└── MANIFEST.tsv
+└── pmdbs_bulk_rnaseq
+	├── cohort_analysis
+	│   └── ${salmon_mode}
+	│       ├── ${cohort_id}.sample_list.tsv
+	│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
+	│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
+	│    	└── MANIFEST.tsv
+	├── downstream
+	│   └── ${salmon_mode}
+	│       ├── ${team_id}.${output_name}.html # Includes ${salmon_mode} in output_name
+	│       ├── ${team_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
+	│       ├── ${team_id}.${salmon_mode}.dds.pkl
+	│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
+	│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
+	│       └── MANIFEST.tsv
+	└── upstream
+		└── ${salmon_mode}
+			├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
+			├── MANIFEST.tsv
+			├── ...
+			├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
+			└── MANIFEST.tsv
 ```
 
 ## Promoting staging data
