@@ -323,7 +323,7 @@
         },
         "trim_and_qc": {
           "key": "trim_and_qc",
-          "digest": "3ywtzmnanys3zqltfpjcusspzlyvuwll",
+          "digest": "24pghbe25gkxy5cebpxvlvhsialn4zaz",
           "tests": [
             {
               "inputs": {
@@ -690,7 +690,7 @@
       "upstream_workflow_name": "upstream",
       "fastqc_task_version": "1.0.0",
       "trim_and_qc_task_version": "1.0.1",
-      "alignment_quantification_workflow_version": "1.0.0", 
+      "alignment_quantification_workflow_version": "1.0.0",
       "pseudo_mapping_quantification_workflow_version": "1.0.0",
       "fastqc_raw_reads_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/fastqc_raw_reads/${fastqc_task_version}",
       "fastp_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/trim_and_qc/${trim_and_qc_task_version}",
