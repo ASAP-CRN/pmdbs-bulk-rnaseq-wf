@@ -69,10 +69,7 @@
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_json.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.trimmed_fastqc_reports.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.out",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.progress.out",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.SJ.out.tab",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz"
                 ],
                 "output_name": "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
