@@ -67,6 +67,7 @@
                 "team_id": "${team_id}",
                 "output_files": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_json.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.trimmed_fastqc_reports.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.out",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
@@ -375,7 +376,7 @@
                   ]
                 },
                 "qc_json_tar_gz": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_json.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
@@ -687,11 +688,14 @@
         ]
       ],
       "upstream_workflow_name": "upstream",
-      "upstream_workflow_version": "1.0.0",
-      "fastqc_raw_reads_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/fastqc_raw_reads/${upstream_workflow_version}",
-      "fastp_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/trim_and_qc/${upstream_workflow_version}",
-      "star_and_salmon_alignment_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/alignment_quantification/${upstream_workflow_version}",
-      "salmon_mapping_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/mapping_quantification/${upstream_workflow_version}",
+      "fastqc_task_version": "1.0.0",
+      "trim_and_qc_task_version": "1.0.1",
+      "alignment_quantification_workflow_version": "1.0.0", 
+      "pseudo_mapping_quantification_workflow_version": "1.0.0",
+      "fastqc_raw_reads_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/fastqc_raw_reads/${fastqc_task_version}",
+      "fastp_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/trim_and_qc/${trim_and_qc_task_version}",
+      "star_and_salmon_alignment_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/alignment_quantification/${alignment_quantification_workflow_version}",
+      "salmon_mapping_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/mapping_quantification/${pseudo_mapping_quantification_workflow_version}",
       "salmon_mode": "alignment_mode",
       "downstream_workflow_name": "downstream",
       "downstream_workflow_version": "1.0.0",
