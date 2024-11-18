@@ -60,19 +60,16 @@
       "tasks": {
         "multiqc": {
           "key": "multiqc",
-          "digest": "byi3st6ejisdufloiw62caceutge57q2",
+          "digest": "5w46ex5ujnhuzphujdfhmtev6tnw2atf",
           "tests": [
             {
               "inputs": {
                 "team_id": "${team_id}",
                 "output_files": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_json.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.trimmed_fastqc_reports.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.out",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.progress.out",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.SJ.out.tab",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz"
                 ],
                 "output_name": "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
@@ -323,7 +320,7 @@
         },
         "trim_and_qc": {
           "key": "trim_and_qc",
-          "digest": "3ywtzmnanys3zqltfpjcusspzlyvuwll",
+          "digest": "24pghbe25gkxy5cebpxvlvhsialn4zaz",
           "tests": [
             {
               "inputs": {
@@ -361,15 +358,22 @@
                     "check_gzip"
                   ]
                 },
-                "failed_paired_fastqs_tar_gz": {
+                "qc_failed_paired_fastqs_tar_gz": {
                   "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_failed_paired_fastqs.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
                   ]
                 },
-                "reports_html_tar_gz": {
+                "qc_reports_html_tar_gz": {
                   "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_gzip"
+                  ]
+                },
+                "qc_json_tar_gz": {
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_json.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
@@ -681,18 +685,21 @@
         ]
       ],
       "upstream_workflow_name": "upstream",
-      "upstream_workflow_version": "1.0.0",
-      "fastqc_raw_reads_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/fastqc_raw_reads/${upstream_workflow_version}",
-      "fastp_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/trim_and_qc/${upstream_workflow_version}",
-      "star_and_salmon_alignment_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/alignment_quantification/${upstream_workflow_version}",
-      "salmon_mapping_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/mapping_quantification/${upstream_workflow_version}",
+      "fastqc_task_version": "1.0.0",
+      "trim_and_qc_task_version": "1.0.1",
+      "alignment_quantification_workflow_version": "1.0.0",
+      "pseudo_mapping_quantification_workflow_version": "1.0.0",
+      "fastqc_raw_reads_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/fastqc_raw_reads/${fastqc_task_version}",
+      "fastp_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/trim_and_qc/${trim_and_qc_task_version}",
+      "star_and_salmon_alignment_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/alignment_quantification/${alignment_quantification_workflow_version}",
+      "salmon_mapping_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/mapping_quantification/${pseudo_mapping_quantification_workflow_version}",
       "salmon_mode": "alignment_mode",
       "downstream_workflow_name": "downstream",
       "downstream_workflow_version": "1.0.0",
-      "downstream_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${downstream_workflow_name}/${downstream_workflow_version}/${salmon_mode}/${run_timestamp}",
+      "downstream_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${downstream_workflow_name}/${downstream_workflow_version}/${salmon_mode}/${run_timestamp}",
       "cohort_workflow_name": "cohort_analysis",
       "cohort_workflow_version": "1.0.0",
-      "cohort_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${cohort_workflow_name}/${cohort_workflow_version}/${salmon_mode}/${run_timestamp}",
+      "cohort_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${cohort_workflow_name}/${cohort_workflow_version}/${salmon_mode}/${run_timestamp}",
       "run_timestamp": "2024-11-06T00-00-00Z",
       "billing_project": "dnastack-asap-parkinsons",
       "container_registry": "us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images",
