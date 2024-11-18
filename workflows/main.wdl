@@ -101,10 +101,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 							upstream.fastqc_reports_tar_gz,
 							upstream.qc_json_tar_gz,
 							upstream.trimmed_fastqc_reports_tar_gz,
-							upstream.log,
 							upstream.final_log,
-							upstream.progress_log,
-							upstream.sj_out_tab,
 							upstream.alignment_mode_quant_tar_gz
 						])
 					),
