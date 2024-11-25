@@ -34,16 +34,17 @@ workflow upstream {
 
 	# Task and subworkflow versions
 	String sub_workflow_name = "upstream"
-	String sub_workflow_version = "1.0.0"
+	String fastqc_task_version = "1.0.0"
+	String trim_and_qc_task_version = "1.0.1"
 	String alignment_quantification_workflow_version = "1.0.0"
 	String pseudo_mapping_quantification_workflow_version = "1.0.0"
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
 	String workflow_raw_data_path_prefix = "~{raw_data_path_prefix}/~{sub_workflow_name}"
-	String fastqc_raw_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_raw_reads/~{sub_workflow_version}"
-	String fastp_raw_data_path = "~{workflow_raw_data_path_prefix}/trim_and_qc/~{sub_workflow_version}"
-	String fastqc_trimmed_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_trimmed_reads/~{sub_workflow_version}"
+	String fastqc_raw_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_raw_reads/~{fastqc_task_version}"
+	String fastp_raw_data_path = "~{workflow_raw_data_path_prefix}/trim_and_qc/~{trim_and_qc_task_version}"
+	String fastqc_trimmed_reads_raw_data_path = "~{workflow_raw_data_path_prefix}/fastqc_trimmed_reads/~{fastqc_task_version}"
 	String star_and_salmon_alignment_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/alignment_quantification/~{alignment_quantification_workflow_version}"
 	String salmon_mapping_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/mapping_quantification/~{pseudo_mapping_quantification_workflow_version}"
 
@@ -103,6 +104,7 @@ workflow upstream {
 
 		String fastp_failed_paired_fastqs = "~{fastp_raw_data_path}/~{sample.sample_id}.fastp_failed_paired_fastqs.tar.gz"
 		String fastp_reports_html = "~{fastp_raw_data_path}/~{sample.sample_id}.fastp_reports.tar.gz"
+		String fastp_jsons = "~{fastp_raw_data_path}/~{sample.sample_id}.fastp_json.tar.gz"
 
 		if (fastqc_trimmed_reads_complete == "false") {
 			call trim_and_qc {
@@ -120,8 +122,9 @@ workflow upstream {
 
 		Array[File] trimmed_fastq_R1s_output = if (fastqc_trimmed_reads_complete == "false") then select_first([trim_and_qc.trimmed_fastq_R1s]) else fastp_trimmed_fastq_R1 #!FileCoercion
 		Array[File] trimmed_fastq_R2s_output = if (fastqc_trimmed_reads_complete == "false") then select_first([trim_and_qc.trimmed_fastq_R2s]) else fastp_trimmed_fastq_R2 #!FileCoercion
-		File failed_paired_fastqs_tar_gz_output = select_first([trim_and_qc.failed_paired_fastqs_tar_gz, fastp_failed_paired_fastqs]) #!FileCoercion
-		File reports_html_tar_gz_output = select_first([trim_and_qc.reports_html_tar_gz, fastp_reports_html]) #!FileCoercion
+		File qc_failed_paired_fastqs_tar_gz_output = select_first([trim_and_qc.qc_failed_paired_fastqs_tar_gz, fastp_failed_paired_fastqs]) #!FileCoercion
+		File qc_reports_html_tar_gz_output = select_first([trim_and_qc.qc_reports_html_tar_gz, fastp_reports_html]) #!FileCoercion
+		File qc_json_tar_gz_output = select_first([trim_and_qc.qc_json_tar_gz, fastp_jsons]) #!FileCoercion
 
 		String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_trimmed_reads_raw_data_path}/~{sample.sample_id}.trimmed_fastqc_reports.tar.gz"
 
@@ -213,8 +216,9 @@ workflow upstream {
 		# Trimmed reads
 		Array[Array[File]] trimmed_fastq_R1s = trimmed_fastq_R1s_output #!FileCoercion
 		Array[Array[File]] trimmed_fastq_R2s = trimmed_fastq_R2s_output #!FileCoercion
-		Array[File] failed_paired_fastqs_tar_gz = failed_paired_fastqs_tar_gz_output #!FileCoercion
-		Array[File] reports_html_tar_gz = reports_html_tar_gz_output #!FileCoercion
+		Array[File] qc_failed_paired_fastqs_tar_gz = qc_failed_paired_fastqs_tar_gz_output #!FileCoercion
+		Array[File] qc_reports_html_tar_gz = qc_reports_html_tar_gz_output #!FileCoercion
+		Array[File] qc_json_tar_gz = qc_json_tar_gz_output #!FileCoercion
 
 		# FastQC reports on trimmed reads
 		Array[File] trimmed_fastqc_reports_tar_gz = trimmed_fastqc_reports_tar_gz_output #!FileCoercion
@@ -340,6 +344,8 @@ task trim_and_qc {
 				--report_title "${fastq_basename}" \
 				--thread ~{threads - 1}
 
+			mv fastp.json "${fastq_basename}.fastp.json"
+
 			# Trimmed fastqs will live alongside sample-level upstream outputs in workflow execution raw bucket
 			upload_outputs \
 				-b ~{billing_project} \
@@ -361,19 +367,25 @@ task trim_and_qc {
 		find . -maxdepth 1 -type f -name "*fastp.html" -exec mv {} ~{sample_id}_fastp_reports/ \;
 		tar -czvf "~{sample_id}.fastp_reports.tar.gz" "~{sample_id}_fastp_reports"
 
+		mkdir -p ~{sample_id}_fastp_json
+		find . -maxdepth 1 -type f -name "*fastp.json" -exec mv {} ~{sample_id}_fastp_json/ \;
+		tar -czvf "~{sample_id}.fastp_json.tar.gz" "~{sample_id}_fastp_json"
+
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{sample_id}.fastp_failed_paired_fastqs.tar.gz" \
-			-o "~{sample_id}.fastp_reports.tar.gz"
+			-o "~{sample_id}.fastp_reports.tar.gz" \
+			-o "~{sample_id}.fastp_json.tar.gz"
 	>>>
 
 	output {
 		Array[String] trimmed_fastq_R1s = read_lines("trimmed_fastq_R1s_path.txt")
 		Array[String] trimmed_fastq_R2s = read_lines("trimmed_fastq_R2s_path.txt")
-		String failed_paired_fastqs_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_failed_paired_fastqs.tar.gz"
-		String reports_html_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_reports.tar.gz"
+		String qc_failed_paired_fastqs_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_failed_paired_fastqs.tar.gz"
+		String qc_reports_html_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_reports.tar.gz"
+		String qc_json_tar_gz = "~{raw_data_path}/~{sample_id}.fastp_json.tar.gz"
 	}
 
 	runtime {

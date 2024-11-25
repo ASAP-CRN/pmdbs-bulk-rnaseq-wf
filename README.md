@@ -154,95 +154,67 @@ The raw data bucket will contain *some* artifacts generated as part of workflow 
 In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L85-L116), downstream analysis final outputs are defined at [downstream.wdl](workflows/main.wdl#L182-200), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L85-93).
 
 ```bash
-asap-raw-{cohort,team-xxyy}-{source}-{dataset_name}
+asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-	├── cohort_analysis
-	│	└──${cohort_analysis_workflow_version}
-	│		└── ${salmon_mode}
-	│			└── ${workflow_run_timestamp}
-	│				└── <cohort_analysis outputs>
-	├── downstream
-	│	└──${downstream_workflow_version}
-	│		└── ${salmon_mode}
-	│			└── ${workflow_run_timestamp}
-	│				└── <downstream outputs>
-	└── upstream
-		├── fastqc_raw_reads
-		│	└── ${upstream_workflow_version}
-		│		└── <fastqc_raw_reads output>
-		├── trim_and_qc
-		│	└── ${upstream_workflow_version}
-		│		└── <trim_and_qc output>
-		├── fastqc_trimmed_reads
-		│	└── ${upstream_workflow_version}
-		│		└── <fastqc_trimmed_reads output>
-		├── alignment_quantification
-		│	└── ${alignment_quantification_workflow_version}
-		│		└── <alignment_quantification output>
-		└── pseudo_mapping_quantification
-			└── ${pseudo_mapping_quantification_workflow_version}
-				└── <pseudo_mapping_quantification output>
+	└── pmdbs_bulk_rnaseq
+		├── cohort_analysis
+		│	└──${cohort_analysis_workflow_version}
+		│		└── ${salmon_mode}
+		│			└── ${workflow_run_timestamp}
+		│				└── <cohort_analysis outputs>
+		├── downstream
+		│	└──${downstream_workflow_version}
+		│		└── ${salmon_mode}
+		│			└── ${workflow_run_timestamp}
+		│				└── <downstream outputs>
+		└── upstream
+			├── fastqc_raw_reads
+			│	└── ${fastqc_task_version}
+			│		└── <fastqc_raw_reads output>
+			├── trim_and_qc
+			│	└── ${trim_and_qc_task_version}
+			│		└── <trim_and_qc output>
+			├── fastqc_trimmed_reads
+			│	└── ${fastqc_task_version}
+			│		└── <fastqc_trimmed_reads output>
+			├── alignment_quantification
+			│	└── ${alignment_quantification_workflow_version}
+			│		└── <alignment_quantification output>
+			└── pseudo_mapping_quantification
+				└── ${pseudo_mapping_quantification_workflow_version}
+					└── <pseudo_mapping_quantification output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
 
-Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{collection}-{modality}-{cohort,team-xxyy}`.
+Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{cohort,team-xxyy}-{source}-{dataset}`.
 
 Data may be synced using [the `promote_staging_data` script](#promoting-staging-data).
 
 ```bash
-asap-dev-{cohort,team-xxyy}-{source}-{pipeline_name}
-├── cohort_analysis
-│   └── ${salmon_mode}
-│       ├── ${cohort_id}.sample_list.tsv
-│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
-│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
-│    	└── MANIFEST.tsv
-├── downstream
-│   └── ${salmon_mode}
-│       ├── ${team_id}.${output_name}.html # Includes ${salmon_mode} in output_name
-│       ├── ${team_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
-│       ├── ${team_id}.${salmon_mode}.dds.pkl
-│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
-│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
-│       └── MANIFEST.tsv
-└── upstream
-	├── qc
-	│   ├── ${sampleA_id}.fastqc_reports.tar.gz
-	│   ├── ${sampleA_id}.fastp_failed_paired_fastqs.tar.gz
-	│   ├── ${sampleA_id}.fastp_reports.tar.gz
-	│   ├── ${sampleA_id}.trimmed_fastqc_reports.tar.gz
-	│   ├──  MANIFEST.tsv
-	│   ├── ...
-	│   ├── ${sampleN_id}.fastqc_reports.tar.gz
-	│   ├── ${sampleN_id}.fastp_failed_paired_fastqs.tar.gz
-	│   ├── ${sampleN_id}.fastp_reports.tar.gz
-	│   ├── ${sampleN_id}.trimmed_fastqc_reports.tar.gz
-	│   └── MANIFEST.tsv
-	└── ${salmon_mode}
-		├── ${sampleA_id}.Aligned.sortedByCoord.out.bam # Only for run_alignment_quantification
-		├── ${sampleA_id}.Aligned.sortedByCoord.out.bam.bai # Only for run_alignment_quantification
-		├── ${sampleA_id}.Aligned.toTranscriptome.out.bam # Only for run_alignment_quantification
-		├── ${sampleA_id}.Unmapped.out.mate1 # Only for run_alignment_quantification
-		├── ${sampleA_id}.Unmapped.out.mate2 # Only for run_alignment_quantification
-		├── ${sampleA_id}.Log.out # Only for run_alignment_quantification
-		├── ${sampleA_id}.Log.final.out # Only for run_alignment_quantification
-		├── ${sampleA_id}.Log.progress.out # Only for run_alignment_quantification
-		├── ${sampleA_id}.SJ.out.tab # Only for run_alignment_quantification
-		├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
-		├── MANIFEST.tsv
-		├── ...
-		├── ${sampleN_id}.Aligned.sortedByCoord.out.bam
-		├── ${sampleN_id}.Aligned.sortedByCoord.out.bam.bai
-		├── ${sampleN_id}.Aligned.toTranscriptome.out.bam
-		├── ${sampleN_id}.Unmapped.out.mate1
-		├── ${sampleN_id}.Unmapped.out.mate2
-		├── ${sampleN_id}.Log.out
-		├── ${sampleN_id}.Log.final.out
-		├── ${sampleN_id}.Log.progress.out
-		├── ${sampleN_id}.SJ.out.tab
-		├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
-		└── MANIFEST.tsv
+asap-dev-{cohort,team-xxyy}-{source}-{dataset}
+└── pmdbs_bulk_rnaseq
+	├── cohort_analysis
+	│   └── ${salmon_mode}
+	│       ├── ${cohort_id}.sample_list.tsv
+	│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
+	│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
+	│    	└── MANIFEST.tsv
+	├── downstream
+	│   └── ${salmon_mode}
+	│       ├── ${team_id}.${output_name}.html # Includes ${salmon_mode} in output_name
+	│       ├── ${team_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
+	│       ├── ${team_id}.${salmon_mode}.dds.pkl
+	│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
+	│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
+	│       └── MANIFEST.tsv
+	└── upstream
+		└── ${salmon_mode}
+			├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
+			├── MANIFEST.tsv
+			├── ...
+			├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
+			└── MANIFEST.tsv
 ```
 
 ## Promoting staging data
@@ -335,12 +307,12 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 
 | Image | Major tool versions | Links |
 | :- | :- | :- |
-| fastqc | <ul><li>[fastqc v0.12.0](https://github.com/s-andrews/FastQC/releases/tag/v0.12.0)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/fastqc) |
+| fastqc | <ul><li>[fastqc v0.12.0](https://github.com/s-andrews/FastQC/releases/tag/v0.12.0)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/fastqc) |
 | fastp | <ul><li>[fastp v0.23.4](https://github.com/OpenGene/fastp/releases/tag/v0.23.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/fastp) |
 | star_samtools | <ul><li>[star 2.7.11b](https://github.com/alexdobin/STAR/releases/tag/2.7.11b)</li><li>[samtools 1.20](https://github.com/samtools/samtools/releases/tag/1.20)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/star_samtools) |
 | salmon | <ul><li>[salmon v1.10.3](https://github.com/COMBINE-lab/salmon/releases/tag/v1.10.3)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/salmon) |
 | pydeseq2 | Python (v3.12.5) libraries: <ul><li>[pydeseq2 v0.4.11](https://github.com/owkin/PyDESeq2/releases/tag/v0.4.11)</li><li>[scikit-learn 1.5.2](https://github.com/scikit-learn/scikit-learn/releases/tag/1.5.2)</li><li>[scipy v1.13.0](https://github.com/scipy/scipy/releases/tag/v1.13.0)</li><li>[pytximport 0.8.0](https://github.com/complextissue/pytximport/releases/tag/0.8.0)</li><li>[matplotlib v3.9.2](https://github.com/matplotlib/matplotlib/releases/tag/v3.9.2)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/pydeseq2) |
-| multiqc | <ul><li>[multiqc v1.24.1](https://github.com/MultiQC/MultiQC/releases/tag/v1.24.1)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/multiqc) |
+| multiqc | <ul><li>[multiqc v1.24.1](https://github.com/MultiQC/MultiQC/releases/tag/v1.24.1)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/multiqc) |
 | util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) |
 
 
