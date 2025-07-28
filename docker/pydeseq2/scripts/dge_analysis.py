@@ -96,7 +96,7 @@ def main(args):
     # Ensure "Control" is at the end of the list so it's ref_level
     stat_res = DeseqStats(
         dds,
-        contrast=["intervention-id", "Case", "Control"], # Comparing intervention_id (adjusted condition) only but model uses information from design factors
+        contrast=["intervention_id", "Case", "Control"], # Comparing intervention_id (adjusted condition) only but model uses information from design factors
     )
     stat_res.summary()
     results_df = stat_res.results_df
