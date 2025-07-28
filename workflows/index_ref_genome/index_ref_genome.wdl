@@ -2,7 +2,7 @@ version 1.0
 
 # Index reference genome for STAR and/or Salmon (pseudo)mapping-mode
 
-import "../pmdbs_bulk_rnaseq_analysis_structs.wdl"
+import "../structs.wdl"
 
 workflow index_ref_genome {
 	input {
