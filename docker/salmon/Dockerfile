@@ -14,9 +14,6 @@ ENV IMAGE_NAME "${IMAGE_NAME}"
 ARG IMAGE_TAG
 ENV IMAGE_TAG "${IMAGE_TAG}"
 
-ARG GCLOUD_CLI_VERSION
-ENV GCLOUD_CLI_VERSION "${GCLOUD_CLI_VERSION}"
-
 # Salmon binary will be installed in /home/salmon/bin/salmon
 WORKDIR /home
 
@@ -79,6 +76,14 @@ ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/lib"
 RUN echo "export PATH=$PATH" > /etc/environment
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" > /etc/environment
 
-COPY --from=scripts /usr/lib/google-cloud-sdk /opt/google-cloud-sdk
+# gcloud sdk; needed to upload output files
+ARG GCLOUD_CLI_VERSION
+ENV GCLOUD_CLI_VERSION "${GCLOUD_CLI_VERSION}"
+RUN wget "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_CLI_VERSION}-linux-x86_64.tar.gz" \
+	&& tar -zxvf "google-cloud-cli-${GCLOUD_CLI_VERSION}-linux-x86_64.tar.gz" --directory /opt \
+	&& rm "google-cloud-cli-${GCLOUD_CLI_VERSION}-linux-x86_64.tar.gz"
+
+ENV PATH "${PATH}:/opt/google-cloud-sdk/bin"
+
 COPY --from=scripts /opt/scripts /opt/scripts
-ENV PATH "${PATH}:/opt/google-cloud-sdk/bin:/opt/scripts"
+ENV PATH "${PATH}:/opt/scripts"

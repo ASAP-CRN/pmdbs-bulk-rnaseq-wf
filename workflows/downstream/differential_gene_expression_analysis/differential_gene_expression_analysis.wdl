@@ -102,7 +102,7 @@ task differential_gene_expression {
 		String volcano_plot_png = "~{raw_data_path}/~{team_id}.~{salmon_mode}.volcano_plot.png"
 	}
 	runtime {
-		docker: "~{container_registry}/pydeseq2:0.4.11"
+		docker: "~{container_registry}/pydeseq2:0.5.2"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
