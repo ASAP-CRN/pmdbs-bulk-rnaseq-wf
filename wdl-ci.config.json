@@ -156,12 +156,6 @@
       "description": "",
       "tasks": {}
     },
-    "workflows/pmdbs_bulk_rnaseq_analysis_structs.wdl": {
-      "key": "workflows/pmdbs_bulk_rnaseq_analysis_structs.wdl",
-      "name": "",
-      "description": "",
-      "tasks": {}
-    },
     "workflows/cohort_analysis/cohort_analysis.wdl": {
       "key": "workflows/cohort_analysis/cohort_analysis.wdl",
       "name": "",
@@ -545,6 +539,24 @@
           ]
         }
       }
+    },
+    "pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl": {
+      "key": "pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "check_zip": {
+          "key": "check_zip",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/structs.wdl": {
+      "key": "workflows/structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
     }
   },
   "engines": {
