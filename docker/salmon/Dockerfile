@@ -2,7 +2,7 @@
 
 ARG UBUNTU_VERSION
 
-FROM us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images/util:1.1.1 as scripts
+FROM us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images/util:1.2.0 as scripts
 
 FROM ubuntu:${UBUNTU_VERSION} as base
 ENV UBUNTU_VERSION "${UBUNTU_VERSION}"

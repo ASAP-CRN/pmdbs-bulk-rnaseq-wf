@@ -1,4 +1,4 @@
-FROM us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images/util:1.1.1 as scripts
+FROM us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images/util:1.2.0 as scripts
 
 LABEL MAINTAINER="Karen Fang <karen@dnastack.com>"
 
@@ -42,10 +42,8 @@ RUN cd /opt/Python-${PYTHON3_VERSION} && \
 	make && \
 	make altinstall
 
-ENV PATH "${PATH}:/opt/Python-${PYTHON3_VERSION}"
-
-RUN rm -f /usr/bin/python3
-RUN ln -s /opt/Python-${PYTHON3_VERSION}/python /usr/bin/python3
+RUN update-alternatives --install /usr/bin/python3 python3 /opt/Python-${PYTHON3_VERSION}/python 1 \
+	&& update-alternatives --set python3 /opt/Python-${PYTHON3_VERSION}/python
 
 COPY ./requirements.txt /opt/requirements.txt
 RUN python3 -m pip install -r /opt/requirements.txt
