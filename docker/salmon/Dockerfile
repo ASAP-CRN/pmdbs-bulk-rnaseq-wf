@@ -14,16 +14,12 @@ ENV IMAGE_NAME "${IMAGE_NAME}"
 ARG IMAGE_TAG
 ENV IMAGE_TAG "${IMAGE_TAG}"
 
-ARG GCLOUD_CLI_VERSION
-ENV GCLOUD_CLI_VERSION "${GCLOUD_CLI_VERSION}"
-
 # Salmon binary will be installed in /home/salmon/bin/salmon
 WORKDIR /home
 
 RUN apt-get -qq update \
 	&& apt remove -y libcurl4 \
 	&& apt-get install -y --no-install-recommends \
-		time \
 		curl \
 		wget \
 		unzip \
@@ -34,7 +30,6 @@ RUN apt-get -qq update \
 		libboost-all-dev \
 		liblzma-dev \
 		libbz2-dev \
-		ca-certificates \
 		zlib1g-dev \
 		libcurl4-openssl-dev \
 		autoconf \
@@ -70,8 +65,9 @@ RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		libhwloc5 \
 		xxd \
+		time \
 		wget \
-		python3 \
+		ca-certificates \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY --from=base /usr/local/salmon/ /usr/local/
@@ -81,6 +77,27 @@ ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/local/lib"
 RUN echo "export PATH=$PATH" > /etc/environment
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" > /etc/environment
 
-COPY --from=scripts /usr/lib/google-cloud-sdk /opt/google-cloud-sdk
+# gcloud sdk; needed to upload output files
+ARG GCLOUD_CLI_VERSION
+ENV GCLOUD_CLI_VERSION "${GCLOUD_CLI_VERSION}"
+RUN wget "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_CLI_VERSION}-linux-x86_64.tar.gz" \
+	&& tar -zxvf "google-cloud-cli-${GCLOUD_CLI_VERSION}-linux-x86_64.tar.gz" --directory /opt \
+	&& rm "google-cloud-cli-${GCLOUD_CLI_VERSION}-linux-x86_64.tar.gz"
+
+ENV PATH "${PATH}:/opt/google-cloud-sdk/bin"
+
+ARG PYTHON3_VERSION
+ENV PYTHON3_VERSION "${PYTHON3_VERSION}"
+RUN curl -O https://www.python.org/ftp/python/${PYTHON3_VERSION}/Python-${PYTHON3_VERSION}.tar.xz \
+	&& tar -xvf Python-${PYTHON3_VERSION}.tar.xz --directory /opt/ \
+	&& rm Python-${PYTHON3_VERSION}.tar.xz
+RUN cd /opt/Python-${PYTHON3_VERSION} \
+	&& ./configure \
+	&& make \
+	&& make altinstall
+
+RUN update-alternatives --install /usr/bin/python3 python3 /opt/Python-${PYTHON3_VERSION}/python 1 \
+	&& update-alternatives --set python3 /opt/Python-${PYTHON3_VERSION}/python
+
 COPY --from=scripts /opt/scripts /opt/scripts
-ENV PATH "${PATH}:/opt/google-cloud-sdk/bin:/opt/scripts"
+ENV PATH "${PATH}:/opt/scripts"
