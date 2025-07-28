@@ -182,6 +182,7 @@ task degs_and_plot {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 2
 		bootDiskSizeGb: 30
 		zones: zones
 	}

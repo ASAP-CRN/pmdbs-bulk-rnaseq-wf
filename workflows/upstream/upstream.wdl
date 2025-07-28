@@ -301,6 +301,7 @@ task check_output_files_exist {
 		memory: "4 GB"
 		disks: "local-disk 20 HDD"
 		preemptible: 3
+		maxRetries: 2
 		zones: zones
 	}
 }
@@ -394,6 +395,7 @@ task trim_and_qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 2
 		zones: zones
 	}
 }
