@@ -2,7 +2,7 @@
 
 Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human bulk RNA sequencing data.
 
-Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](wf-common).
+Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](https://github.com/ASAP-CRN/wf-common).
 
 
 # Table of contents
@@ -111,20 +111,19 @@ See [reference data](#reference-data) notes for more details.
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON. The script requires the libraries outlined in [the requirements.txt file](wf-common/util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The [`generate_inputs` utility script](https://github.com/ASAP-CRN/wf-common/blob/main/util/generate_inputs) may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json`) and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`); same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
 
 - `project-tsv`: One or more project TSVs with one row per sample and columns team_id, sample_id, batch, fastq_path. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
-	- `team_id`: A unique identifier for the team from which the sample(s) arose
-	- `dataset_id`: A unique identifier for the dataset from which the sample(s) arose
-	- `sample_id`: A unique identifier for the sample within the project
-	- `batch`: The sample's batch
-	- `fastq_path`: The directory in which paired sample FASTQs may be found, including the gs:// bucket name and path
-		- This is appended to the `project-tsv` from the `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`, one per line. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 1 file should include 'R1' somewhere in the filename; the read 2 file should inclue 'R2' somewhere in the filename. Generate this file e.g. by running `gsutil ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`
+    - `team_id`: A unique identifier for the team from which the sample(s) arose
+    - `dataset_id`: A unique identifier for the dataset from which the sample(s) arose
+    - `sample_id`: A unique identifier for the sample within the project
+    - `batch`: The sample's batch
+    - `fastq_path`: The directory in which paired sample FASTQs may be found, including the gs:// bucket name and path
+        - This is appended to the `project-tsv` from the `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`, one per line. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 1 file should include 'R1' somewhere in the filename; the read 2 file should inclue 'R2' somewhere in the filename. Generate this file e.g. by running `gsutil ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`
 - `inputs-template`: The inputs template JSON file into which the `projects` information derived from the `project-tsv` will be inserted. Must have a key ending in `*.projects`. Other default values filled out in the inputs template will be written to the output inputs.json file.
 - `run-project-cohort-analysis`: Optionally run project-level cohort analysis for provided projects. This value will apply to all projects. [false]
 - `workflow_name`: WDL workflow name.
 - `cohort-dataset`: Dataset name in cohort bucket name (e.g. 'sc-rnaseq').
-- `output-file-prefix`: Optional output file prefix name. [inputs.{cohort_staging_bucket_type}.{source}-{cohort_dataset}.{date}.json]
 
 Example usage:
 
@@ -134,8 +133,7 @@ Example usage:
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
 	--workflow-name pmdbs_bulk_rnaseq_analysis \
-	--cohort-dataset sc-rnaseq \
-	--output-file inputs.harmonized_sc_rnaseq_workflow.json
+	--cohort-dataset bulk-rnaseq
 ```
 
 # Outputs
@@ -145,13 +143,13 @@ Example usage:
 - `cohort_id`: either the `team_id` for project-level downstream analysis, or the `cohort_id` for the full cohort
 - `workflow_run_timestamp`: format: `%Y-%m-%dT%H-%M-%SZ`
 - The list of samples used to generate the downstream analysis will be output alongside other downstream analysis outputs in the staging data bucket (`${cohort_id}.sample_list.tsv`)
-- The MANIFEST.tsv file in the staging data bucket describes the file name, md5 hash, timestamp, workflow version, workflow name, and workflow release for the run used to generate each file in that directory
+- The `MANIFEST.tsv` file in the staging data bucket describes the file name, md5 hash, timestamp, workflow version, workflow name, and workflow release for the run used to generate each file in that directory
 
 ### Raw data (intermediate files and final outputs for all runs of the workflow)
 
 The raw data bucket will contain *some* artifacts generated as part of workflow execution. Following successful workflow execution, the artifacts will also be copied into the staging bucket as final outputs.
 
-In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L85-L116), downstream analysis final outputs are defined at [downstream.wdl](workflows/main.wdl#L182-200), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L85-93).
+In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs.
 
 ```bash
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
@@ -219,19 +217,19 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 
 ## Promoting staging data
 
-The [`promote_staging_data` script](wf-common/util/promote_staging_data) can be used to promote staging data that has been approved to the curated data bucket for a team or set of teams.
+The [`promote_staging_data` script](https://github.com/ASAP-CRN/wf-common/blob/main/util/promote_staging_data) can be used to promote staging data that has been approved to the curated data bucket for a team or set of teams.
 
 This script compiles bucket and file information for both the initial (staging) and target (prod) environment. It also runs data integrity tests to ensure staging data can be promoted and generates a Markdown report. It (1) checks that files are not empty and are not less than or equal to 10 bytes (factoring in white space) and (2) checks that files have associated metadata and is present in MANIFEST.tsv.
 
 If data integrity tests pass, this script will upload a combined MANIFEST.tsv and the data promotion Markdown report under a metadata/{timestamp} directory in the staging bucket. Previous manifest files and reports will be kept. Next, it will rsync all files in the staging bucket to the curated bucket's upstream, downstream, cohort_analysis, and metadata directories. **Exercise caution when using this script**; files that are not present in the source (staging) bucket will be deleted at the destination (curated) bucket.
 
-If data integrity tests fail, staging data cannot be promoted. The combined MANFIEST.tsv, Markdown report, and promote_staging_data_script.log will be locally available.
+If data integrity tests fail, staging data cannot be promoted. The combined `MANFIEST.tsv`, Markdown report, and `promote_staging_data_script.log` will be locally available.
 
 The script defaults to a dry run, printing out the files that would be copied or deleted for each selected team.
 
 ### Options
 
-```bash
+```
 -h  Display this message and exit
 -t  Space-delimited team(s) to promote data for
 -l  List available teams
@@ -239,7 +237,6 @@ The script defaults to a dry run, printing out the files that would be copied or
 -d  Space-delimited dataset name(s) in team bucket name, must follow the same order as {team}
 -w  Workflow name used as a directory in bucket
 -p  Promote data. If this option is not selected, data that would be copied or deleted is printed out, but files are not actually changed (dry run)
--e  Staging bucket type; options are 'uat' or 'dev' ['uat']
 ```
 
 ### Usage
@@ -252,7 +249,7 @@ The script defaults to a dry run, printing out the files that would be copied or
 ./wf-common/util/promote_staging_data -t team-hardy team-wood -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq
 
 # Promote data for team-hardy and cohort
-./wf-common/util/promote_staging_data -t team-hardy cohort -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq -p -e dev
+./wf-common/util/promote_staging_data -t team-hardy cohort -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq
 ```
 
 # Docker images
@@ -324,6 +321,7 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 
 
 # Notes
+
 ## Reference data
 
 [Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/) was used in this pipeline.
