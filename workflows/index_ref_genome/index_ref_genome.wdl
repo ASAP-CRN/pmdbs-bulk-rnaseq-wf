@@ -92,7 +92,6 @@ task star_index_ref_genome {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 2
 		zones: zones
 	}
 }
@@ -130,7 +129,6 @@ task generate_decoy {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 2
 		zones: zones
 	}
 }
@@ -171,7 +169,6 @@ task salmon_index_ref_genome {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 2
 		zones: zones
 	}
 }

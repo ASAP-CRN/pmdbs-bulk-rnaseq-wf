@@ -137,7 +137,6 @@ task alignment {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 2
 		zones: zones
 	}
 }
@@ -193,7 +192,6 @@ task quantification {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 2
 		zones: zones
 	}
 }
