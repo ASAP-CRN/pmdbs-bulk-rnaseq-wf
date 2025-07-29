@@ -61,12 +61,28 @@ RUN cd salmon-${SALMON_VERSION} \
 	&& make install
 
 FROM ubuntu:${UBUNTU_VERSION}
+
+ENV DEBIAN_FRONTEND noninteractive
+
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
+		build-essential \
 		libhwloc5 \
 		xxd \
 		time \
+		curl \
 		wget \
+		make \
+		zlib1g-dev \
+		libncursesw5-dev \
+		libssl-dev \
+		libsqlite3-dev \
+		tk-dev \
+		libgdbm-dev \
+		libc6-dev \
+		libbz2-dev \
+		libffi-dev \
+		liblzma-dev \
 		ca-certificates \
 	&& rm -rf /var/lib/apt/lists/*
 
