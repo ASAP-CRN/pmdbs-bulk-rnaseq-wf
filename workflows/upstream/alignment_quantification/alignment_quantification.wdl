@@ -132,7 +132,7 @@ task alignment {
 	}
 
 	runtime {
-		docker: "~{container_registry}/star_samtools:2.7.11b_1.22.1"
+		docker: "~{container_registry}/star_samtools:2.7.11b_1.20"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

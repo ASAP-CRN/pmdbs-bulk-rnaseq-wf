@@ -390,7 +390,7 @@ task trim_and_qc {
 	}
 
 	runtime {
-		docker: "~{container_registry}/fastp:1.0.1"
+		docker: "~{container_registry}/fastp:0.23.4"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
