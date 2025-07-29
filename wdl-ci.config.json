@@ -386,7 +386,7 @@
       "tasks": {
         "mapping_quantification": {
           "key": "mapping_quantification",
-          "digest": "7lojrdsynokyyniwotrmsjuzdginko3p",
+          "digest": "ndhz3wsob24nzseszkrrv2jlrp2eti4z",
           "tests": [
             {
               "inputs": {
@@ -513,7 +513,7 @@
         },
         "quantification": {
           "key": "quantification",
-          "digest": "shhexvankc6qbwsdca6lgxw4qi25pn6c",
+          "digest": "wxavujfjmcum5jbnwie6fq4u6ze4b6yd",
           "tests": [
             {
               "inputs": {
