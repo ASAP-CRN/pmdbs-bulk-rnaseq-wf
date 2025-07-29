@@ -314,7 +314,7 @@
         },
         "trim_and_qc": {
           "key": "trim_and_qc",
-          "digest": "hhajzvnqcjxaj6kqrmueqkwnnez46bmn",
+          "digest": "6jf5tcckk25co6uxgtbdpccelenlynt3",
           "tests": [
             {
               "inputs": {
@@ -425,7 +425,7 @@
       "tasks": {
         "alignment": {
           "key": "alignment",
-          "digest": "qwbdd5edggxxcr4wqbj5tadcime6xlsg",
+          "digest": "mkwdcfd2usa6wuab63tji6ryeir7i2lu",
           "tests": [
             {
               "inputs": {
