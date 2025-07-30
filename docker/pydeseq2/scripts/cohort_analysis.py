@@ -64,7 +64,7 @@ def main(args):
     pca_result = pca.fit_transform(combined_normalized_counts_imputed.T)
     pca_df = pd.DataFrame(pca_result, columns=["PC1", "PC2"])
     pca_df["team_id"] = combined_metadata["team_id"].values
-    pca_df["intervention_id"] = combined_metadata["intervention-id"].values
+    pca_df["intervention_id"] = combined_metadata["intervention_id"].values
     plt.figure(figsize=(8, 6))
     sns.scatterplot(
         x="PC1",

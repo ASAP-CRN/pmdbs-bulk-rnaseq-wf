@@ -2,7 +2,7 @@ version 1.0
 
 # Perform QC, trim, align, and quantify reads
 
-import "../pmdbs_bulk_rnaseq_analysis_structs.wdl"
+import "../structs.wdl"
 import "../../wf-common/wdl/tasks/fastqc.wdl" as Fastqc
 import "alignment_quantification/alignment_quantification.wdl" as AlignmentQuantification
 import "pseudo_mapping_quantification/pseudo_mapping_quantification.wdl" as PseudoMappingQuantification
@@ -296,7 +296,7 @@ task check_output_files_exist {
 	}
 
 	runtime {
-		docker: "gcr.io/google.com/cloudsdktool/google-cloud-cli:444.0.0-slim"
+		docker: "gcr.io/google.com/cloudsdktool/google-cloud-cli:524.0.0-slim"
 		cpu: 2
 		memory: "4 GB"
 		disks: "local-disk 20 HDD"

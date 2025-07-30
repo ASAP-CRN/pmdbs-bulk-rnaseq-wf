@@ -2,3 +2,8 @@ inputs.test_data*.json
 
 # Mac/OSX system file
 .DS_Store
+
+# wdl-ci files
+.wdltest.changes.json
+.wdltest.submission.json
+

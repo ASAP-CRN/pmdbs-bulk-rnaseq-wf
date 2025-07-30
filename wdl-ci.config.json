@@ -25,7 +25,7 @@
       "tasks": {
         "write_cohort_sample_list": {
           "key": "write_cohort_sample_list",
-          "digest": "cve3yantcy3stjk7ggvycomu3qo7rizb",
+          "digest": "mytn7yq4gcwvwv56sbd4b67ccbooalf6",
           "tests": [
             {
               "inputs": {
@@ -60,7 +60,7 @@
       "tasks": {
         "multiqc": {
           "key": "multiqc",
-          "digest": "hjea4uwtf3s64ce5bbm43kdfw3xjtj2r",
+          "digest": "xm3g3yutexl22ojt5hr556ppn7srqgqo",
           "tests": [
             {
               "inputs": {
@@ -107,7 +107,7 @@
       "tasks": {
         "fastqc": {
           "key": "fastqc",
-          "digest": "bhllguwdae3ynfe7nbgxn7ihq4qjec3d",
+          "digest": "mvp4xorur2jniwnv44pdvi6fbiwfbhjj",
           "tests": [
             {
               "inputs": {
@@ -156,12 +156,6 @@
       "description": "",
       "tasks": {}
     },
-    "workflows/pmdbs_bulk_rnaseq_analysis_structs.wdl": {
-      "key": "workflows/pmdbs_bulk_rnaseq_analysis_structs.wdl",
-      "name": "",
-      "description": "",
-      "tasks": {}
-    },
     "workflows/cohort_analysis/cohort_analysis.wdl": {
       "key": "workflows/cohort_analysis/cohort_analysis.wdl",
       "name": "",
@@ -169,7 +163,7 @@
       "tasks": {
         "degs_and_plot": {
           "key": "degs_and_plot",
-          "digest": "6qvommtwkotx4qkavteq4wowjdesoctr",
+          "digest": "vntpsol4zgqx3xpj2lkwzzysszgzypuu",
           "tests": [
             {
               "inputs": {
@@ -229,7 +223,7 @@
       "tasks": {
         "differential_gene_expression": {
           "key": "differential_gene_expression",
-          "digest": "tjayrke5sfxdqptlqbzy7n4wqe2tbcht",
+          "digest": "xa2ajhx65gsg4vckn6r5sqls7thw5vaa",
           "tests": [
             {
               "inputs": {
@@ -545,6 +539,24 @@
           ]
         }
       }
+    },
+    "pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl": {
+      "key": "pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "check_zip": {
+          "key": "check_zip",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/structs.wdl": {
+      "key": "workflows/structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
     }
   },
   "engines": {

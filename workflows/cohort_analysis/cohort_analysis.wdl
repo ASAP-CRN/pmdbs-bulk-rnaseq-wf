@@ -32,7 +32,7 @@ workflow cohort_analysis {
 	}
 
 	String sub_workflow_name = "cohort_analysis"
-	String sub_workflow_version = "1.0.0"
+	String sub_workflow_version = "1.1.0"
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
@@ -177,7 +177,7 @@ task degs_and_plot {
 		String pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.pca_plot.png"
 	}
 	runtime {
-		docker: "~{container_registry}/pydeseq2:0.4.11"
+		docker: "~{container_registry}/pydeseq2:0.5.2"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

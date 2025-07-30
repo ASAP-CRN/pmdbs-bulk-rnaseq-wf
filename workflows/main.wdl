@@ -2,7 +2,7 @@ version 1.0
 
 # Harmonized human PMDBS bulk RNAseq workflow entrypoint
 
-import "pmdbs_bulk_rnaseq_analysis_structs.wdl"
+import "structs.wdl"
 import "../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "index_ref_genome/index_ref_genome.wdl" as IndexRefGenome
 import "upstream/upstream.wdl" as Upstream
@@ -40,7 +40,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 
 	String workflow_execution_path = "workflow_execution"
 	String workflow_name = "pmdbs_bulk_rnaseq"
-	String workflow_version = "v1.0.0"
+	String workflow_version = "v1.1.0"
 	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-~{workflow_version}"
 
 	call GetWorkflowMetadata.get_workflow_metadata {
@@ -106,8 +106,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						])
 					),
 					output_name = "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
-					metadata_csv = select_first([project.project_sample_metadata_csv]),
-					condition_csv = select_first([project.project_condition_metadata_csv]),
+					metadata_csv = project.project_sample_metadata_csv,
+					condition_csv = project.project_condition_metadata_csv,
 					gene_map_csv = gene_map_csv,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "alignment_mode",
@@ -137,8 +137,8 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						])
 					),
 					output_name = "multiqc_fastqc_fastp_salmon_mapping_mode_report",
-					metadata_csv = select_first([project.project_sample_metadata_csv]),
-					condition_csv = select_first([project.project_condition_metadata_csv]),
+					metadata_csv = project.project_sample_metadata_csv,
+					condition_csv = project.project_condition_metadata_csv,
 					gene_map_csv = gene_map_csv,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "mapping_mode",
