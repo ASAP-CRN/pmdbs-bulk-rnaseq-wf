@@ -66,7 +66,6 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only upstream steps (QC, align/map, and quantify) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team downstream intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team downstream analysis outputs to. |
-| File | condition_csv | CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition. |
 | File | gene_map_csv | CSV containing mapped transcript IDs and gene IDs that must be in this order. |
 | File | gene_ids_and_names_json | JSON file containing mapped gene IDs and gene names created from the gene annotation GTF. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
@@ -81,8 +80,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | String | team_id | Unique identifier for team; used for naming output files. |
 | String | dataset_id | Unique identifier for dataset; used for naming output files. |
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
-| File | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. For the `batch` column, there must be at least two distinct values. |
-| File | project_condition_metadata_csv | CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition ('Case', 'Control', and 'Other'). |
+| File | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. used for DESeq2 pairwise condition ('PD', 'Control'). For the `batch` column, there must be at least two distinct values. |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |

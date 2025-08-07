@@ -31,10 +31,13 @@ def main(args):
     sample_ids = sample_ids_df.iloc[:, 0]
     metadata = metadata[metadata.index.isin(sample_ids)]
 
-    # Map condition_id to intervention_id (i.e. grouping conditions to "Case", "Control", and "Other")
-    condition_dict = pd.read_csv(args.condition_dict)
-    metadata_merged = pd.merge(metadata, condition_dict[["condition_id", "intervention_id"]], on="condition_id", how="left")
-    metadata_merged.set_index(metadata.index, inplace=True)
+    # Check condition_id contains only "PD" or "Control"
+    metadata["condition_id"] = metadata["condition_id"].str.strip()
+    valid_conditions = {"PD", "Control"}
+    actual_conditions = set(metadata["condition_id"].unique())
+    invalid_conditions = actual_conditions - valid_conditions
+    if invalid_conditions:
+        raise ValueError(f"Invalid condition_id values found: {invalid_conditions}")
 
 
     ############
@@ -46,7 +49,7 @@ def main(args):
         gtf_gene_ids_and_names = json.load(file)
 
     path = os.getcwd()
-    samples = metadata_merged.index.tolist()
+    samples = metadata.index.tolist()
     files = [os.path.join(path, f"{sample}_salmon_quant/quant.sf") for sample in samples]
     files_dict = dict(zip(samples, files))
 
@@ -69,15 +72,15 @@ def main(args):
     counts_int = counts_int[genes_to_keep]
 
     # Note: Single factor analysis vs. multifactor analysis requires more manual coding
-    if metadata_merged["batch"].nunique() > 1:
-        design_factors = ["batch", "intervention_id"]
+    if metadata["batch"].nunique() > 1:
+        design_factors = ["batch", "condition_id"]
     else:
-        design_factors = ["intervention_id"]
+        design_factors = ["condition_id"]
     print(f"Using design factors:\n{design_factors}")
 
     dds = DeseqDataSet(
         counts=counts_int,
-        metadata=metadata_merged,
+        metadata=metadata,
         design_factors=design_factors, # From PyDESeq2: "UserWarning: Same factor names in the design contain underscores ('_'). They will be converted to hyphens ('-')."
     )
 
@@ -89,14 +92,14 @@ def main(args):
     # Statistical analysis
     log2_fc_threshold = 1
     padj_threshold = 0.05
-    excluded_samples = metadata_merged[metadata_merged["intervention_id"] == "Other"]
-    excluded_samples_filtered = excluded_samples[["batch", "condition_id", "intervention_id"]]
+    excluded_samples = metadata[metadata["condition_id"] == "Other"]
+    excluded_samples_filtered = excluded_samples[["batch", "condition_id"]]
     if not excluded_samples_filtered.empty:
         print(f"[WARNING] Samples and levels excluded for contrast:\n{excluded_samples_filtered}")
     # Ensure "Control" is at the end of the list so it's ref_level
     stat_res = DeseqStats(
         dds,
-        contrast=["intervention_id", "Case", "Control"], # Comparing intervention_id (adjusted condition) only but model uses information from design factors
+        contrast=["condition_id", "PD", "Control"], # Comparing condition_id only but model uses information from design factors
     )
     stat_res.summary()
     results_df = stat_res.results_df
@@ -180,18 +183,11 @@ if __name__ == "__main__":
         help="Sample IDs in a team"
     )
     parser.add_argument(
-        "-d",
-        "--condition-dict",
-        type=str,
-        required=True,
-        help="Table containing condition and intervention IDs used to categorize conditions into broader groups for pairwise condition"
-    )
-    parser.add_argument(
         "-m",
         "--metadata",
         type=str,
         required=True,
-        help="Table containing all sample information including batch, condition, etc."
+        help="Table containing all sample information including batch, condition, etc. used for pairwise condition"
     )
     parser.add_argument(
         "-g",
