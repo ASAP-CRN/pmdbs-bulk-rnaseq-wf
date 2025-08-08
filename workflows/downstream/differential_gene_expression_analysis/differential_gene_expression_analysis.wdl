@@ -8,7 +8,6 @@ workflow differential_gene_expression_analysis {
 		Array[Array[String]] project_sample_ids
 		
 		File metadata_csv
-		File condition_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
 
@@ -27,7 +26,6 @@ workflow differential_gene_expression_analysis {
 			team_id = team_id,
 			project_sample_ids = project_sample_ids,
 			metadata_csv = metadata_csv,
-			condition_csv = condition_csv,
 			gene_map_csv = gene_map_csv,
 			gene_ids_and_names_json = gene_ids_and_names_json,
 			salmon_mode = salmon_mode,
@@ -53,7 +51,6 @@ task differential_gene_expression {
 		Array[Array[String]] project_sample_ids
 		
 		File metadata_csv
-		File condition_csv
 		File gene_map_csv
 		File gene_ids_and_names_json
 
@@ -69,7 +66,7 @@ task differential_gene_expression {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size([metadata_csv, condition_csv, gene_map_csv], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
+	Int disk_size = ceil((size([metadata_csv, gene_map_csv], "GB") + size(flatten([salmon_quant_tar_gz]), "GB")) * 2 + 20)
 
 	command <<<
 		set -euo pipefail
@@ -81,7 +78,6 @@ task differential_gene_expression {
 		python3 /opt/scripts/dge_analysis.py \
 			--team-id ~{team_id} \
 			--sample-ids ~{write_tsv(project_sample_ids)} \
-			--condition-dict ~{condition_csv} \
 			--metadata ~{metadata_csv} \
 			--gene-map ~{gene_map_csv} \
 			--gene-ids-and-names ~{gene_ids_and_names_json} \
