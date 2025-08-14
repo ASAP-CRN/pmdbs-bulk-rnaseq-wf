@@ -65,6 +65,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		call Upstream.upstream {
 			input:
 				team_id = team_id,
+				dataset_doi_url = project.dataset_doi_url,
 				samples = project.samples,
 				all_transcripts_fasta = reference.all_transcripts_fasta,
 				run_alignment_quantification = run_alignment_quantification,
