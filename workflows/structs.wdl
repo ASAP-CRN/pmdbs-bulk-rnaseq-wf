@@ -13,6 +13,7 @@ struct Sample {
 struct Project {
 	String team_id
 	String dataset_id
+	String dataset_doi_url
 	Array[Sample] samples
 
 	File project_sample_metadata_csv
