@@ -169,6 +169,12 @@ task index_aligned_bam {
 	command <<<
 		set -euo pipefail
 
+		# STAR can produce an empty Aligned.sortedByCoord.out.bam and not error out; check
+		if [ ! -s ~{aligned_bam} ]; then
+			echo "[ERROR] Aligned.sortedByCoord.out.bam is empty; exiting"
+			exit 1
+		fi
+
 		samtools index \
 			-@ ~{threads} \
 			~{aligned_bam}
