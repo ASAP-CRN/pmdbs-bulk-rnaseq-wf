@@ -114,6 +114,12 @@ task alignment {
 			--quantMode TranscriptomeSAM \
 			--limitBAMsortRAM 35000000000
 
+		echo "Syncing filesystem..."
+		sync
+
+		echo "Verifying BAM file integrity..."
+		samtools quickcheck -v ~{sample_id}.Aligned.sortedByCoord.out.bam
+
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
