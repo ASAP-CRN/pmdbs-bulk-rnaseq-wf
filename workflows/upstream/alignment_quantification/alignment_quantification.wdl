@@ -187,7 +187,8 @@ task index_aligned_bam {
 
 		samtools index \
 			-@ ~{threads} \
-			~{aligned_bam}
+			~{aligned_bam} \
+			-o "./~{sample_id}.Aligned.sortedByCoord.out.bam.bai"
 
 		upload_outputs \
 			-b ~{billing_project} \
