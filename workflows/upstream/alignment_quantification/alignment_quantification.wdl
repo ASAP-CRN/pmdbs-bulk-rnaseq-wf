@@ -99,7 +99,7 @@ task alignment {
 
 		tar -xzvf ~{star_genome_dir_tar_gz}
 
-		STAR \
+		/usr/bin/time -v STAR \
 			--runThreadN ~{threads - 1} \
 			--genomeDir star_genome_dir \
 			--readFilesIn ~{sep=',' trimmed_fastq_R1s} ~{sep=',' trimmed_fastq_R2s} \
@@ -112,10 +112,14 @@ task alignment {
 			--alignMatesGapMax 1000000 \
 			--twopassMode Basic \
 			--quantMode TranscriptomeSAM \
-			--limitBAMsortRAM 35000000000
+			--limitBAMsortRAM 50000000000
+
+		sleep 30
 
 		echo "Syncing filesystem..."
 		sync
+
+		sleep 30
 
 		echo "Verifying BAM file integrity..."
 		samtools quickcheck -v ~{sample_id}.Aligned.sortedByCoord.out.bam
