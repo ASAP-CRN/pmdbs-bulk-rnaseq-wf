@@ -91,8 +91,8 @@ task alignment {
 	}
 
 	Int threads = 48
-	Int mem_gb = ceil(threads * 1.5)
-	Int disk_size = ceil((size(star_genome_dir_tar_gz, "GB") + size(flatten([trimmed_fastq_R1s, trimmed_fastq_R2s]), "GB")) * 5 + 200)
+	Int mem_gb = ceil(threads * 2)
+	Int disk_size = ceil((size(star_genome_dir_tar_gz, "GB") + size(flatten([trimmed_fastq_R1s, trimmed_fastq_R2s]), "GB")) * 5 + 300)
 
 	command <<<
 		set -euo pipefail
@@ -112,17 +112,31 @@ task alignment {
 			--alignMatesGapMax 1000000 \
 			--twopassMode Basic \
 			--quantMode TranscriptomeSAM \
-			--limitBAMsortRAM 50000000000
+			--limitBAMsortRAM 70000000000
 
-		sleep 30
+		# Keep checking until BAM is valid
+		validate_bam() {
+			local bam_file="$1"
+			local max_attempts=60  # 10 minutes
+			local attempt=0
 
-		echo "Syncing filesystem..."
-		sync
+			while [ $attempt -lt $max_attempts ]; do
+				if samtools quickcheck "$bam_file" 2>/dev/null; then
+					echo "BAM validated after $((attempt * 10)) seconds"
+					return 0
+				fi
 
-		sleep 30
+				echo "BAM not ready, syncing and waiting... (attempt $attempt)"
+				sync
+				sleep 10
+				attempt=$((attempt + 1))
+			done
 
-		echo "Verifying BAM file integrity..."
-		samtools quickcheck -v ~{sample_id}.Aligned.sortedByCoord.out.bam
+			echo "BAM failed validation after $((max_attempts * 10)) seconds"
+			samtools quickcheck -v "$bam_file"
+		}
+
+		validate_bam "~{sample_id}.Aligned.sortedByCoord.out.bam"
 
 		upload_outputs \
 			-b ~{billing_project} \
@@ -153,7 +167,7 @@ task alignment {
 		docker: "~{container_registry}/star_samtools:2.7.11b_1.20"
 		cpu: threads
 		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
+		disks: "local-disk ~{disk_size} SSD"
 		preemptible: 3
 		zones: zones
 	}
