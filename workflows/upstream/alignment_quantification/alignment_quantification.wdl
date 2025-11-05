@@ -32,17 +32,6 @@ workflow alignment_quantification {
 			zones = zones
 	}
 
-	call index_aligned_bam {
-		input:
-			sample_id = sample_id,
-			aligned_bam = alignment.aligned_bam, #!FileCoercion
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-		
 	call quantification {
 		input:
 			sample_id = sample_id,
@@ -58,6 +47,7 @@ workflow alignment_quantification {
 	output {
 		# STAR alignment
 		File aligned_bam = alignment.aligned_bam #!FileCoercion
+		File aligned_bam_index = alignment.aligned_bam_index #!FileCoercion
 		File aligned_to_transcriptome_bam = alignment.aligned_to_transcriptome_bam #!FileCoercion
 		File unmapped_mate1 = alignment.unmapped_mate1 #!FileCoercion
 		File unmapped_mate2 = alignment.unmapped_mate2 #!FileCoercion
@@ -65,9 +55,6 @@ workflow alignment_quantification {
 		File final_log = alignment.final_log #!FileCoercion
 		File progress_log = alignment.progress_log #!FileCoercion
 		File sj_out_tab = alignment.sj_out_tab #!FileCoercion
-
-		# Index BAM
-		File aligned_bam_index = index_aligned_bam.aligned_bam_index #!FileCoercion
 
 		# Salmon quantification
 		File quant_tar_gz = quantification.quant_tar_gz #!FileCoercion
@@ -114,7 +101,7 @@ task alignment {
 			--quantMode TranscriptomeSAM \
 			--limitBAMsortRAM 70000000000
 
-		# Keep checking until BAM is valid
+		# Keep checking until BAM is valid because STAR might not be done writing the files
 		validate_bam() {
 			local bam_file="$1"
 			local max_attempts=60  # 10 minutes
@@ -138,11 +125,17 @@ task alignment {
 
 		validate_bam "~{sample_id}.Aligned.sortedByCoord.out.bam"
 
+		echo "Indexing aligned and sorted BAM"
+		samtools index \
+			-@ ~{threads} \
+			~{sample_id}.Aligned.sortedByCoord.out.bam
+
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{sample_id}.Aligned.sortedByCoord.out.bam" \
+			-o "~{sample_id}.Aligned.sortedByCoord.out.bam.bai" \
 			-o "~{sample_id}.Aligned.toTranscriptome.out.bam" \
 			-o "~{sample_id}.Unmapped.out.mate1" \
 			-o "~{sample_id}.Unmapped.out.mate2" \
@@ -154,6 +147,7 @@ task alignment {
 
 	output {
 		String aligned_bam = "~{raw_data_path}/~{sample_id}.Aligned.sortedByCoord.out.bam"
+		String aligned_bam_index = "~{raw_data_path}/~{sample_id}.Aligned.sortedByCoord.out.bam.bai"
 		String aligned_to_transcriptome_bam = "~{raw_data_path}/~{sample_id}.Aligned.toTranscriptome.out.bam"
 		String unmapped_mate1 = "~{raw_data_path}/~{sample_id}.Unmapped.out.mate1"
 		String unmapped_mate2 = "~{raw_data_path}/~{sample_id}.Unmapped.out.mate2"
@@ -168,52 +162,6 @@ task alignment {
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} SSD"
-		preemptible: 3
-		zones: zones
-	}
-}
-
-task index_aligned_bam {
-	input {
-		String sample_id
-
-		File aligned_bam
-
-		String raw_data_path
-		Array[Array[String]] workflow_info
-		String billing_project
-		String container_registry
-		String zones
-	}
-
-	Int threads = 8
-	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(aligned_bam, "GB") * 2 + 50)
-
-	command <<<
-		set -euo pipefail
-
-		samtools index \
-			-@ ~{threads} \
-			~{aligned_bam} \
-			-o "./~{sample_id}.Aligned.sortedByCoord.out.bam.bai"
-
-		upload_outputs \
-			-b ~{billing_project} \
-			-d ~{raw_data_path} \
-			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.Aligned.sortedByCoord.out.bam.bai"
-	>>>
-
-	output {
-		String aligned_bam_index = "~{raw_data_path}/~{sample_id}.Aligned.sortedByCoord.out.bam.bai"
-	}
-
-	runtime {
-		docker: "~{container_registry}/star_samtools:2.7.11b_1.20"
-		cpu: threads
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		zones: zones
 	}
