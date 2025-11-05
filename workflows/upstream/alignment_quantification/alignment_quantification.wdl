@@ -99,7 +99,7 @@ task alignment {
 
 		tar -xzvf ~{star_genome_dir_tar_gz}
 
-		/usr/bin/time -v STAR \
+		STAR \
 			--runThreadN ~{threads - 1} \
 			--genomeDir star_genome_dir \
 			--readFilesIn ~{sep=',' trimmed_fastq_R1s} ~{sep=',' trimmed_fastq_R2s} \
@@ -192,12 +192,6 @@ task index_aligned_bam {
 
 	command <<<
 		set -euo pipefail
-
-		# STAR can produce an empty Aligned.sortedByCoord.out.bam and not error out; check
-		if [ ! -s ~{aligned_bam} ]; then
-			echo "[ERROR] Aligned.sortedByCoord.out.bam is empty; exiting"
-			exit 1
-		fi
 
 		samtools index \
 			-@ ~{threads} \
