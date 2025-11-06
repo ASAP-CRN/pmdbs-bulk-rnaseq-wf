@@ -31,7 +31,7 @@ workflow downstream {
 	}
 
 	String sub_workflow_name = "downstream"
-	String sub_workflow_version = "1.1.0"
+	String sub_workflow_version = "1.1.1"
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 

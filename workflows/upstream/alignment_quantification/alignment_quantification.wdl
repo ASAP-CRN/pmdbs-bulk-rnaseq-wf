@@ -86,6 +86,7 @@ task alignment {
 
 		tar -xzvf ~{star_genome_dir_tar_gz}
 
+		/usr/bin/time \
 		STAR \
 			--runThreadN ~{threads - 1} \
 			--genomeDir star_genome_dir \
