@@ -99,31 +99,10 @@ task alignment {
 			--alignMatesGapMax 1000000 \
 			--twopassMode Basic \
 			--quantMode TranscriptomeSAM \
-			--limitBAMsortRAM 70000000000
+			--limitBAMsortRAM 80000000000 # should not exceed ~{mem_gb}
 
-		# Keep checking until BAM is valid because STAR might not be done writing the files
-		validate_bam() {
-			local bam_file="$1"
-			local max_attempts=60  # 10 minutes
-			local attempt=0
-
-			while [ $attempt -lt $max_attempts ]; do
-				if samtools quickcheck "$bam_file" 2>/dev/null; then
-					echo "BAM validated after $((attempt * 10)) seconds"
-					return 0
-				fi
-
-				echo "BAM not ready, syncing and waiting... (attempt $attempt)"
-				sync
-				sleep 10
-				attempt=$((attempt + 1))
-			done
-
-			echo "BAM failed validation after $((max_attempts * 10)) seconds"
-			samtools quickcheck -v "$bam_file"
-		}
-
-		validate_bam "~{sample_id}.Aligned.sortedByCoord.out.bam"
+		echo "Validating aligned and sorted BAM"
+		samtools quickcheck "~{sample_id}.Aligned.sortedByCoord.out.bam"
 
 		echo "Indexing aligned and sorted BAM"
 		samtools index \
