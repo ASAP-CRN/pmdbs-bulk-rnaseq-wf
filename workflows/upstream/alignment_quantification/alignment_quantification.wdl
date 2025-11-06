@@ -79,7 +79,8 @@ task alignment {
 
 	Int threads = 48
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil((size(star_genome_dir_tar_gz, "GB") + size(flatten([trimmed_fastq_R1s, trimmed_fastq_R2s]), "GB")) * 5 + 300)
+	Int sort_bam_mem_bytes = (mem_gb - 20) * 1024 * 1024 * 1024
+	Int disk_size = ceil((size(star_genome_dir_tar_gz, "GB") + size(flatten([trimmed_fastq_R1s, trimmed_fastq_R2s]), "GB")) * 5 + 500)
 
 	command <<<
 		set -euo pipefail
@@ -100,7 +101,7 @@ task alignment {
 			--alignMatesGapMax 1000000 \
 			--twopassMode Basic \
 			--quantMode TranscriptomeSAM \
-			--limitBAMsortRAM 80000000000 # should not exceed ~{mem_gb}
+			--limitBAMsortRAM ~{sort_bam_mem_bytes}
 
 		echo "Validating aligned and sorted BAM"
 		samtools quickcheck "~{sample_id}.Aligned.sortedByCoord.out.bam"
