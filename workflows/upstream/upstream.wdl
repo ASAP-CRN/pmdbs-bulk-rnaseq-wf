@@ -262,10 +262,10 @@ task check_output_files_exist {
 			alignment_quantification_file=$(echo "${output_files}" | cut -f 3)
 			pseudo_mapping_quantification_file=$(echo "${output_files}" | cut -f 4)
 
-			if gsutil -u ~{billing_project} ls "${fastqc_raw_reads_reports_file}"; then
-				if gsutil -u ~{billing_project} ls "${fastqc_trimmed_reads_reports_file}"; then
-					if gsutil -u ~{billing_project} ls "${alignment_quantification_file}"; then
-						if gsutil -u ~{billing_project} ls "${pseudo_mapping_quantification_file}"; then
+			if gcloud storage ls --billing-project=~{billing_project} "${fastqc_raw_reads_reports_file}"; then
+				if gcloud storage ls --billing-project=~{billing_project} "${fastqc_trimmed_reads_reports_file}"; then
+					if gcloud storage ls --billing-project=~{billing_project} "${alignment_quantification_file}"; then
+						if gcloud storage ls --billing-project=~{billing_project} "${pseudo_mapping_quantification_file}"; then
 							# If we find all outputs, don't rerun anything
 							echo -e "true\ttrue\ttrue\ttrue" >> sample_preprocessing_complete.tsv
 						else
@@ -273,7 +273,7 @@ task check_output_files_exist {
 							echo -e "true\ttrue\ttrue\tfalse" >> sample_preprocessing_complete.tsv
 						fi
 					else
-						if gsutil -u ~{billing_project} ls "${pseudo_mapping_quantification_file}"; then
+						if gcloud storage ls --billing-project=~{billing_project} "${pseudo_mapping_quantification_file}"; then
 							# If we find all outputs except alignment_quantification outputs, then run (or rerun) alignment_quantification
 							echo -e "true\ttrue\tfalse\ttrue" >> sample_preprocessing_complete.tsv
 						else
