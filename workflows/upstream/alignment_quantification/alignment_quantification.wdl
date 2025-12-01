@@ -31,7 +31,7 @@ workflow alignment_quantification {
 			container_registry = container_registry,
 			zones = zones
 	}
-		
+
 	call quantification {
 		input:
 			sample_id = sample_id,
@@ -78,14 +78,16 @@ task alignment {
 	}
 
 	Int threads = 48
-	Int mem_gb = ceil(threads * 1.5)
-	Int disk_size = ceil((size(star_genome_dir_tar_gz, "GB") + size(flatten([trimmed_fastq_R1s, trimmed_fastq_R2s]), "GB")) * 5 + 200)
+	Int mem_gb = ceil(threads * 2)
+	Int sort_bam_mem_bytes = (mem_gb - 20) * 1024 * 1024 * 1024
+	Int disk_size = ceil((size(star_genome_dir_tar_gz, "GB") + size(flatten([trimmed_fastq_R1s, trimmed_fastq_R2s]), "GB")) * 5 + 500)
 
 	command <<<
 		set -euo pipefail
 
 		tar -xzvf ~{star_genome_dir_tar_gz}
 
+		/usr/bin/time \
 		STAR \
 			--runThreadN ~{threads - 1} \
 			--genomeDir star_genome_dir \
@@ -98,8 +100,13 @@ task alignment {
 			--alignIntronMax 1000000 \
 			--alignMatesGapMax 1000000 \
 			--twopassMode Basic \
-			--quantMode TranscriptomeSAM
+			--quantMode TranscriptomeSAM \
+			--limitBAMsortRAM ~{sort_bam_mem_bytes}
 
+		echo "Validating aligned and sorted BAM"
+		samtools quickcheck "~{sample_id}.Aligned.sortedByCoord.out.bam"
+
+		echo "Indexing aligned and sorted BAM"
 		samtools index \
 			-@ ~{threads} \
 			~{sample_id}.Aligned.sortedByCoord.out.bam
@@ -135,7 +142,7 @@ task alignment {
 		docker: "~{container_registry}/star_samtools:2.7.11b_1.20"
 		cpu: threads
 		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
+		disks: "local-disk ~{disk_size} SSD"
 		preemptible: 3
 		zones: zones
 	}
