@@ -42,6 +42,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	String workflow_name = "pmdbs_bulk_rnaseq"
 	String workflow_version = "v1.1.1"
 	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-~{workflow_version}"
+	String crn_release_version = "v4.0.0"
 
 	call GetWorkflowMetadata.get_workflow_metadata {
 		input:
@@ -188,6 +189,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						workflow_name = workflow_name,
 						workflow_version = workflow_version,
 						workflow_release = workflow_release,
+						crn_release_version = crn_release_version,
 						run_timestamp = get_workflow_metadata.timestamp,
 						raw_data_path_prefix = project_raw_data_path_prefix,
 						staging_data_buckets = project.staging_data_buckets,
@@ -211,6 +213,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						workflow_name = workflow_name,
 						workflow_version = workflow_version,
 						workflow_release = workflow_release,
+						crn_release_version = crn_release_version,
 						run_timestamp = get_workflow_metadata.timestamp,
 						raw_data_path_prefix = project_raw_data_path_prefix,
 						staging_data_buckets = project.staging_data_buckets,

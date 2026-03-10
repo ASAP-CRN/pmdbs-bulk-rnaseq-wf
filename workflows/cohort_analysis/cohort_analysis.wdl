@@ -24,6 +24,7 @@ workflow cohort_analysis {
 		String workflow_version
 		String workflow_release
 		String run_timestamp
+		String crn_release_version
 		String raw_data_path_prefix
 		Array[String] staging_data_buckets
 		String billing_project
@@ -37,7 +38,7 @@ workflow cohort_analysis {
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
 	String raw_data_path = "~{raw_data_path_prefix}/~{sub_workflow_name}/~{sub_workflow_version}/~{salmon_mode}/~{run_timestamp}"
-	String staging_data_path_prefix = "~{workflow_name}"
+	String staging_data_path_prefix = "~{workflow_name}/release/~{crn_release_version}"
 	String upstream_staging_data_path = "~{staging_data_path_prefix}/upstream/~{salmon_mode}"
 	String downstream_staging_data_path = "~{staging_data_path_prefix}/downstream/~{salmon_mode}"
 	String cohort_analysis_staging_data_path = "~{staging_data_path_prefix}/~{sub_workflow_name}/~{salmon_mode}"
