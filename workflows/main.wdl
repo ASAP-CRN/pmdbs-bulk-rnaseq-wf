@@ -60,12 +60,12 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	scatter (project in projects) {
 		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
 
-		String team_id = project.team_id
+		String team_id = project.asap_team_id
 
 		call Upstream.upstream {
 			input:
 				team_id = team_id,
-				dataset_doi_url = project.dataset_doi_url,
+				dataset_doi_url = project.asap_dataset_doi_url,
 				samples = project.samples,
 				all_transcripts_fasta = reference.all_transcripts_fasta,
 				run_alignment_quantification = run_alignment_quantification,
@@ -107,7 +107,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						])
 					),
 					output_name = "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
-					metadata_csv = project.project_sample_metadata_csv,
+					metadata_csv = project.asap_project_sample_metadata_csv,
 					gene_map_csv = gene_map_csv,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "alignment_mode",
@@ -137,7 +137,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						])
 					),
 					output_name = "multiqc_fastqc_fastp_salmon_mapping_mode_report",
-					metadata_csv = project.project_sample_metadata_csv,
+					metadata_csv = project.asap_project_sample_metadata_csv,
 					gene_map_csv = gene_map_csv,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "mapping_mode",

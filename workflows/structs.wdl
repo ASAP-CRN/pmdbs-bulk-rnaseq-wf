@@ -1,7 +1,7 @@
 version 1.0
 
 struct Sample {
-	String sample_id
+	String asap_sample_id
 	String? batch
 
 	Array[File]+ fastq_R1s
@@ -11,12 +11,12 @@ struct Sample {
 }
 
 struct Project {
-	String team_id
-	String dataset_id
-	String dataset_doi_url
+	String asap_team_id
+	String asap_dataset_id
+	String asap_dataset_doi_url
 	Array[Sample] samples
 
-	File project_sample_metadata_csv
+	File asap_project_sample_metadata_csv
 
 	Boolean run_project_cohort_analysis
 
