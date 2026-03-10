@@ -64,13 +64,13 @@
           "tests": [
             {
               "inputs": {
-                "team_id": "${team_id}",
+                "team_id": "${asap_team_id}",
                 "output_files": [
-                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_json.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.trimmed_fastqc_reports.tar.gz",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz"
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${asap_sample_id}.fastqc_reports.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${asap_sample_id}.fastp_json.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/qc/${asap_sample_id}.trimmed_fastqc_reports.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Log.final.out",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.${salmon_mode}.salmon_quant.tar.gz"
                 ],
                 "output_name": "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
                 "raw_data_path": "${downstream_raw_data_path}",
@@ -111,7 +111,7 @@
           "tests": [
             {
               "inputs": {
-                "sample_id": "${sample_id}",
+                "sample_id": "${asap_sample_id}",
                 "fastq_R1s": [
                   "gs://asap-raw-team-lee-pmdbs-bulk-rnaseq-mfg/fastqs/1225HC_MFG_bulk_L000_R1_001.fastq.gz"
                 ],
@@ -126,7 +126,7 @@
               },
               "output_tests": {
                 "fastqc_reports_tar_gz": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${asap_sample_id}.fastqc_reports.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
@@ -170,16 +170,16 @@
                 "cohort_id": "${cohort_id}",
                 "team_ids": [
                   "team-hardy",
-                  "${team_id}"
+                  "${asap_team_id}"
                 ],
                 "n_teams": 2,
                 "significant_genes_csv": [
                   "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.pydeseq2_significant_genes.csv",
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
                 ],
                 "dds_object_pkl": [
                   "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.dds.pkl",
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.dds.pkl"
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.dds.pkl"
                 ],
                 "salmon_mode": "${salmon_mode}",
                 "raw_data_path": "${cohort_raw_data_path}",
@@ -227,14 +227,14 @@
           "tests": [
             {
               "inputs": {
-                "team_id": "${team_id}",
+                "team_id": "${asap_team_id}",
                 "project_sample_ids": "${sample_ids}",
-                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.mod.SAMPLE.csv",
+                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${asap_team_id}.mod.SAMPLE.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
                 "gene_ids_and_names_json": "${input_file_path}/gencode.v46.gene_id_and_gene_name.json",
                 "salmon_mode": "${salmon_mode}",
                 "salmon_quant_tar_gz": [
-                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz",
+                  "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.${salmon_mode}.salmon_quant.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000002_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000003_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/ASAP_PMBDS_000004_s002_Rep1.${salmon_mode}.salmon_quant.tar.gz",
@@ -252,14 +252,14 @@
               },
               "output_tests": {
                 "dds_object_pkl": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.dds.pkl",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.dds.pkl",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_pkl"
                   ]
                 },
                 "significant_genes_csv": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_comma_separated",
@@ -267,7 +267,7 @@
                   ]
                 },
                 "volcano_plot_png": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.volcano_plot.png",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.volcano_plot.png",
                   "test_tasks": [
                     "compare_file_basename",
                     "png_validator"
@@ -317,7 +317,7 @@
           "tests": [
             {
               "inputs": {
-                "sample_id": "${sample_id}",
+                "sample_id": "${asap_sample_id}",
                 "fastq_R1s": [
                   "gs://asap-raw-team-lee-pmdbs-bulk-rnaseq-mfg/fastqs/1225HC_MFG_bulk_L000_R1_001.fastq.gz"
                 ],
@@ -352,21 +352,21 @@
                   ]
                 },
                 "qc_failed_paired_fastqs_tar_gz": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_failed_paired_fastqs.tar.gz",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${asap_sample_id}.fastp_failed_paired_fastqs.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
                   ]
                 },
                 "qc_reports_html_tar_gz": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_reports.tar.gz",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${asap_sample_id}.fastp_reports.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
                   ]
                 },
                 "qc_json_tar_gz": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_json.tar.gz",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/qc/${asap_sample_id}.fastp_json.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
@@ -389,7 +389,7 @@
           "tests": [
             {
               "inputs": {
-                "sample_id": "${sample_id}",
+                "sample_id": "${asap_sample_id}",
                 "salmon_genome_dir_tar_gz": "${input_file_path}/salmon_genome_dir.tar.gz",
                 "trimmed_fastq_R1s": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R1_001.trimmed.fastq.gz"
@@ -405,7 +405,7 @@
               },
               "output_tests": {
                 "quant_tar_gz": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/mapping_mode/${sample_id}.mapping_mode.salmon_quant.tar.gz",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/mapping_mode/${asap_sample_id}.mapping_mode.salmon_quant.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
@@ -428,7 +428,7 @@
           "tests": [
             {
               "inputs": {
-                "sample_id": "${sample_id}",
+                "sample_id": "${asap_sample_id}",
                 "star_genome_dir_tar_gz": "${input_file_path}/star_genome_dir.tar.gz",
                 "trimmed_fastq_R1s": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R1_001.trimmed.fastq.gz"
@@ -444,7 +444,7 @@
               },
               "output_tests": {
                 "aligned_bam": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.sortedByCoord.out.bam",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Aligned.sortedByCoord.out.bam",
                   "test_tasks": [
                     "compare_file_basename",
                     "samtools_quickcheck",
@@ -452,53 +452,53 @@
                   ]
                 },
                 "aligned_bam_index": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.sortedByCoord.out.bam.bai",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Aligned.sortedByCoord.out.bam.bai",
                   "test_tasks": [
                     "compare_file_basename"
                   ]
                 },
                 "aligned_to_transcriptome_bam": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.toTranscriptome.out.bam",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Aligned.toTranscriptome.out.bam",
                   "test_tasks": [
                     "compare_file_basename",
                     "samtools_quickcheck"
                   ]
                 },
                 "unmapped_mate1": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Unmapped.out.mate1",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Unmapped.out.mate1",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_empty_lines"
                   ]
                 },
                 "unmapped_mate2": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Unmapped.out.mate2",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Unmapped.out.mate2",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_empty_lines"
                   ]
                 },
                 "log": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.out",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Log.out",
                   "test_tasks": [
                     "compare_file_basename"
                   ]
                 },
                 "final_log": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.final.out",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Log.final.out",
                   "test_tasks": [
                     "compare_file_basename"
                   ]
                 },
                 "progress_log": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Log.progress.out",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Log.progress.out",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_empty_lines"
                   ]
                 },
                 "sj_out_tab": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.SJ.out.tab",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.SJ.out.tab",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_empty_lines",
@@ -516,9 +516,9 @@
           "tests": [
             {
               "inputs": {
-                "sample_id": "${sample_id}",
+                "sample_id": "${asap_sample_id}",
                 "all_transcripts_fasta": "${reference.all_transcripts_fasta}",
-                "aligned_to_transcriptome_bam": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.toTranscriptome.out.bam",
+                "aligned_to_transcriptome_bam": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.Aligned.toTranscriptome.out.bam",
                 "raw_data_path": "${star_and_salmon_alignment_mode_raw_data_path}",
                 "workflow_info": "${workflow_info}",
                 "billing_project": "${billing_project}",
@@ -527,7 +527,7 @@
               },
               "output_tests": {
                 "quant_tar_gz": {
-                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.${salmon_mode}.salmon_quant.tar.gz",
+                  "value": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${asap_sample_id}.${salmon_mode}.salmon_quant.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
@@ -567,8 +567,8 @@
   },
   "test_params": {
     "global_params": {
-      "sample_id": "ASAP_PMBDS_000001_s002_Rep1",
-      "team_id": "team-lee",
+      "asap_sample_id": "ASAP_PMBDS_000001_s002_Rep1",
+      "asap_team_id": "team-lee",
       "cohort_id": "asap-cohort",
       "sample_ids": [
         [
