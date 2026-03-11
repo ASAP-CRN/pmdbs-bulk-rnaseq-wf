@@ -120,6 +120,31 @@ workflow cohort_analysis {
 		Array[File] downstream_manifest_tsvs = upload_downstream_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
 	}
+
+	meta {
+		description: "Identifies overlapping differentially expressed genes across teams and generates a PCA plot from PyDESeq2 objects."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		team_ids: {help: "Array of CRN Teams included in cohort analysis."}
+		project_sample_ids: {help: "Associated team ID, sample ID, and dataset DOI URL; used to generate a sample list."}
+		upstream_output_file_paths: {help: "Selected upstream output files to upload to the staging bucket alongside selected cohort analysis output files."}
+		downstream_output_file_paths: {help: "Selected downstream output files to upload to the staging bucket alongside selected cohort analysis output files."}
+		significant_genes_csv: {help: "Per-team CSV files of significantly differentially expressed genes from PyDESeq2."}
+    	dds_object_pkl: {help: "Per-team pickled PyDESeq2 dataset objects used for cross-team PCA analysis."}
+	    salmon_mode: {help: "Salmon quantification mode; either 'alignment_mode' or 'mapping_mode'."}
+		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
+		crn_release_version: {help: "CRN Cloud release version; used to organize outputs and for the CRN Cloud release."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis`)."}
+		staging_data_buckets: {help: "Array of staging data buckets to upload intermediate files to (i.e., DEV or UAT buckets depending on internal QC status)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task degs_and_plot {
@@ -185,5 +210,23 @@ task degs_and_plot {
 		preemptible: 3
 		bootDiskSizeGb: 30
 		zones: zones
+	}
+
+	meta {
+		description: "Identifies overlapping significantly differentially expressed genes across teams and generates a cross-team PCA plot from PyDESeq2 objects."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		team_ids: {help: "Array of CRN Teams included in cohort analysis."}
+		n_teams: {help: "Number of CRN Teams in the cohort; overlapping DEG analysis only runs when greater than 1."}
+		significant_genes_csv: {help: "Per-team CSV files of significantly differentially expressed genes from PyDESeq2."}
+    	dds_object_pkl: {help: "Per-team pickled PyDESeq2 dataset objects used for cross-team PCA analysis."}
+	    salmon_mode: {help: "Salmon quantification mode; either 'alignment_mode' or 'mapping_mode'."}
+		raw_data_path: {help: "Raw data bucket path for DGE outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<salmon_mode>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }

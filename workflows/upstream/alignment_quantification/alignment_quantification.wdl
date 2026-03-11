@@ -70,7 +70,7 @@ workflow alignment_quantification {
 		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
 		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
     	trimmed_fastq_R2s: {help: "Adapter-trimmed reverse (R2) FASTQ files for the sample."}
-		raw_data_path: {help: "Raw data bucket path for alignment and quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/upstream/alignment_quantification`)."}
+		raw_data_path: {help: "Raw data bucket path for alignment and quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream/alignment_quantification`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
@@ -173,7 +173,7 @@ task alignment {
 		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
 		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
     	trimmed_fastq_R2s: {help: "Adapter-trimmed reverse (R2) FASTQ files for the sample."}
-		raw_data_path: {help: "Raw data bucket path for alignment outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/upstream/alignment_quantification/<alignment_quantification_workflow_version>`)."}
+		raw_data_path: {help: "Raw data bucket path for alignment outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream/alignment_quantification/<alignment_quantification_workflow_version>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
@@ -243,7 +243,7 @@ task quantification {
 		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
 		all_transcripts_fasta: {help: "Manually generated all transcripts on the reference chromosomes with the `primary_assembly_fasta` and `gene_annotation_gtf`."}
 		aligned_to_transcriptome_bam: {help: "BAM file aligned to the transcriptome, output from STAR with --quantMode TranscriptomeSAM."}
-		raw_data_path: {help: "Raw data bucket path for quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/upstream/alignment_quantification/<alignment_quantification_workflow_version>`)."}
+		raw_data_path: {help: "Raw data bucket path for quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream/alignment_quantification/<alignment_quantification_workflow_version>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}

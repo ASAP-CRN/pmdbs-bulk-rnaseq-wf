@@ -75,4 +75,28 @@ workflow downstream {
 		File significant_genes_csv = differential_gene_expression_analysis.significant_genes_csv #!FileCoercion
 		File volcano_plot_png = differential_gene_expression_analysis.volcano_plot_png #!FileCoercion
 	}
+
+	meta {
+		description: "Aggregates upstream QC and alignment metrics into a MultiQC report and performs differential gene expression analysis using PyDESeq2."
+	}
+
+	parameter_meta {
+		team_id: {help: "Name of the CRN Team; used to name output files."}
+		project_sample_ids: {help: "Associated team ID, sample ID, and dataset DOI URL; used to generate a sample list."}
+		output_files: {help: "Upstream output files to pass to MultiQC for report generation."}
+	    output_name: {help: "Base name for the MultiQC report output file."}
+	    metadata_csv: {help: "ASAP-generated CSV containing all sample information including batch, condition, etc. used for DESeq2 pairwise condition ('PD', 'Control'). For the `batch` column, there must be at least two distinct values."}
+	    gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
+	    gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
+	    salmon_mode: {help: "Salmon quantification mode; either 'alignment_mode' or 'mapping_mode'."}
+		salmon_quant_tar_gz: {help: "Tar-gzipped Salmon quantification output directories, one per sample."}
+		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/downstream`)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
+	}
 }

@@ -45,7 +45,7 @@ workflow pseudo_mapping_quantification {
 		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
 		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
     	trimmed_fastq_R2s: {help: "Adapter-trimmed reverse (R2) FASTQ files for the sample."}
-		raw_data_path: {help: "Raw data bucket path for pseudo-mapping and quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/upstream/pseudo_mapping_quantification`)."}
+		raw_data_path: {help: "Raw data bucket path for pseudo-mapping and quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream/pseudo_mapping_quantification`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
@@ -122,7 +122,7 @@ task mapping_quantification {
 		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
 		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
     	trimmed_fastq_R2s: {help: "Adapter-trimmed reverse (R2) FASTQ files for the sample."}
-		raw_data_path: {help: "Raw data bucket path for pseudo-mapping and quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/upstream/pseudo_mapping_quantification/<pseudo_mapping_quantification_workflow_version>`)."}
+		raw_data_path: {help: "Raw data bucket path for pseudo-mapping and quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream/pseudo_mapping_quantification/<pseudo_mapping_quantification_workflow_version>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}

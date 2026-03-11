@@ -246,7 +246,7 @@ workflow upstream {
 	}
 
 	parameter_meta {
-		team_id: {help: "Name of the CRN Team; stored in the AnnData objects."}
+		team_id: {help: "Name of the CRN Team; used to name output files."}
 		dataset_doi_url: {help: "Generated Zenodo DOI URL referencing the dataset."}
 		samples: {help: "An array of Sample struct, set of samples and their associated reads and metadata information."}
 		all_transcripts_fasta: {help: "Manually generated all transcripts on the reference chromosomes with the `primary_assembly_fasta` and `gene_annotation_gtf`."}
@@ -258,7 +258,7 @@ workflow upstream {
 		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
 		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
-		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess`)."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream`)."}
 		billing_project: {help: "Billing project to charge GCP costs."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
 		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
@@ -329,7 +329,7 @@ task check_output_files_exist {
 	}
 
 	meta {
-		description: "Checks for existing preprocessing files per sample and skips certain preprocessing steps if they exist."
+		description: "Checks for existing preprocessing files per sample and skips certain upstream steps if they exist."
 	}
 
 	parameter_meta {
@@ -441,7 +441,7 @@ task trim_and_qc {
 		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
 		fastq_R1s: {help: "Sample's read 1 FASTQ file."}
 		fastq_R2s: {help: "Sample's read 2 FASTQ file."}
-		raw_data_path: {help: "Raw data bucket path for trimmed QC'ed fastq outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/trim_and_qc/<trim_and_qc_task_version>`)."}
+		raw_data_path: {help: "Raw data bucket path for trimmed QC'ed fastq outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream/trim_and_qc/<trim_and_qc_task_version>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
