@@ -240,6 +240,29 @@ workflow upstream {
 		# Salmon mapping and quantification
 		Array[File?] mapping_mode_quant_tar_gz = salmon_mapping_mode_quant_tar_gz_output #!FileCoercion
 	}
+
+	meta {
+		description: "Performs per-sample QC, adapter trimming, alignment, and quantification for bulk RNA-seq samples."
+	}
+
+	parameter_meta {
+		team_id: {help: "Name of the CRN Team; stored in the AnnData objects."}
+		dataset_doi_url: {help: "Generated Zenodo DOI URL referencing the dataset."}
+		samples: {help: "An array of Sample struct, set of samples and their associated reads and metadata information."}
+		all_transcripts_fasta: {help: "Manually generated all transcripts on the reference chromosomes with the `primary_assembly_fasta` and `gene_annotation_gtf`."}
+		run_alignment_quantification: {help: "Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true]"}
+		run_pseudo_mapping_quantification: {help: "Option to map and directly quantify raw reads with Salmon. This and/or 'run_alignment_quantification' must be set to true. [false]"}
+		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
+		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
+		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess`)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task check_output_files_exist {
@@ -303,6 +326,18 @@ task check_output_files_exist {
 		disks: "local-disk 20 HDD"
 		preemptible: 3
 		zones: zones
+	}
+
+	meta {
+		description: "Checks for existing preprocessing files per sample and skips certain preprocessing steps if they exist."
+	}
+
+	parameter_meta {
+		fastqc_raw_reads_output_files: {help: "FASTQC raw reads output file to detect (`<sample>.fastqc_reports.tar.gz`)."}
+		fastqc_trimmed_reads_output_files: {help: "FASTQC trimmed reads output file to detect (`<sample>.trimmed_fastqc_reports.tar.gz`)."}
+		alignment_quantification_output_files: {help: "Alignment and quantification output file to detect (`<sample>.alignment_mode.salmon_quant.tar.gz`)."}
+		pseudo_mapping_quantification_output_files: {help: "Pseudo-mapping and quantification output file to detect (`<sample>.mapping_mode.salmon_quant.tar.gz`)."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -396,5 +431,20 @@ task trim_and_qc {
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		zones: zones
+	}
+
+	meta {
+		description: "Trims adapter sequences and performs quality control on paired-end FASTQ files using fastp, producing trimmed FASTQs, failed read pairs, HTML reports, and JSON summaries."
+	}
+
+	parameter_meta {
+		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		fastq_R1s: {help: "Sample's read 1 FASTQ file."}
+		fastq_R2s: {help: "Sample's read 2 FASTQ file."}
+		raw_data_path: {help: "Raw data bucket path for trimmed QC'ed fastq outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/trim_and_qc/<trim_and_qc_task_version>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }

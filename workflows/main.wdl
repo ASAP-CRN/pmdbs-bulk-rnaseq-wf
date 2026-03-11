@@ -362,7 +362,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	meta {
-		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) bulk RNA-seq workflow"
+		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) bulk RNA-seq workflow."
 	}
 
 	parameter_meta {
@@ -381,6 +381,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
 		gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
-		zones: {help: "Space-delimited set of GCP zones where compute will take place."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }
