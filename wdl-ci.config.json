@@ -163,7 +163,7 @@
       "tasks": {
         "degs_and_plot": {
           "key": "degs_and_plot",
-          "digest": "vntpsol4zgqx3xpj2lkwzzysszgzypuu",
+          "digest": "wp2frut4a22oqkdymh2eab3qkmhobmwr",
           "tests": [
             {
               "inputs": {
@@ -223,7 +223,7 @@
       "tasks": {
         "differential_gene_expression": {
           "key": "differential_gene_expression",
-          "digest": "n2aoge7lhifetvvb4ymhpcrl5gmc3347",
+          "digest": "gidgvrmvlfxrjkbgtivhhcpaqucw66sf",
           "tests": [
             {
               "inputs": {
@@ -313,7 +313,7 @@
         },
         "trim_and_qc": {
           "key": "trim_and_qc",
-          "digest": "24pghbe25gkxy5cebpxvlvhsialn4zaz",
+          "digest": "dvpgen2cl25wdlcxepg4ugeab2lk5bpb",
           "tests": [
             {
               "inputs": {
@@ -385,7 +385,7 @@
       "tasks": {
         "mapping_quantification": {
           "key": "mapping_quantification",
-          "digest": "7lojrdsynokyyniwotrmsjuzdginko3p",
+          "digest": "mrvzeaqitafdacg5iawcxbtyd7rhuyps",
           "tests": [
             {
               "inputs": {
@@ -424,7 +424,7 @@
       "tasks": {
         "alignment": {
           "key": "alignment",
-          "digest": "2iwirmth5ibujbqn77nk73zxxtet7det",
+          "digest": "moomiisue5csv44dglddv5nfpu7yji5y",
           "tests": [
             {
               "inputs": {
@@ -512,7 +512,7 @@
         },
         "quantification": {
           "key": "quantification",
-          "digest": "shhexvankc6qbwsdca6lgxw4qi25pn6c",
+          "digest": "gn57tnbmqrnwkf7dncaqu6ytvcokzzxr",
           "tests": [
             {
               "inputs": {
