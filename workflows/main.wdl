@@ -40,7 +40,7 @@ workflow bulk_rnaseq_analysis {
 
 	String workflow_execution_path = "workflow_execution"
 	String workflow_name = "bulk_rnaseq"
-	String workflow_version = "v1.1.1"
+	String workflow_version = "v2.0.0"
 	String workflow_release = "https://github.com/ASAP-CRN/bulk-rnaseq-wf/releases/tag/bulk_rnaseq_analysis-~{workflow_version}"
 	String crn_release_version = "v4.0.0"
 
