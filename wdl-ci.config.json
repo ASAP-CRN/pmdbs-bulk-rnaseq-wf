@@ -539,8 +539,8 @@
         }
       }
     },
-    "pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl": {
-      "key": "pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl",
+    "bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl": {
+      "key": "bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -686,7 +686,7 @@
       },
       "workflow_name": "pmdbs_bulk_rnaseq",
       "workflow_version": "v1.0.0",
-      "workflow_release": "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-${workflow_version}",
+      "workflow_release": "https://github.com/ASAP-CRN/bulk-rnaseq-wf/releases/tag/bulk_rnaseq_analysis-${workflow_version}",
       "workflow_info": [
         [
           "${run_timestamp}",
