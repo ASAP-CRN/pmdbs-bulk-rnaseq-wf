@@ -140,6 +140,7 @@ Example usage:
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
+	--release-version v5.0.0 \
 	--workflow-name bulk_rnaseq_analysis
 ```
 
