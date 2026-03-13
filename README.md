@@ -1,6 +1,6 @@
-# pmdbs-bulk-rnaseq-wf
+# bulk-rnaseq-wf
 
-Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human bulk RNA sequencing data.
+Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) and non-human workflow harmonized across ASAP with human and in vitro bulk RNA sequencing data.
 
 Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](https://github.com/ASAP-CRN/wf-common).
 
@@ -139,7 +139,7 @@ Example usage:
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
-	--workflow-name pmdbs_bulk_rnaseq_analysis
+	--workflow-name bulk_rnaseq_analysis
 ```
 
 # Outputs
@@ -315,17 +315,17 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 | Image | Major tool versions | Links |
 | :- | :- | :- |
 | fastqc | <ul><li>[fastqc v0.12.1](https://github.com/s-andrews/FastQC/releases/tag/v0.12.1)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/fastqc) |
-| fastp | <ul><li>[fastp v0.23.4](https://github.com/OpenGene/fastp/releases/tag/v0.23.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/fastp) |
-| star_samtools | <ul><li>[star 2.7.11b](https://github.com/alexdobin/STAR/releases/tag/2.7.11b)</li><li>[samtools 1.20](https://github.com/samtools/samtools/releases/tag/1.20)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/star_samtools) |
-| salmon | <ul><li>[salmon v1.10.3](https://github.com/COMBINE-lab/salmon/releases/tag/v1.10.3)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/salmon) |
-| pydeseq2 | Python (v3.12.5) libraries: <ul><li>[pydeseq2 v0.5.2](https://github.com/owkin/PyDESeq2/releases/tag/v0.5.2)</li><li>[scikit-learn 1.7.1](https://github.com/scikit-learn/scikit-learn/releases/tag/1.7.1)</li><li>[scipy v1.16.1](https://github.com/scipy/scipy/releases/tag/v1.16.1)</li><li>[pytximport 0.12.0](https://github.com/complextissue/pytximport/releases/tag/0.12.0)</li><li>[matplotlib v3.10.3](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.3)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/pydeseq2) |
+| fastp | <ul><li>[fastp v0.23.4](https://github.com/OpenGene/fastp/releases/tag/v0.23.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/bulk-rnaseq-wf/tree/main/docker/fastp) |
+| star_samtools | <ul><li>[star 2.7.11b](https://github.com/alexdobin/STAR/releases/tag/2.7.11b)</li><li>[samtools 1.20](https://github.com/samtools/samtools/releases/tag/1.20)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/bulk-rnaseq-wf/tree/main/docker/star_samtools) |
+| salmon | <ul><li>[salmon v1.10.3](https://github.com/COMBINE-lab/salmon/releases/tag/v1.10.3)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/bulk-rnaseq-wf/tree/main/docker/salmon) |
+| pydeseq2 | Python (v3.12.5) libraries: <ul><li>[pydeseq2 v0.5.2](https://github.com/owkin/PyDESeq2/releases/tag/v0.5.2)</li><li>[scikit-learn 1.7.1](https://github.com/scikit-learn/scikit-learn/releases/tag/1.7.1)</li><li>[scipy v1.16.1](https://github.com/scipy/scipy/releases/tag/v1.16.1)</li><li>[pytximport 0.12.0](https://github.com/complextissue/pytximport/releases/tag/0.12.0)</li><li>[matplotlib v3.10.3](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.3)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/bulk-rnaseq-wf/tree/main/docker/pydeseq2) |
 | multiqc | <ul><li>[multiqc v1.30](https://github.com/MultiQC/MultiQC/releases/tag/v1.30)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/multiqc) |
 | util | <ul><li>[google-cloud-cli 524.0.0](https://cloud.google.com/sdk/docs/release-notes#52400_2025-05-28)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) |
 
 
 # wdl-ci
 
-[`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [pmdbs-wdl-ci-custom-test-dir](./pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
+[`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [wdl-ci-custom-test-dir](./bulk-rnaseq-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
 
 In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the Differential Gene Expression Analysis task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the raw counts generated by PyDESeq2, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_pkl". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the dds.pkl file is still a valid PKL file.
 

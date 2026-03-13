@@ -1,6 +1,6 @@
 version 1.0
 
-# Harmonized human PMDBS bulk RNAseq workflow entrypoint
+# Harmonized human PMDBS and in vitro bulk RNAseq workflow entrypoint
 
 import "structs.wdl"
 import "../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
@@ -9,7 +9,7 @@ import "upstream/upstream.wdl" as Upstream
 import "downstream/downstream.wdl" as Downstream
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
 
-workflow pmdbs_bulk_rnaseq_analysis {
+workflow bulk_rnaseq_analysis {
 	input {
 		String cohort_id
 		Array[Project] projects
@@ -39,9 +39,9 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	String workflow_execution_path = "workflow_execution"
-	String workflow_name = "pmdbs_bulk_rnaseq"
+	String workflow_name = "bulk_rnaseq"
 	String workflow_version = "v1.1.1"
-	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-~{workflow_version}"
+	String workflow_release = "https://github.com/ASAP-CRN/bulk-rnaseq-wf/releases/tag/bulk_rnaseq_analysis-~{workflow_version}"
 	String crn_release_version = "v4.0.0"
 
 	call GetWorkflowMetadata.get_workflow_metadata {
@@ -364,7 +364,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	meta {
-		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) bulk RNA-seq workflow."
+		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) and in vitro bulk RNA-seq workflow."
 	}
 
 	parameter_meta {
