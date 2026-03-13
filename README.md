@@ -55,6 +55,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 
 | Type | Name | Description |
 | :- | :- | :- |
+| String | source | Source; used to select `workflow_name`. Options: 'pmdbs' or 'invitro'. If human pmdbs, `pmdbs_bulk_rnaseq` will be the workflow name (i.e., bucket folder name) and if invitro, `invitro_bulk_rnaseq` will be selected. |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team downstream analysis. |
 | Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis. |
 | Boolean? | run_alignment_quantification | Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true] |
