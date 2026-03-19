@@ -1,6 +1,6 @@
 {
   "pmdbs_bulk_rnaseq_analysis.cohort_id": "String",
-  "pmdbs_bulk_rnaseq_analysis.projects": "Array[WomCompositeType {\n samples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nfastq_R1s -> Array[File]+\nasap_sample_id -> String\nbatch -> String?\nfastq_I2s -> Array[File]\nfastq_R2s -> Array[File]+ \n}]\nrun_project_cohort_analysis -> Boolean\nraw_data_bucket -> String\nasap_team_id -> String\nasap_dataset_id -> String\nasap_project_sample_metadata_csv -> File\nstaging_data_buckets -> Array[String]\nasap_dataset_doi_url -> String \n}]",
+  "pmdbs_bulk_rnaseq_analysis.projects": "Array[WomCompositeType {\n samples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nfastq_R1s -> Array[File]+\nsample_id -> String\nbatch -> String?\nfastq_I2s -> Array[File]\nfastq_R2s -> Array[File]+ \n}]\nrun_project_cohort_analysis -> Boolean\nraw_data_bucket -> String\nasap_team_id -> String\nasap_dataset_id -> String\nasap_project_sample_metadata_csv -> File\nstaging_data_buckets -> Array[String]\nasap_dataset_doi_url -> String \n}]",
   "pmdbs_bulk_rnaseq_analysis.reference": {
     "primary_assembly_fasta": "File",
     "gene_annotation_gtf": "File",

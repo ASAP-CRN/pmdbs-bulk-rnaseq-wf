@@ -50,10 +50,10 @@ workflow upstream {
 	String salmon_mapping_mode_raw_data_path = "~{workflow_raw_data_path_prefix}/mapping_quantification/~{pseudo_mapping_quantification_workflow_version}"
 
 	scatter (sample_object in samples) {
-		String fastqc_raw_reads_output = "~{fastqc_raw_reads_raw_data_path}/~{sample_object.asap_sample_id}.fastqc_reports.tar.gz"
-		String fastqc_trimmed_reads_output = "~{fastqc_trimmed_reads_raw_data_path}/~{sample_object.asap_sample_id}.trimmed_fastqc_reports.tar.gz"
-		String alignment_quantification_output = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample_object.asap_sample_id}.alignment_mode.salmon_quant.tar.gz"
-		String pseudo_mapping_quantification_output = "~{salmon_mapping_mode_raw_data_path}/~{sample_object.asap_sample_id}.mapping_mode.salmon_quant.tar.gz"
+		String fastqc_raw_reads_output = "~{fastqc_raw_reads_raw_data_path}/~{sample_object.sample_id}.fastqc_reports.tar.gz"
+		String fastqc_trimmed_reads_output = "~{fastqc_trimmed_reads_raw_data_path}/~{sample_object.sample_id}.trimmed_fastqc_reports.tar.gz"
+		String alignment_quantification_output = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample_object.sample_id}.alignment_mode.salmon_quant.tar.gz"
+		String pseudo_mapping_quantification_output = "~{salmon_mapping_mode_raw_data_path}/~{sample_object.sample_id}.mapping_mode.salmon_quant.tar.gz"
 	}
 
 	# For each sample, outputs an array of true/false: [fastqc_raw_reads_complete, fastqc_trimmed_reads_complete, alignment_quantification_complete, pseudo_mapping_quantification_complete]
@@ -70,19 +70,19 @@ workflow upstream {
 	scatter (sample_index in range(length(samples))) {
 		Sample sample = samples[sample_index]
 
-		Array[String] project_sample_id = [team_id, sample.asap_sample_id, dataset_doi_url]
+		Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
 
 		String fastqc_raw_reads_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String fastqc_trimmed_reads_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
 		String alignment_quantification_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][2]
 		String pseudo_mapping_quantification_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][3]
 
-		String fastqc_raw_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.asap_sample_id}.fastqc_reports.tar.gz"
+		String fastqc_raw_reads_reports_tar_gz = "~{fastqc_raw_reads_raw_data_path}/~{sample.sample_id}.fastqc_reports.tar.gz"
 
 		if (fastqc_raw_reads_complete == "false") {
 			call Fastqc.fastqc as fastqc_raw_reads {
 				input:
-					sample_id = sample.asap_sample_id,
+					sample_id = sample.sample_id,
 					fastq_R1s = sample.fastq_R1s,
 					fastq_R2s = sample.fastq_R2s,
 					raw_data_path = fastqc_raw_reads_raw_data_path,
@@ -103,14 +103,14 @@ workflow upstream {
 			String fastp_trimmed_fastq_R2 = "~{fastp_raw_data_path}/~{fastq_R2_basename}.trimmed.fastq.gz"
 		}
 
-		String fastp_failed_paired_fastqs = "~{fastp_raw_data_path}/~{sample.asap_sample_id}.fastp_failed_paired_fastqs.tar.gz"
-		String fastp_reports_html = "~{fastp_raw_data_path}/~{sample.asap_sample_id}.fastp_reports.tar.gz"
-		String fastp_jsons = "~{fastp_raw_data_path}/~{sample.asap_sample_id}.fastp_json.tar.gz"
+		String fastp_failed_paired_fastqs = "~{fastp_raw_data_path}/~{sample.sample_id}.fastp_failed_paired_fastqs.tar.gz"
+		String fastp_reports_html = "~{fastp_raw_data_path}/~{sample.sample_id}.fastp_reports.tar.gz"
+		String fastp_jsons = "~{fastp_raw_data_path}/~{sample.sample_id}.fastp_json.tar.gz"
 
 		if (fastqc_trimmed_reads_complete == "false") {
 			call trim_and_qc {
 				input:
-					sample_id = sample.asap_sample_id,
+					sample_id = sample.sample_id,
 					fastq_R1s = sample.fastq_R1s,
 					fastq_R2s = sample.fastq_R2s,
 					raw_data_path = fastp_raw_data_path,
@@ -127,12 +127,12 @@ workflow upstream {
 		File qc_reports_html_tar_gz_output = select_first([trim_and_qc.qc_reports_html_tar_gz, fastp_reports_html]) #!FileCoercion
 		File qc_json_tar_gz_output = select_first([trim_and_qc.qc_json_tar_gz, fastp_jsons]) #!FileCoercion
 
-		String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_trimmed_reads_raw_data_path}/~{sample.asap_sample_id}.trimmed_fastqc_reports.tar.gz"
+		String fastqc_trimmed_reads_reports_tar_gz = "~{fastqc_trimmed_reads_raw_data_path}/~{sample.sample_id}.trimmed_fastqc_reports.tar.gz"
 
 		if (fastqc_trimmed_reads_complete == "false") {
 			call Fastqc.fastqc as fastqc_trimmed_reads {
 				input:
-					sample_id = sample.asap_sample_id,
+					sample_id = sample.sample_id,
 					fastq_R1s = trimmed_fastq_R1s_output,
 					fastq_R2s = trimmed_fastq_R2s_output,
 					raw_data_path = fastqc_trimmed_reads_raw_data_path,
@@ -146,21 +146,21 @@ workflow upstream {
 		File trimmed_fastqc_reports_tar_gz_output = select_first([fastqc_trimmed_reads.trimmed_fastqc_reports_tar_gz, fastqc_trimmed_reads_reports_tar_gz]) #!FileCoercion
 
 		if (run_alignment_quantification) {
-			String star_aligned_bam = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.Aligned.sortedByCoord.out.bam"
-			String star_aligned_bam_index = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.Aligned.sortedByCoord.out.bam.bai"
-			String star_aligned_to_transcriptome_bam = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.Aligned.toTranscriptome.out.bam"
-			String star_unmapped_mate1 = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.Unmapped.out.mate1"
-			String star_unmapped_mate2 = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.Unmapped.out.mate2"
-			String star_log = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.Log.out"
-			String star_final_log = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.Log.final.out"
-			String star_progress_log = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.Log.progress.out"
-			String star_sj_out_tab = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.SJ.out.tab"
-			String salmon_alignment_mode_quant_tar_gz = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.asap_sample_id}.alignment_mode.salmon_quant.tar.gz"
+			String star_aligned_bam = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Aligned.sortedByCoord.out.bam"
+			String star_aligned_bam_index = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Aligned.sortedByCoord.out.bam.bai"
+			String star_aligned_to_transcriptome_bam = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Aligned.toTranscriptome.out.bam"
+			String star_unmapped_mate1 = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Unmapped.out.mate1"
+			String star_unmapped_mate2 = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Unmapped.out.mate2"
+			String star_log = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Log.out"
+			String star_final_log = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Log.final.out"
+			String star_progress_log = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.Log.progress.out"
+			String star_sj_out_tab = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.SJ.out.tab"
+			String salmon_alignment_mode_quant_tar_gz = "~{star_and_salmon_alignment_mode_raw_data_path}/~{sample.sample_id}.alignment_mode.salmon_quant.tar.gz"
 
 			if (alignment_quantification_complete == "false") {
 				call AlignmentQuantification.alignment_quantification {
 					input:
-						sample_id = sample.asap_sample_id,
+						sample_id = sample.sample_id,
 						all_transcripts_fasta = all_transcripts_fasta,
 						star_genome_dir_tar_gz = select_first([star_genome_dir_tar_gz]),
 						trimmed_fastq_R1s = trimmed_fastq_R1s_output,
@@ -186,12 +186,12 @@ workflow upstream {
 		}
 
 		if (run_pseudo_mapping_quantification) {
-			String salmon_mapping_mode_quant_tar_gz = "~{salmon_mapping_mode_raw_data_path}/~{sample.asap_sample_id}.mapping_mode.salmon_quant.tar.gz"
+			String salmon_mapping_mode_quant_tar_gz = "~{salmon_mapping_mode_raw_data_path}/~{sample.sample_id}.mapping_mode.salmon_quant.tar.gz"
 
 			if (pseudo_mapping_quantification_complete == "false") {
 				call PseudoMappingQuantification.pseudo_mapping_quantification {
 					input:
-						sample_id = sample.asap_sample_id,
+						sample_id = sample.sample_id,
 						salmon_genome_dir_tar_gz = select_first([salmon_genome_dir_tar_gz]),
 						trimmed_fastq_R1s = trimmed_fastq_R1s_output,
 						trimmed_fastq_R2s = trimmed_fastq_R2s_output,
