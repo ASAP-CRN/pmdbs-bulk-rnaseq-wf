@@ -31,9 +31,9 @@ def main(args):
     sample_ids = sample_ids_df.iloc[:, 0]
     metadata = metadata[metadata.index.isin(sample_ids)]
 
-    # Check condition_id contains only "PD" or "Control"
+    # Check condition_id contains only valid entries as per current CDE version: ["PD", "Control", "Prodromal", "Other"]
     metadata["condition_id"] = metadata["condition_id"].str.strip()
-    valid_conditions = {"PD", "Control"}
+    valid_conditions = {"PD", "Control", "Prodromal", "Other"}
     actual_conditions = set(metadata["condition_id"].unique())
     invalid_conditions = actual_conditions - valid_conditions
     if invalid_conditions:
@@ -92,81 +92,88 @@ def main(args):
     # Statistical analysis
     log2_fc_threshold = 1
     padj_threshold = 0.05
-    excluded_samples = metadata[metadata["condition_id"] == "Other"]
-    excluded_samples_filtered = excluded_samples[["batch", "condition_id"]]
-    if not excluded_samples_filtered.empty:
-        print(f"[WARNING] Samples and levels excluded for contrast:\n{excluded_samples_filtered}")
-    # Ensure "Control" is at the end of the list so it's ref_level
-    stat_res = DeseqStats(
-        dds,
-        contrast=["condition_id", "PD", "Control"], # Comparing condition_id only but model uses information from design factors
-    )
-    stat_res.summary()
-    results_df = stat_res.results_df
-    results_df["gene_name"] = results_df.index.map(gtf_gene_ids_and_names)
-    sig_genes = results_df[(results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"].abs() > log2_fc_threshold)]
-    sig_genes.to_csv(f"{args.team_id}.{args.salmon_mode}.pydeseq2_significant_genes.csv")
+    # Run pairwise contrasts for each non-Control condition vs. Control
+    test_conditions = [c for c in metadata["condition_id"].unique() if c != "Control"]
+    if not test_conditions:
+        raise ValueError("No test conditions found (only Control in dataset)")
+
+    all_results = {}
+    for condition in test_conditions:
+        print(f"Running contrast: {condition} vs Control")
+        stat_res = DeseqStats(
+            dds,
+            contrast=["condition_id", condition, "Control"],
+        )
+        stat_res.summary()
+        results_df = stat_res.results_df
+        results_df["gene_name"] = results_df.index.map(gtf_gene_ids_and_names)
+        results_df["contrast"] = f"{condition}_vs_Control"
+        sig_genes = results_df[(results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"].abs() > log2_fc_threshold)]
+        sig_genes.to_csv(f"{args.team_id}.{args.salmon_mode}.{condition}_vs_Control.pydeseq2_significant_genes.csv")
+        all_results[condition] = results_df
 
 
     ###################
     ## VISUALIZATION ##
     ###################
-    # Volcano plot
-    results_df["-log10(padj)"] = -np.log10(results_df["padj"])
-    results_df["color"] = np.where(
-        (results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"] > log2_fc_threshold), "red",
-        np.where(
-            (results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"] < -log2_fc_threshold), "blue",
-            "grey"
+    # Volcano plot per contrast
+    for condition, results_df in all_results.items():
+        results_df["-log10(padj)"] = -np.log10(results_df["padj"])
+        results_df["color"] = np.where(
+            (results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"] > log2_fc_threshold), "red",
+            np.where(
+                (results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"] < -log2_fc_threshold), "blue",
+                "grey"
+            )
         )
-    )
-    plt.figure(figsize=(10, 6))
-    sns.scatterplot(
-        x="log2FoldChange",
-        y="-log10(padj)",
-        data=results_df,
-        hue="color",
-        palette={"red": "red", "blue": "blue", "grey": "grey"},
-        alpha=0.6,
-        edgecolor=None,
-        legend=False,
-    )
-    plt.axhline(y=-np.log10(padj_threshold), color="black", linestyle="--", linewidth=1)
-    plt.axvline(x=log2_fc_threshold, color="black", linestyle="--", linewidth=1)
-    plt.axvline(x=-log2_fc_threshold, color="black", linestyle="--", linewidth=1)
-
-    top_ten_genes = results_df.nsmallest(10, "padj")
-    texts = []
-    x_list = []
-    y_list = []
-    for i, row in top_ten_genes.iterrows():
-        text = plt.text(
-            row["log2FoldChange"],
-            row["-log10(padj)"],
-            row["gene_name"],
-            ha="center",
-            fontsize=8,
-            color="black",
+        plt.figure(figsize=(10, 6))
+        sns.scatterplot(
+            x="log2FoldChange",
+            y="-log10(padj)",
+            data=results_df,
+            hue="color",
+            palette={"red": "red", "blue": "blue", "grey": "grey"},
+            alpha=0.6,
+            edgecolor=None,
+            legend=False,
         )
-        texts.append(text)
-        x_list.append(row["log2FoldChange"])
-        y_list.append(row["-log10(padj)"])
+        plt.axhline(y=-np.log10(padj_threshold), color="black", linestyle="--", linewidth=1)
+        plt.axvline(x=log2_fc_threshold, color="black", linestyle="--", linewidth=1)
+        plt.axvline(x=-log2_fc_threshold, color="black", linestyle="--", linewidth=1)
 
-    adjust_text(
-        texts,
-        x=x_list,
-        y=y_list,
-    )
+        top_ten_genes = results_df.nsmallest(10, "padj")
+        texts = []
+        x_list = []
+        y_list = []
+        for i, row in top_ten_genes.iterrows():
+            text = plt.text(
+                row["log2FoldChange"],
+                row["-log10(padj)"],
+                row["gene_name"],
+                ha="center",
+                fontsize=8,
+                color="black",
+            )
+            texts.append(text)
+            x_list.append(row["log2FoldChange"])
+            y_list.append(row["-log10(padj)"])
 
-    plt.xlabel("Log2 Fold Change")
-    plt.ylabel("-Log10 Adjusted P-value")
-    plt.title("Volcano Plot of PyDESeq2 Results")
-    plt.savefig(f"{args.team_id}.{args.salmon_mode}.volcano_plot.png", dpi=300, bbox_inches="tight")
+        adjust_text(
+            texts,
+            x=x_list,
+            y=y_list,
+        )
+
+        plt.xlabel("Log2 Fold Change")
+        plt.ylabel("-Log10 Adjusted P-value")
+        plt.title(f"Volcano Plot: {condition} vs Control")
+        plt.savefig(f"{args.team_id}.{args.salmon_mode}.{condition}_vs_Control.volcano_plot.png", dpi=300, bbox_inches="tight")
+        plt.close()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Differential gene expression analysis using Salmon quantification files with PyDESeq2"
+        description="Differential gene expression analysis using Salmon quantification files with PyDESeq2 by comparing non-controls and controls"
     )
     parser.add_argument(
         "-t",

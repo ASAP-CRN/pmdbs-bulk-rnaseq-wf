@@ -40,12 +40,12 @@ workflow differential_gene_expression_analysis {
 	output {
 		# PyDESeq2 DGE Analysis
 		File dds_object_pkl = differential_gene_expression.dds_object_pkl #!FileCoercion
-		File significant_genes_csv = differential_gene_expression.significant_genes_csv #!FileCoercion
-		File volcano_plot_png = differential_gene_expression.volcano_plot_png #!FileCoercion
+		Array[File] significant_genes_csv = differential_gene_expression.significant_genes_csv #!FileCoercion
+		Array[File] volcano_plot_png = differential_gene_expression.volcano_plot_png #!FileCoercion
 	}
 
 	meta {
-		description: "Performs differential gene expression analysis on Salmon quantification outputs using PyDESeq2."
+		description: "Performs differential gene expression analysis on Salmon quantification outputs using PyDESeq2 by comparing non-controls and controls."
 	}
 
 	parameter_meta {
@@ -106,18 +106,35 @@ task differential_gene_expression {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{team_id}.~{salmon_mode}.dds.pkl" \
-			-o "~{team_id}.~{salmon_mode}.pydeseq2_significant_genes.csv" \
-			-o "~{team_id}.~{salmon_mode}.volcano_plot.png"
+			-o "~{team_id}.~{salmon_mode}.dds.pkl"
+
+		# Upload per-contrast significant genes CSVs and volcano plots
+		for f in *.pydeseq2_significant_genes.csv; do
+			upload_outputs \
+				-b ~{billing_project} \
+				-d ~{raw_data_path} \
+				-i ~{write_tsv(workflow_info)} \
+				-o "$f"
+			echo "~{raw_data_path}/$f" >> significant_genes_csv_paths.txt
+		done
+ 
+		for f in *.volcano_plot.png; do
+			upload_outputs \
+				-b ~{billing_project} \
+				-d ~{raw_data_path} \
+				-i ~{write_tsv(workflow_info)} \
+				-o "$f"
+			echo "~{raw_data_path}/$f" >> volcano_plot_png_paths.txt
+		done
 	>>>
 
 	output {
 		String dds_object_pkl = "~{raw_data_path}/~{team_id}.~{salmon_mode}.dds.pkl"
-		String significant_genes_csv = "~{raw_data_path}/~{team_id}.~{salmon_mode}.pydeseq2_significant_genes.csv"
-		String volcano_plot_png = "~{raw_data_path}/~{team_id}.~{salmon_mode}.volcano_plot.png"
+		Array[String] significant_genes_csv = read_lines("significant_genes_csv_paths.txt")
+		Array[String] volcano_plot_png = read_lines("volcano_plot_png_paths.txt")
 	}
 	runtime {
-		docker: "~{container_registry}/pydeseq2:0.5.2"
+		docker: "~{container_registry}/pydeseq2:0.5.2_1"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -127,7 +144,7 @@ task differential_gene_expression {
 	}
 
 	meta {
-		description: "Performs differential gene expression analysis on Salmon quantification outputs using PyDESeq2."
+		description: "Performs differential gene expression analysis on Salmon quantification outputs using PyDESeq2 by comparing non-controls and controls."
 	}
 
 	parameter_meta {

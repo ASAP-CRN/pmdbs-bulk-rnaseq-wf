@@ -8,14 +8,17 @@ from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
 
 
-def modify_tables(file_list, team_ids):
-    dfs = []
-    for file, team_id in zip(file_list, team_ids):
-        df = pd.read_csv(file)
-        df["team_id"] = team_id
-        dfs.append(df)
-    combined_dfs = pd.concat(dfs, ignore_index=True)
-    return combined_dfs
+def extract_contrast(filename):
+    """Extract contrast name (e.g., 'PD_vs_Control') from a DEG CSV filename.
+
+    Expected filename pattern: {team_id}.{salmon_mode}.{contrast}.pydeseq2_significant_genes.csv
+    """
+    basename = os.path.basename(filename)
+    # Remove the suffix and split to get the contrast portion
+    match = re.search(r"\.(\w+_vs_Control)\.pydeseq2_significant_genes\.csv$", basename)
+    if match:
+        return match.group(1)
+    raise ValueError(f"Could not extract contrast name from filename: {basename}")
 
 
 def main(args):
@@ -23,12 +26,30 @@ def main(args):
     ## OVERLAPPING DEGS ONLY FOR CROSS TEAM COHORT ANALYSIS ##
     ##########################################################
     if args.n_teams > 1:
-        combined_degs = modify_tables(args.degs, args.project_ids)
-        combined_degs.set_index(combined_degs.columns[0], inplace=True)
-        grouped = combined_degs.groupby("team_id").apply(lambda x: set(x.index))
-        common_degs = set.intersection(*grouped)
-        common_degs_df = combined_degs.loc[combined_degs.index[combined_degs.index.isin(common_degs)]]
-        common_degs_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.overlapping_significant_genes.csv")
+        # Group DEG files by contrast, then find overlapping genes per contrast across teams
+        contrast_files = {}
+        for file in args.degs:
+            contrast = extract_contrast(file)
+            if contrast not in contrast_files:
+                contrast_files[contrast] = []
+            contrast_files[contrast].append(file)
+
+        for contrast, files in contrast_files.items():
+            dfs = []
+            for file in files:
+                df = pd.read_csv(file)
+                # Infer team_id from filename: {team_id}.{salmon_mode}.{contrast}...
+                basename = os.path.basename(file)
+                team_id = basename.split(f".{args.salmon_mode}.")[0]
+                df["team_id"] = team_id
+                dfs.append(df)
+            combined_degs = pd.concat(dfs, ignore_index=True)
+            combined_degs.set_index(combined_degs.columns[0], inplace=True)
+            grouped = combined_degs.groupby("team_id").apply(lambda x: set(x.index))
+            common_degs = set.intersection(*grouped)
+            common_degs_df = combined_degs.loc[combined_degs.index[combined_degs.index.isin(common_degs)]]
+            common_degs_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.{contrast}.overlapping_significant_genes.csv")
+            print(f"Found {len(common_degs)} overlapping DEGs for {contrast} across {len(files)} teams")
 
 
     ###################

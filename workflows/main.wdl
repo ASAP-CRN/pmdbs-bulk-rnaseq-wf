@@ -42,7 +42,7 @@ workflow bulk_rnaseq_analysis {
 	String workflow_execution_path = "workflow_execution"
 	String workflow_version = "v2.0.0"
 	String workflow_release = "https://github.com/ASAP-CRN/bulk-rnaseq-wf/releases/tag/bulk_rnaseq_analysis-~{workflow_version}"
-	String crn_release_version = "v4.0.0"
+	String crn_release_version = "v5.0.0"
 
 	call get_workflow_name {
 		input:
@@ -326,13 +326,13 @@ workflow bulk_rnaseq_analysis {
 
 		## DGE analysis with Salmon alignment-mode counts
 		Array[File?] pydeseq2_alignment_mode_dds_object_pkl = alignment_mode_downstream.dds_object_pkl
-		Array[File?] pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_downstream.significant_genes_csv
-		Array[File?] pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_downstream.volcano_plot_png
+		Array[Array[File]?] pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_downstream.significant_genes_csv
+		Array[Array[File]?] pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_downstream.volcano_plot_png
 
 		## DGE analysis with Salmon mapping-mode counts
 		Array[File?] pydeseq2_mapping_mode_dds_object_pkl = mapping_mode_downstream.dds_object_pkl
-		Array[File?] pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_downstream.significant_genes_csv
-		Array[File?] pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_downstream.volcano_plot_png
+		Array[Array[File]?] pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_downstream.significant_genes_csv
+		Array[Array[File]?] pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_downstream.volcano_plot_png
 
 		# Project cohort analysis outputs
 		## List of samples included in the cohort. Both modes produce the same sample list
@@ -357,11 +357,11 @@ workflow bulk_rnaseq_analysis {
 		File? cohort_sample_list = alignment_mode_cross_team_cohort_analysis.cohort_sample_list
 
 		## Overlapping DEGs and PCA plot for alignment-mode
-		File? cohort_alignment_mode_overlapping_significant_genes_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
+		Array[File]? cohort_alignment_mode_overlapping_significant_genes_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
 		File? cohort_alignment_mode_pca_plot_png = alignment_mode_cross_team_cohort_analysis.pca_plot_png
 
 		## Overlapping DEGs and PCA plot for mapping-mode
-		File? cohort_mapping_mode_overlapping_significant_genes_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
+		Array[File]? cohort_mapping_mode_overlapping_significant_genes_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
 		File? cohort_mapping_mode_pca_plot_png = mapping_mode_cross_team_cohort_analysis.pca_plot_png
 
 		Array[File]? cohort_alignment_mode_manifests = alignment_mode_cross_team_cohort_analysis.cohort_analysis_manifest_tsvs

@@ -72,8 +72,8 @@ workflow downstream {
 
 		# PyDESeq2 DGE Analysis
 		File dds_object_pkl = differential_gene_expression_analysis.dds_object_pkl #!FileCoercion
-		File significant_genes_csv = differential_gene_expression_analysis.significant_genes_csv #!FileCoercion
-		File volcano_plot_png = differential_gene_expression_analysis.volcano_plot_png #!FileCoercion
+		Array[File] significant_genes_csv = differential_gene_expression_analysis.significant_genes_csv
+		Array[File] volcano_plot_png = differential_gene_expression_analysis.volcano_plot_png
 	}
 
 	meta {
