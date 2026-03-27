@@ -163,21 +163,29 @@ workflow bulk_rnaseq_analysis {
 		Array[String] alignment_mode_downstream_output_file_paths = flatten([
 			select_all([
 				alignment_mode_downstream.dds_object_pkl,
-				alignment_mode_downstream.significant_genes_csv,
-				alignment_mode_downstream.volcano_plot_png,
 				alignment_mode_downstream.multiqc_report_html,
 				alignment_mode_downstream.multiqc_data_zip
-			])
+			]),
+			flatten(
+				select_all([
+					alignment_mode_downstream.significant_genes_csv,
+					alignment_mode_downstream.volcano_plot_png
+				])
+			)
 		]) #!StringCoercion
 
 		Array[String] mapping_mode_downstream_output_file_paths = flatten([
 			select_all([
 				mapping_mode_downstream.dds_object_pkl,
-				mapping_mode_downstream.significant_genes_csv,
-				mapping_mode_downstream.volcano_plot_png,
 				mapping_mode_downstream.multiqc_report_html,
 				mapping_mode_downstream.multiqc_data_zip
-			])
+			]),
+			flatten(
+				select_all([
+					mapping_mode_downstream.significant_genes_csv,
+					mapping_mode_downstream.volcano_plot_png
+				])
+			)
 		]) #!StringCoercion
 
 		if (project.run_project_cohort_analysis) {
