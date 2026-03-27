@@ -117,7 +117,7 @@ task differential_gene_expression {
 				-o "$f"
 			echo "~{raw_data_path}/$f" >> significant_genes_csv_paths.txt
 		done
- 
+
 		for f in *.volcano_plot.png; do
 			upload_outputs \
 				-b ~{billing_project} \
