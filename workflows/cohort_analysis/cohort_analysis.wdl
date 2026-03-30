@@ -91,9 +91,11 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
-		select_all([
-			degs_and_plot.overlapping_significant_genes_csv
-		]),
+		flatten(
+			select_all([
+				degs_and_plot.overlapping_significant_genes_csv
+			])
+		),
 		[
 			degs_and_plot.pca_plot_png
 		]
