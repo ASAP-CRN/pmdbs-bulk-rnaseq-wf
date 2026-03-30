@@ -213,8 +213,8 @@ asap-dev-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 			│       ├── ${team_id}.${output_name}.html # Includes ${salmon_mode} in output_name
 			│       ├── ${team_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
 			│       ├── ${team_id}.${salmon_mode}.dds.pkl
-			│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
-			│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
+			│       ├── ${team_id}.${salmon_mode}.${condition}_vs_Control.pydeseq2_significant_genes.csv
+			│       ├── ${team_id}.${salmon_mode}.${condition}_vs_Control.volcano_plot.png
 			│       └── MANIFEST.tsv
 			├── upstream
 			│	└── ${salmon_mode}
@@ -247,7 +247,7 @@ The script defaults to a dry run, printing out the files that would be copied or
 -h  Display this message and exit
 -l  List available teams
 -w  Workflow name used as a directory in bucket (e.g. 'pmdbs_bulk_rnaseq')
--v  Release version (e.g. v4.0.0)
+-v  Release version (e.g. v5.0.0)
 -p  Promote data. If this option is not selected, data that would be copied or deleted is printed out, but files are not actually changed (dry run)
 ```
 
@@ -255,13 +255,13 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 # List available teams
-./wf-common/util/promote_staging_data -l -w pmdbs_bulk_rnaseq -v v4.0.0
+./wf-common/util/promote_staging_data -l -w pmdbs_bulk_rnaseq -v v5.0.0
 
 # Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams' datasets processed through the bulk RNA-seq pipeline for a specific release version
-./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v4.0.0
+./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v5.0.0
 
 # Promote data for teams' datasets processed through the bulk RNA-seq pipeline for a specific release version
-./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v4.0.0 -p
+./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v5.0.0 -p
 ```
 
 # Docker images
