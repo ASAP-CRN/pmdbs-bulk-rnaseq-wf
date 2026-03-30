@@ -77,11 +77,11 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | team_id | Unique identifier for team; used for naming output files. |
-| String | dataset_id | Unique identifier for dataset; used for naming output files. |
-| String | dataset_doi_url | Generated Zenodo DOI URL referencing the dataset. |
+| String | asap_team_id | ASAP-generated unique identifier for team; used for naming output files. |
+| String | asap_dataset_id | ASAP-generated unique identifier for dataset; used for naming output files. |
+| String | asap_dataset_doi_url | ASAP-generated Zenodo DOI URL referencing the dataset. |
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
-| File | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. used for DESeq2 pairwise condition ('PD', 'Control'). For the `batch` column, there must be at least two distinct values. |
+| File | asap_project_sample_metadata_csv | ASAP-generated CSV containing all sample information including batch, condition, etc. used for DESeq2 pairwise condition ('PD', 'Control'). For the `batch` column, there must be at least two distinct values. |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
@@ -90,7 +90,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | sample_id | Unique identifier for the sample within the project. |
+| String | sample_id | ASAP-generated unique identifier combined with the replicate for the sample within the project. |
 | String? | batch | The sample's batch. |
 | File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
@@ -110,19 +110,27 @@ See [reference data](#reference-data) notes for more details.
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The [`generate_inputs` utility script](https://github.com/ASAP-CRN/wf-common/blob/main/util/generate_inputs) may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json`) and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`); same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The [`generate_inputs` utility script](https://github.com/ASAP-CRN/wf-common/blob/main/util/generate_inputs) may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{cohort_dataset_id}.{date}.json`) and a sample list TSV (`{team_id}.{cohort_dataset_id}.sample_list.{date}.tsv`); same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
 
-- `project-tsv`: One or more project TSVs with one row per sample and columns team_id, sample_id, batch, fastq_path. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
-    - `team_id`: A unique identifier for the team from which the sample(s) arose
-    - `dataset_id`: A unique identifier for the dataset from which the sample(s) arose
-    - `sample_id`: A unique identifier for the sample within the project
-    - `batch`: The sample's batch
-    - `fastq_path`: The directory in which paired sample FASTQs may be found, including the gs:// bucket name and path
-        - This is appended to the `project-tsv` from the `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`, one per line. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 1 file should include 'R1' somewhere in the filename; the read 2 file should inclue 'R2' somewhere in the filename. Generate this file e.g. by running `gcloud storage ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`
+- `project-tsv`: One or more project TSVs with one row per sample and columns team_id, ASAP_dataset_id, ASAP_sample_id, batch, fastq_R1s, fastq_R2s, fastq_R3s, fastq_I1s, fastq_I2s, embargoed, source, modality_flavour, dataset_DOI_url, and SPATIAL columns if applicable: geomx_config, geomx_dsp_config, geomx_annotation_file, visium_cytassist, visium_probe_set, visium_slide_ref, and visium_capture_area. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
+    - `team_id`: A unique identifier for the team from which the sample(s) arose.
+    - `ASAP_dataset_id`: A generated unique identifier for the dataset from which the sample(s) arose.
+    - `ASAP_sample_id`: A generated unique identifier for the sample within the project.
+    - `batch`: The sample's batch.
+    - `fastq_R1s`: The gs uri to read 1 of sample FASTQ.
+        - This is appended to the `project-tsv` from the `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 1 file should include 'R1' somewhere in the filename. Generate this file e.g. by running `gcloud storage ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`.
+    - `fastq_R2s`: The gs uri to read 2 of sample FASTQ.
+        - This is appended to the `project-tsv` from the `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 2 file should include 'R2' somewhere in the filename. Generate this file e.g. by running `gcloud storage ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`.
+    - `fastq_I1s`: The gs uri to sample FASTQ index 1.
+    - `fastq_I2s`: The gs uri to sample FASTQ index 2.
+    - `embargoed`: The internal QC/embargo status of dataset.
+    - `source`: The source of dataset (e.g. 'pmdbs').
+    - `modality_flavour`: The data modality flavour of dataset (e.g. 'bulk-rnaseq')
+    - `dataset_DOI_url`: Generated Zenodo DOI URL referencing the dataset.
 - `inputs-template`: The inputs template JSON file into which the `projects` information derived from the `project-tsv` will be inserted. Must have a key ending in `*.projects`. Other default values filled out in the inputs template will be written to the output inputs.json file.
 - `run-project-cohort-analysis`: Optionally run project-level cohort analysis for provided projects. This value will apply to all projects. [false]
 - `workflow_name`: WDL workflow name.
-- `cohort-dataset`: Dataset name in cohort bucket name (e.g. 'sc-rnaseq').
+- `cohort-dataset-id`: Dataset name in cohort bucket id (e.g. 'cohort-pmdbs-bulk-rnaseq').
 
 Example usage:
 
@@ -131,8 +139,7 @@ Example usage:
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
-	--workflow-name pmdbs_bulk_rnaseq_analysis \
-	--cohort-dataset bulk-rnaseq
+	--workflow-name pmdbs_bulk_rnaseq_analysis
 ```
 
 # Outputs
@@ -151,7 +158,7 @@ The raw data bucket will contain *some* artifacts generated as part of workflow 
 In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs.
 
 ```bash
-asap-raw-{cohort,team-xxyy}-{source}-{dataset}
+asap-raw-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 └── workflow_execution
 	└── pmdbs_bulk_rnaseq
 		├── cohort_analysis
@@ -184,34 +191,40 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
 
-Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{cohort,team-xxyy}-{source}-{dataset}`.
+Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}` and `dataset_id` = `{cohort,team-xxyy}-{source}-{modality_flavour}-{context}`.
 
 Data may be synced using [the `promote_staging_data` script](#promoting-staging-data).
 
 ```bash
-asap-dev-{cohort,team-xxyy}-{source}-{dataset}
+asap-dev-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 └── pmdbs_bulk_rnaseq
-	├── cohort_analysis
-	│   └── ${salmon_mode}
-	│       ├── ${cohort_id}.sample_list.tsv
-	│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
-	│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
-	│    	└── MANIFEST.tsv
-	├── downstream
-	│   └── ${salmon_mode}
-	│       ├── ${team_id}.${output_name}.html # Includes ${salmon_mode} in output_name
-	│       ├── ${team_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
-	│       ├── ${team_id}.${salmon_mode}.dds.pkl
-	│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
-	│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
-	│       └── MANIFEST.tsv
-	└── upstream
-		└── ${salmon_mode}
-			├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
-			├── MANIFEST.tsv
-			├── ...
-			├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
-			└── MANIFEST.tsv
+    └── release
+        └── ${crn_release_version}
+			├── cohort_analysis
+			│   └── ${salmon_mode}
+			│       ├── ${cohort_id}.sample_list.tsv
+			│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
+			│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
+			│    	└── MANIFEST.tsv
+			├── downstream
+			│   └── ${salmon_mode}
+			│       ├── ${team_id}.${output_name}.html # Includes ${salmon_mode} in output_name
+			│       ├── ${team_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
+			│       ├── ${team_id}.${salmon_mode}.dds.pkl
+			│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
+			│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
+			│       └── MANIFEST.tsv
+			├── upstream
+			│	└── ${salmon_mode}
+			│		├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
+			│		├── ...
+			│		├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
+			│		└── MANIFEST.tsv
+			├── workflow_version # plain text file
+            └── workflow_metadata
+                └── ${timestamp}
+                    ├── MANIFEST.tsv # combined
+                    └── data_promotion_report.md
 ```
 
 ## Promoting staging data
@@ -230,11 +243,9 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```
 -h  Display this message and exit
--t  Space-delimited team(s) to promote data for
 -l  List available teams
--s  Source name in bucket name
--d  Space-delimited dataset name(s) in team bucket name, must follow the same order as {team}
--w  Workflow name used as a directory in bucket
+-w  Workflow name used as a directory in bucket (e.g. 'pmdbs_bulk_rnaseq')
+-v  Release version (e.g. v4.0.0)
 -p  Promote data. If this option is not selected, data that would be copied or deleted is printed out, but files are not actually changed (dry run)
 ```
 
@@ -242,13 +253,13 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 # List available teams
-./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq
+./wf-common/util/promote_staging_data -l -w pmdbs_bulk_rnaseq -v v4.0.0
 
-# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy and team-wood
-./wf-common/util/promote_staging_data -t team-hardy team-wood -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq
+# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams' datasets processed through the bulk RNA-seq pipeline for a specific release version
+./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v4.0.0
 
-# Promote data for team-hardy and cohort
-./wf-common/util/promote_staging_data -t team-hardy cohort -s pmdbs -d bulk-rnaseq -w pmdbs_bulk_rnaseq
+# Promote data for teams' datasets processed through the bulk RNA-seq pipeline for a specific release version
+./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v4.0.0 -p
 ```
 
 # Docker images

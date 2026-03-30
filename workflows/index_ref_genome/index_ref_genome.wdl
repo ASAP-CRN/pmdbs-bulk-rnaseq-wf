@@ -48,6 +48,18 @@ workflow index_ref_genome {
 		File? star_genome_dir_tar_gz = star_index_ref_genome.star_genome_dir_tar_gz
 		File? salmon_genome_dir_tar_gz = salmon_index_ref_genome.salmon_genome_dir_tar_gz
 	}
+
+	meta {
+    	description: "Indexes the reference genome for STAR alignment and/or Salmon mapping-based quantification."
+	}
+
+	parameter_meta {
+	    reference: {help: "The primary assembly FASTA, gene annotation GTF, transcripts FASTA from GENCODE, and a generated all transcripts FASTA."}
+	    run_alignment_quantification: {help: "Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true]"}
+		run_star_index_ref_genome: {help: "Option to index reference genome with STAR. If set to false, 'star_genome_dir_tar_gz' must be provided. [false]"}
+	    container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task star_index_ref_genome {
@@ -94,6 +106,17 @@ task star_index_ref_genome {
 		preemptible: 3
 		zones: zones
 	}
+
+	meta {
+    	description: "Generates a STAR genome index from the primary assembly FASTA and gene annotation GTF."
+	}
+
+	parameter_meta {
+	    primary_assembly_fasta: {help: "Nucleotide sequence of the GRCh38 primary genome assembly (chromosomes and scaffolds)."}
+	    gene_annotation_gtf: {help: "Comprehensive gene annotation on the reference chromosomes only."}
+	    container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task generate_decoy {
@@ -130,6 +153,17 @@ task generate_decoy {
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		zones: zones
+	}
+
+	meta {
+    	description: "Extracts chromosome names from the primary assembly as decoy sequences and concatenates the transcriptome and genome FASTAs into a gentrome for Salmon indexing."
+	}
+
+	parameter_meta {
+	    primary_assembly_fasta: {help: "Nucleotide sequence of the GRCh38 primary genome assembly (chromosomes and scaffolds)."}
+	    transcripts_fasta: {help: "Nucleotide sequences of all transcripts on the reference chromosomes."}
+	    container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -170,5 +204,16 @@ task salmon_index_ref_genome {
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		zones: zones
+	}
+
+	meta {
+    	description: "Indexes the gentrome (concatenated transcriptome and genome) with Salmon for mapping-based quantification."
+	}
+
+	parameter_meta {
+	    gentrome_fasta: {help: "Gzipped concatenated transcriptome and genome FASTA used as the Salmon index input."}
+	    decoys_txt: {help: "Text file listing chromosome names from the primary assembly to be used as decoy sequences."}
+	    container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }

@@ -42,6 +42,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	String workflow_name = "pmdbs_bulk_rnaseq"
 	String workflow_version = "v1.1.1"
 	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-~{workflow_version}"
+	String crn_release_version = "v4.0.0"
 
 	call GetWorkflowMetadata.get_workflow_metadata {
 		input:
@@ -60,12 +61,12 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	scatter (project in projects) {
 		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
 
-		String team_id = project.team_id
+		String team_id = project.asap_team_id
 
 		call Upstream.upstream {
 			input:
 				team_id = team_id,
-				dataset_doi_url = project.dataset_doi_url,
+				dataset_doi_url = project.asap_dataset_doi_url,
 				samples = project.samples,
 				all_transcripts_fasta = reference.all_transcripts_fasta,
 				run_alignment_quantification = run_alignment_quantification,
@@ -107,7 +108,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						])
 					),
 					output_name = "multiqc_fastqc_fastp_star_salmon_alignment_mode_report",
-					metadata_csv = project.project_sample_metadata_csv,
+					metadata_csv = project.asap_project_sample_metadata_csv,
 					gene_map_csv = gene_map_csv,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "alignment_mode",
@@ -137,7 +138,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						])
 					),
 					output_name = "multiqc_fastqc_fastp_salmon_mapping_mode_report",
-					metadata_csv = project.project_sample_metadata_csv,
+					metadata_csv = project.asap_project_sample_metadata_csv,
 					gene_map_csv = gene_map_csv,
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "mapping_mode",
@@ -188,6 +189,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						workflow_name = workflow_name,
 						workflow_version = workflow_version,
 						workflow_release = workflow_release,
+						crn_release_version = crn_release_version,
 						run_timestamp = get_workflow_metadata.timestamp,
 						raw_data_path_prefix = project_raw_data_path_prefix,
 						staging_data_buckets = project.staging_data_buckets,
@@ -211,6 +213,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						workflow_name = workflow_name,
 						workflow_version = workflow_version,
 						workflow_release = workflow_release,
+						crn_release_version = crn_release_version,
 						run_timestamp = get_workflow_metadata.timestamp,
 						raw_data_path_prefix = project_raw_data_path_prefix,
 						staging_data_buckets = project.staging_data_buckets,
@@ -242,6 +245,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
+					crn_release_version = crn_release_version,
 					run_timestamp = get_workflow_metadata.timestamp,
 					raw_data_path_prefix = cohort_raw_data_path_prefix,
 					staging_data_buckets = cohort_staging_data_buckets,
@@ -265,6 +269,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
+					crn_release_version = crn_release_version,
 					run_timestamp = get_workflow_metadata.timestamp,
 					raw_data_path_prefix = cohort_raw_data_path_prefix,
 					staging_data_buckets = cohort_staging_data_buckets,
@@ -359,7 +364,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	meta {
-		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) bulk RNA-seq workflow"
+		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) bulk RNA-seq workflow."
 	}
 
 	parameter_meta {
@@ -378,6 +383,6 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
 		gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
-		zones: {help: "Space-delimited set of GCP zones where compute will take place."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }

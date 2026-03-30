@@ -35,6 +35,22 @@ workflow pseudo_mapping_quantification {
 		# Salmon mapping and quantification
 		File quant_tar_gz = mapping_quantification.quant_tar_gz #!FileCoercion
 	}
+
+	meta {
+		description: "Maps and quantifies trimmed reads directly against the transcriptome reference using Salmon in mapping-based mode."
+	}
+
+	parameter_meta {
+		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
+		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
+    	trimmed_fastq_R2s: {help: "Adapter-trimmed reverse (R2) FASTQ files for the sample."}
+		raw_data_path: {help: "Raw data bucket path for pseudo-mapping and quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream/pseudo_mapping_quantification`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task mapping_quantification {
@@ -95,5 +111,21 @@ task mapping_quantification {
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		zones: zones
+	}
+
+	meta {
+		description: "Maps trimmed paired-end reads to the Salmon index and quantifies transcript abundances using Salmon in mapping-based mode."
+	}
+
+	parameter_meta {
+		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
+		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
+    	trimmed_fastq_R2s: {help: "Adapter-trimmed reverse (R2) FASTQ files for the sample."}
+		raw_data_path: {help: "Raw data bucket path for pseudo-mapping and quantification outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/upstream/pseudo_mapping_quantification/<pseudo_mapping_quantification_workflow_version>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }

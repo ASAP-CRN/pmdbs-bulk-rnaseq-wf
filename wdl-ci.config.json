@@ -64,7 +64,7 @@
           "tests": [
             {
               "inputs": {
-                "team_id": "${team_id}",
+                "team_id": "${asap_team_id}",
                 "output_files": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastqc_reports.tar.gz",
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/${sample_id}.fastp_json.tar.gz",
@@ -163,23 +163,23 @@
       "tasks": {
         "degs_and_plot": {
           "key": "degs_and_plot",
-          "digest": "vntpsol4zgqx3xpj2lkwzzysszgzypuu",
+          "digest": "wp2frut4a22oqkdymh2eab3qkmhobmwr",
           "tests": [
             {
               "inputs": {
                 "cohort_id": "${cohort_id}",
                 "team_ids": [
                   "team-hardy",
-                  "${team_id}"
+                  "${asap_team_id}"
                 ],
                 "n_teams": 2,
                 "significant_genes_csv": [
                   "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.pydeseq2_significant_genes.csv",
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
                 ],
                 "dds_object_pkl": [
                   "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.dds.pkl",
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.dds.pkl"
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.dds.pkl"
                 ],
                 "salmon_mode": "${salmon_mode}",
                 "raw_data_path": "${cohort_raw_data_path}",
@@ -223,13 +223,13 @@
       "tasks": {
         "differential_gene_expression": {
           "key": "differential_gene_expression",
-          "digest": "n2aoge7lhifetvvb4ymhpcrl5gmc3347",
+          "digest": "gidgvrmvlfxrjkbgtivhhcpaqucw66sf",
           "tests": [
             {
               "inputs": {
-                "team_id": "${team_id}",
+                "team_id": "${asap_team_id}",
                 "project_sample_ids": "${sample_ids}",
-                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${team_id}.mod.SAMPLE.csv",
+                "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${asap_team_id}.mod.SAMPLE.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
                 "gene_ids_and_names_json": "${input_file_path}/gencode.v46.gene_id_and_gene_name.json",
                 "salmon_mode": "${salmon_mode}",
@@ -252,14 +252,14 @@
               },
               "output_tests": {
                 "dds_object_pkl": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.dds.pkl",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.dds.pkl",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_pkl"
                   ]
                 },
                 "significant_genes_csv": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_comma_separated",
@@ -267,7 +267,7 @@
                   ]
                 },
                 "volcano_plot_png": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${team_id}.${salmon_mode}.volcano_plot.png",
+                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.volcano_plot.png",
                   "test_tasks": [
                     "compare_file_basename",
                     "png_validator"
@@ -313,7 +313,7 @@
         },
         "trim_and_qc": {
           "key": "trim_and_qc",
-          "digest": "24pghbe25gkxy5cebpxvlvhsialn4zaz",
+          "digest": "dvpgen2cl25wdlcxepg4ugeab2lk5bpb",
           "tests": [
             {
               "inputs": {
@@ -385,7 +385,7 @@
       "tasks": {
         "mapping_quantification": {
           "key": "mapping_quantification",
-          "digest": "7lojrdsynokyyniwotrmsjuzdginko3p",
+          "digest": "mrvzeaqitafdacg5iawcxbtyd7rhuyps",
           "tests": [
             {
               "inputs": {
@@ -424,7 +424,7 @@
       "tasks": {
         "alignment": {
           "key": "alignment",
-          "digest": "2iwirmth5ibujbqn77nk73zxxtet7det",
+          "digest": "moomiisue5csv44dglddv5nfpu7yji5y",
           "tests": [
             {
               "inputs": {
@@ -512,7 +512,7 @@
         },
         "quantification": {
           "key": "quantification",
-          "digest": "shhexvankc6qbwsdca6lgxw4qi25pn6c",
+          "digest": "gn57tnbmqrnwkf7dncaqu6ytvcokzzxr",
           "tests": [
             {
               "inputs": {
@@ -568,7 +568,7 @@
   "test_params": {
     "global_params": {
       "sample_id": "ASAP_PMBDS_000001_s002_Rep1",
-      "team_id": "team-lee",
+      "asap_team_id": "team-lee",
       "cohort_id": "asap-cohort",
       "sample_ids": [
         [

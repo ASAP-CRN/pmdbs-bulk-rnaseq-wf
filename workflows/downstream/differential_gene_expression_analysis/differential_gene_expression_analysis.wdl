@@ -43,6 +43,25 @@ workflow differential_gene_expression_analysis {
 		File significant_genes_csv = differential_gene_expression.significant_genes_csv #!FileCoercion
 		File volcano_plot_png = differential_gene_expression.volcano_plot_png #!FileCoercion
 	}
+
+	meta {
+		description: "Performs differential gene expression analysis on Salmon quantification outputs using PyDESeq2."
+	}
+
+	parameter_meta {
+		team_id: {help: "Name of the CRN Team; used to name output files."}
+		project_sample_ids: {help: "Associated team ID, sample ID, and dataset DOI URL; used to generate a sample list."}
+	    metadata_csv: {help: "ASAP-generated CSV containing all sample information including batch, condition, etc. used for DESeq2 pairwise condition ('PD', 'Control'). For the `batch` column, there must be at least two distinct values."}
+	    gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
+	    gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
+	    salmon_mode: {help: "Salmon quantification mode; either 'alignment_mode' or 'mapping_mode'."}
+		salmon_quant_tar_gz: {help: "Tar-gzipped Salmon quantification output directories, one per sample."}
+		raw_data_path: {help: "Raw data bucket path for DGE outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/downstream/<downstream_version>/<salmon_mode>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task differential_gene_expression {
@@ -105,5 +124,24 @@ task differential_gene_expression {
 		preemptible: 3
 		bootDiskSizeGb: 30
 		zones: zones
+	}
+
+	meta {
+		description: "Performs differential gene expression analysis on Salmon quantification outputs using PyDESeq2."
+	}
+
+	parameter_meta {
+		team_id: {help: "Name of the CRN Team; used to name output files."}
+		project_sample_ids: {help: "Associated team ID, sample ID, and dataset DOI URL; used to generate a sample list."}
+	    metadata_csv: {help: "ASAP-generated CSV containing all sample information including batch, condition, etc. used for DESeq2 pairwise condition ('PD', 'Control'). For the `batch` column, there must be at least two distinct values."}
+	    gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
+	    gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
+	    salmon_mode: {help: "Salmon quantification mode; either 'alignment_mode' or 'mapping_mode'."}
+		salmon_quant_tar_gz: {help: "Tar-gzipped Salmon quantification output directories, one per sample."}
+		raw_data_path: {help: "Raw data bucket path for DGE outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/downstream/<downstream_version>/<salmon_mode>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
 	}
 }
