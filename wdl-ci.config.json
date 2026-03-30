@@ -225,7 +225,7 @@
       "tasks": {
         "differential_gene_expression": {
           "key": "differential_gene_expression",
-          "digest": "gidgvrmvlfxrjkbgtivhhcpaqucw66sf",
+          "digest": "tikekckr7qvws64vr5zehlzw7xcx3pxo",
           "tests": [
             {
               "inputs": {
