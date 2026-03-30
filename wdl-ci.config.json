@@ -174,8 +174,8 @@
                 ],
                 "n_teams": 2,
                 "significant_genes_csv": [
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.pydeseq2_significant_genes.csv",
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.PD_vs_Control.pydeseq2_significant_genes.csv",
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.PD_vs_Control.pydeseq2_significant_genes.csv"
                 ],
                 "dds_object_pkl": [
                   "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.dds.pkl",
