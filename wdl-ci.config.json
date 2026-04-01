@@ -240,6 +240,7 @@
             {
               "inputs": {
                 "team_id": "${asap_team_id}",
+                "dataset_id": "${asap_dataset_id}",
                 "project_sample_ids": "${sample_ids}",
                 "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${asap_team_id}.mod.SAMPLE.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
@@ -585,6 +586,7 @@
     "global_params": {
       "sample_id": "ASAP_PMBDS_000001_s002_Rep1",
       "asap_team_id": "team-lee",
+      "asap_dataset_id": "DS_PMDBS_0007",
       "cohort_id": "asap-cohort",
       "sample_ids": [
         [
