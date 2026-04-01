@@ -68,6 +68,7 @@ workflow bulk_rnaseq_analysis {
 		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{get_workflow_name.workflow_name}"
 
 		String team_id = project.asap_team_id
+		String dataset_id = project.asap_dataset_id
 
 		call Upstream.upstream {
 			input:
@@ -103,6 +104,7 @@ workflow bulk_rnaseq_analysis {
 			call Downstream.downstream as alignment_mode_downstream {
 				input:
 					team_id = team_id,
+					dataset_id = dataset_id,
 					project_sample_ids = upstream.project_sample_ids,
 					output_files = select_all(
 						flatten([
@@ -134,6 +136,7 @@ workflow bulk_rnaseq_analysis {
 			call Downstream.downstream as mapping_mode_downstream {
 				input:
 					team_id = team_id,
+					dataset_id = dataset_id,
 					project_sample_ids = upstream.project_sample_ids,
 					output_files = select_all(
 						flatten([
@@ -366,12 +369,12 @@ workflow bulk_rnaseq_analysis {
 
 		## Overlapping DEGs and PCA plot for alignment-mode
 		Array[File]? cohort_alignment_mode_overlapping_significant_genes_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
-		Array[File]? cohort_alignment_mode_overlapping_significant_genes_by_team_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_by_team_csv
+		Array[File]? cohort_alignment_mode_overlapping_significant_genes_by_dataset_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_by_dataset_csv
 		File? cohort_alignment_mode_pca_plot_png = alignment_mode_cross_team_cohort_analysis.pca_plot_png
 
 		## Overlapping DEGs and PCA plot for mapping-mode
 		Array[File]? cohort_mapping_mode_overlapping_significant_genes_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
-		Array[File]? cohort_mapping_mode_overlapping_significant_genes_by_team_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_by_team_csv
+		Array[File]? cohort_mapping_mode_overlapping_significant_genes_by_dataset_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_by_dataset_csv
 		File? cohort_mapping_mode_pca_plot_png = mapping_mode_cross_team_cohort_analysis.pca_plot_png
 
 		Array[File]? cohort_alignment_mode_manifests = alignment_mode_cross_team_cohort_analysis.cohort_analysis_manifest_tsvs

@@ -47,27 +47,27 @@ def main(args):
                 dfs.append(df)
             combined_degs = pd.concat(dfs, ignore_index=True)
             combined_degs.set_index(combined_degs.columns[0], inplace=True)
-            grouped = combined_degs.groupby("team_id").apply(lambda x: set(x.index))
-            gene_team_counts = pd.Series(
-                {gene: sum(gene in team_genes for team_genes in grouped) for gene in combined_degs.index.unique()}
+            grouped = combined_degs.groupby("dataset_id").apply(lambda x: set(x.index))
+            gene_dataset_counts = pd.Series(
+                {gene: sum(gene in dataset_genes for dataset_genes in grouped) for gene in combined_degs.index.unique()}
             )
-            common_degs = set(gene_team_counts[gene_team_counts >= 2].index)
+            common_degs = set(gene_dataset_counts[gene_dataset_counts >= 2].index)
             common_degs_df = combined_degs.loc[combined_degs.index[combined_degs.index.isin(common_degs)]]
             common_degs_df = common_degs_df.reset_index().drop_duplicates()
             common_degs_df.to_csv(
                 f"{args.cohort_id}.{args.salmon_mode}.{contrast}.overlapping_significant_genes.csv",
                 index=False
             )
-            print(f"Found {len(common_degs)} overlapping DEGs for {contrast} across {len(files)} teams (present in ≥2 teams)")
+            print(f"Found {len(common_degs)} overlapping DEGs for {contrast} across {len(files)} datasets (present in ≥2 datasets)")
 
             gene_team_overlap_df = pd.DataFrame(
-                {team: combined_degs[combined_degs["team_id"] == team].index for team in grouped.index},
+                {dataset: combined_degs[combined_degs["dataset_id"] == dataset].index for dataset in grouped.index},
                 index=common_degs
             )
             gene_team_overlap_df = gene_team_overlap_df.apply(lambda col: gene_team_overlap_df.index.isin(col.dropna()), axis=0).astype(bool)
-            gene_team_overlap_df["n_teams"] = gene_team_overlap_df.sum(axis=1)
+            gene_team_overlap_df["n_datasets"] = gene_team_overlap_df.sum(axis=1)
             gene_team_overlap_df.index.name = "gene_id"
-            gene_team_overlap_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.{contrast}.overlapping_significant_genes_by_team.csv")
+            gene_team_overlap_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.{contrast}.overlapping_significant_genes_by_dataset.csv")
 
 
     ###################

@@ -8,6 +8,7 @@ import "differential_gene_expression_analysis/differential_gene_expression_analy
 workflow downstream {
 	input {
 		String team_id
+		String dataset_id
 		Array[Array[String]] project_sample_ids
 
 		Array[File] output_files
@@ -52,6 +53,7 @@ workflow downstream {
 	call DifferentialGeneExpressionAnalysis.differential_gene_expression_analysis {
 		input:
 			team_id = team_id,
+			dataset_id = dataset_id,
 			project_sample_ids = project_sample_ids,
 			metadata_csv = metadata_csv,
 			gene_map_csv = gene_map_csv,
@@ -82,6 +84,7 @@ workflow downstream {
 
 	parameter_meta {
 		team_id: {help: "Name of the CRN Team; used to name output files."}
+		dataset_id: {help: "Name of the ASAP-generated unique identifier for dataset; used to name output files."}
 		project_sample_ids: {help: "Associated team ID, sample ID, and dataset DOI URL; used to generate a sample list."}
 		output_files: {help: "Upstream output files to pass to MultiQC for report generation."}
 	    output_name: {help: "Base name for the MultiQC report output file."}

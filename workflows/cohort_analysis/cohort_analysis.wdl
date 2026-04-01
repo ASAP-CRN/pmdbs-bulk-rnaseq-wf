@@ -94,7 +94,7 @@ workflow cohort_analysis {
 		flatten(
 			select_all([
 				degs_and_plot.overlapping_significant_genes_csv,
-				degs_and_plot.overlapping_significant_genes_by_team_csv
+				degs_and_plot.overlapping_significant_genes_by_dataset_csv
 			])
 		),
 		[
@@ -116,7 +116,7 @@ workflow cohort_analysis {
 
 		# Overlapping differentially expressed genes per contrast, only for cross_team_cohort_analysis
 		Array[File]? overlapping_significant_genes_csv = degs_and_plot.overlapping_significant_genes_csv #!FileCoercion
-		Array[File]? overlapping_significant_genes_by_team_csv = degs_and_plot.overlapping_significant_genes_by_team_csv #!FileCoercion
+		Array[File]? overlapping_significant_genes_by_dataset_csv = degs_and_plot.overlapping_significant_genes_by_dataset_csv #!FileCoercion
 		# PCA plots
 		File pca_plot_png = degs_and_plot.pca_plot_png #!FileCoercion
 
@@ -197,13 +197,13 @@ task degs_and_plot {
 				echo "~{raw_data_path}/$f" >> overlapping_significant_genes_csv_paths.txt
 			done
 
-			for f in *.overlapping_significant_genes_by_team.csv; do
+			for f in *.overlapping_significant_genes_by_dataset.csv; do
 				upload_outputs \
 					-b ~{billing_project} \
 					-d ~{raw_data_path} \
 					-i ~{write_tsv(workflow_info)} \
 					-o "$f"
-				echo "~{raw_data_path}/$f" >> overlapping_significant_genes_by_team_paths.txt
+				echo "~{raw_data_path}/$f" >> overlapping_significant_genes_by_dataset_paths.txt
 			done
 		fi
 
@@ -216,7 +216,7 @@ task degs_and_plot {
 
 	output {
 		Array[String]? overlapping_significant_genes_csv = if (n_teams > 1) then read_lines("overlapping_significant_genes_csv_paths.txt") else my_none
-		Array[String]? overlapping_significant_genes_by_team_csv = if (n_teams > 1) then read_lines("overlapping_significant_genes_by_team_paths.txt") else my_none
+		Array[String]? overlapping_significant_genes_by_dataset_csv = if (n_teams > 1) then read_lines("overlapping_significant_genes_by_dataset_paths.txt") else my_none
 		String pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.pca_plot.png"
 	}
 	runtime {
