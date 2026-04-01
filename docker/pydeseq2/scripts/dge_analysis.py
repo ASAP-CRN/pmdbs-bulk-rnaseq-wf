@@ -108,7 +108,7 @@ def main(args):
         results_df = stat_res.results_df
         results_df["gene_name"] = results_df.index.map(gtf_gene_ids_and_names)
         results_df["contrast"] = f"{condition}_vs_Control"
-        results_df["dataset_id"] = {args.dataset_id}
+        results_df["dataset_id"] = args.dataset_id
         sig_genes = results_df[(results_df["padj"] < padj_threshold) & (results_df["log2FoldChange"].abs() > log2_fc_threshold)]
         sig_genes.to_csv(f"{args.team_id}.{args.salmon_mode}.{condition}_vs_Control.pydeseq2_significant_genes.csv", index_label="ensembl_gene_id")
         all_results[condition] = results_df
