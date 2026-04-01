@@ -47,11 +47,11 @@ def main(args):
                 dfs.append(df)
             combined_degs = pd.concat(dfs, ignore_index=True)
             combined_degs.set_index(combined_degs.columns[0], inplace=True)
-            grouped = combined_degs.groupby("dataset_id").apply(lambda x: set(x.index))
+            grouped = combined_degs.groupby("dataset_id").apply(lambda x: set(x.index), include_groups=False)
             gene_dataset_counts = pd.Series(
                 {gene: sum(gene in dataset_genes for dataset_genes in grouped) for gene in combined_degs.index.unique()}
             )
-            common_degs = set(gene_dataset_counts[gene_dataset_counts >= 2].index)
+            common_degs = sorted(gene_dataset_counts[gene_dataset_counts >= 2].index)
             common_degs_df = combined_degs.loc[combined_degs.index[combined_degs.index.isin(common_degs)]]
             common_degs_df = common_degs_df.reset_index().drop_duplicates()
             common_degs_df.to_csv(
