@@ -199,9 +199,9 @@
                     "count_columns"
                   ]
                 },
-                "overlapping_significant_genes_by_team_csv": {
+                "overlapping_significant_genes_by_dataset_csv": {
                   "value": [
-                    "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.PD_vs_Control.overlapping_significant_genes_by_team.csv"
+                    "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.PD_vs_Control.overlapping_significant_genes_by_dataset.csv"
                   ],
                   "test_tasks": [
                     "compare_file_basename",
