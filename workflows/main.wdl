@@ -369,12 +369,10 @@ workflow bulk_rnaseq_analysis {
 
 		## Overlapping DEGs and PCA plot for alignment-mode
 		Array[File]? cohort_alignment_mode_overlapping_significant_genes_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
-		Array[File]? cohort_alignment_mode_overlapping_significant_genes_by_dataset_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_by_dataset_csv
 		File? cohort_alignment_mode_pca_plot_png = alignment_mode_cross_team_cohort_analysis.pca_plot_png
 
 		## Overlapping DEGs and PCA plot for mapping-mode
 		Array[File]? cohort_mapping_mode_overlapping_significant_genes_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
-		Array[File]? cohort_mapping_mode_overlapping_significant_genes_by_dataset_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_by_dataset_csv
 		File? cohort_mapping_mode_pca_plot_png = mapping_mode_cross_team_cohort_analysis.pca_plot_png
 
 		Array[File]? cohort_alignment_mode_manifests = alignment_mode_cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
