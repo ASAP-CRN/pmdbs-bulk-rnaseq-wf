@@ -206,6 +206,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 			│   └── ${salmon_mode}
 			│       ├── ${cohort_id}.sample_list.tsv
 			│    	├──	${cohort_id}.${salmon_mode}.${condition}_vs_Control.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
+			│    	├──	${cohort_id}.${salmon_mode}.${condition}_vs_Control.overlapping_significant_genes_by_team.csv # Only for cross_team_cohort_analysis
 			│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
 			│    	└── MANIFEST.tsv
 			├── downstream

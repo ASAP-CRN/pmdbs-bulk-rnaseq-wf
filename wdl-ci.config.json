@@ -199,6 +199,16 @@
                     "count_columns"
                   ]
                 },
+                "overlapping_significant_genes_by_team_csv": {
+                  "value": [
+                    "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.PD_vs_Control.overlapping_significant_genes_by_team.csv"
+                  ],
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
                 "pca_plot_png": {
                   "value": "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.pca_plot.png",
                   "test_tasks": [
