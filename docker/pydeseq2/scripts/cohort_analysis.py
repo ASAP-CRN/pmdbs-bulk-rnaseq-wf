@@ -60,13 +60,20 @@ def main(args):
             )
             print(f"Found {len(common_degs)} overlapping DEGs for {contrast} across {len(files)} datasets (present in ≥2 datasets)")
 
-            gene_team_overlap_df = pd.DataFrame(
-                {dataset: combined_degs[combined_degs["dataset_id"] == dataset].index for dataset in grouped.index},
-                index=common_degs
-            )
-            gene_team_overlap_df = gene_team_overlap_df.apply(lambda col: gene_team_overlap_df.index.isin(col.dropna()), axis=0).astype(bool)
-            gene_team_overlap_df["n_datasets"] = gene_team_overlap_df.sum(axis=1)
-            gene_team_overlap_df.index.name = "gene_id"
+            if common_degs:
+                gene_team_overlap_df = pd.DataFrame(
+                    {dataset: combined_degs[combined_degs["dataset_id"] == dataset].index for dataset in grouped.index},
+                    index=common_degs
+                )
+                gene_team_overlap_df = gene_team_overlap_df.apply(lambda col: gene_team_overlap_df.index.isin(col.dropna()), axis=0).astype(bool)
+                gene_team_overlap_df["n_datasets"] = gene_team_overlap_df.sum(axis=1)
+                gene_name_map = combined_degs["gene_name"].groupby(level=0).first()
+                gene_team_map = combined_degs["team_id"].groupby(level=0).first()
+                gene_team_overlap_df["gene_name"] = gene_team_overlap_df.index.map(gene_name_map)
+                gene_team_overlap_df["team_id"] = gene_team_overlap_df.index.map(gene_team_map)
+            else:
+                gene_team_overlap_df = pd.DataFrame(columns=["gene_name", "team_id", *grouped.index, "n_datasets"])
+            gene_team_overlap_df.index.name = "ensembl_gene_id"
             gene_team_overlap_df.to_csv(f"{args.cohort_id}.{args.salmon_mode}.{contrast}.overlapping_significant_genes_by_dataset.csv")
 
 
