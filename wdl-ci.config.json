@@ -163,7 +163,7 @@
       "tasks": {
         "degs_and_plot": {
           "key": "degs_and_plot",
-          "digest": "wp2frut4a22oqkdymh2eab3qkmhobmwr",
+          "digest": "wuia42pwnbf6bu72lx2zw6vjd7d6xhq5",
           "tests": [
             {
               "inputs": {
@@ -174,8 +174,8 @@
                 ],
                 "n_teams": 2,
                 "significant_genes_csv": [
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.pydeseq2_significant_genes.csv",
-                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.pydeseq2_significant_genes.csv"
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.PD_vs_Control.pydeseq2_significant_genes.csv",
+                  "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.PD_vs_Control.pydeseq2_significant_genes.csv"
                 ],
                 "dds_object_pkl": [
                   "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/team-hardy.${salmon_mode}.dds.pkl",
@@ -190,7 +190,9 @@
               },
               "output_tests": {
                 "overlapping_significant_genes_csv": {
-                  "value": "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv",
+                  "value": [
+                    "${input_resources_file_path}/${cohort_workflow_name}/${salmon_mode}/${cohort_id}.${salmon_mode}.PD_vs_Control.overlapping_significant_genes.csv"
+                  ],
                   "test_tasks": [
                     "compare_file_basename",
                     "check_comma_separated",
@@ -223,11 +225,12 @@
       "tasks": {
         "differential_gene_expression": {
           "key": "differential_gene_expression",
-          "digest": "gidgvrmvlfxrjkbgtivhhcpaqucw66sf",
+          "digest": "r4nrig3w6z7jhozqp3amzdi2xazatebi",
           "tests": [
             {
               "inputs": {
                 "team_id": "${asap_team_id}",
+                "dataset_id": "${asap_dataset_id}",
                 "project_sample_ids": "${sample_ids}",
                 "metadata_csv": "gs://asap-workflow-dev/pmdbs_bulk_rnaseq_karen/${asap_team_id}.mod.SAMPLE.csv",
                 "gene_map_csv": "${input_file_path}/tx2gene.gencode.v46.csv",
@@ -259,7 +262,9 @@
                   ]
                 },
                 "significant_genes_csv": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.pydeseq2_significant_genes.csv",
+                  "value": [
+                    "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.PD_vs_Control.pydeseq2_significant_genes.csv"
+                  ],
                   "test_tasks": [
                     "compare_file_basename",
                     "check_comma_separated",
@@ -267,7 +272,9 @@
                   ]
                 },
                 "volcano_plot_png": {
-                  "value": "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.volcano_plot.png",
+                  "value": [
+                    "${input_resources_file_path}/${downstream_workflow_name}/${salmon_mode}/${asap_team_id}.${salmon_mode}.PD_vs_Control.volcano_plot.png"
+                  ],
                   "test_tasks": [
                     "compare_file_basename",
                     "png_validator"
@@ -539,8 +546,8 @@
         }
       }
     },
-    "pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl": {
-      "key": "pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl",
+    "bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl": {
+      "key": "bulk-rnaseq-wdl-ci-custom-test-dir/check_zip.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -569,6 +576,7 @@
     "global_params": {
       "sample_id": "ASAP_PMBDS_000001_s002_Rep1",
       "asap_team_id": "team-lee",
+      "asap_dataset_id": "DS_PMDBS_0007",
       "cohort_id": "asap-cohort",
       "sample_ids": [
         [
@@ -686,7 +694,7 @@
       },
       "workflow_name": "pmdbs_bulk_rnaseq",
       "workflow_version": "v1.0.0",
-      "workflow_release": "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-${workflow_version}",
+      "workflow_release": "https://github.com/ASAP-CRN/bulk-rnaseq-wf/releases/tag/bulk_rnaseq_analysis-${workflow_version}",
       "workflow_info": [
         [
           "${run_timestamp}",

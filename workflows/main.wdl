@@ -1,6 +1,6 @@
 version 1.0
 
-# Harmonized human PMDBS bulk RNAseq workflow entrypoint
+# Harmonized human PMDBS and in vitro bulk RNAseq workflow entrypoint
 
 import "structs.wdl"
 import "../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
@@ -9,8 +9,9 @@ import "upstream/upstream.wdl" as Upstream
 import "downstream/downstream.wdl" as Downstream
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
 
-workflow pmdbs_bulk_rnaseq_analysis {
+workflow bulk_rnaseq_analysis {
 	input {
+		String source
 		String cohort_id
 		Array[Project] projects
 
@@ -39,10 +40,15 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	String workflow_execution_path = "workflow_execution"
-	String workflow_name = "pmdbs_bulk_rnaseq"
-	String workflow_version = "v1.1.1"
-	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/releases/tag/pmdbs_bulk_rnaseq_analysis-~{workflow_version}"
-	String crn_release_version = "v4.0.0"
+	String workflow_version = "v2.0.0"
+	String workflow_release = "https://github.com/ASAP-CRN/bulk-rnaseq-wf/releases/tag/bulk_rnaseq_analysis-~{workflow_version}"
+	String crn_release_version = "v5.0.0"
+
+	call get_workflow_name {
+		input:
+			source = source,
+			zones = zones
+	}
 
 	call GetWorkflowMetadata.get_workflow_metadata {
 		input:
@@ -59,9 +65,10 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	scatter (project in projects) {
-		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
+		String project_raw_data_path_prefix = "~{project.raw_data_bucket}/~{workflow_execution_path}/~{get_workflow_name.workflow_name}"
 
 		String team_id = project.asap_team_id
+		String dataset_id = project.asap_dataset_id
 
 		call Upstream.upstream {
 			input:
@@ -73,7 +80,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 				star_genome_dir_tar_gz = if (defined (star_genome_dir_tar_gz)) then star_genome_dir_tar_gz else index_ref_genome.star_genome_dir_tar_gz,
 				run_pseudo_mapping_quantification = run_pseudo_mapping_quantification,
 				salmon_genome_dir_tar_gz = if (defined (salmon_genome_dir_tar_gz)) then salmon_genome_dir_tar_gz else index_ref_genome.salmon_genome_dir_tar_gz,
-				workflow_name = workflow_name,
+				workflow_name = get_workflow_name.workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
 				run_timestamp = get_workflow_metadata.timestamp,
@@ -97,6 +104,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			call Downstream.downstream as alignment_mode_downstream {
 				input:
 					team_id = team_id,
+					dataset_id = dataset_id,
 					project_sample_ids = upstream.project_sample_ids,
 					output_files = select_all(
 						flatten([
@@ -113,7 +121,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "alignment_mode",
 					salmon_quant_tar_gz = select_all(upstream.alignment_mode_quant_tar_gz),
-					workflow_name = workflow_name,
+					workflow_name = get_workflow_name.workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
 					run_timestamp = get_workflow_metadata.timestamp,
@@ -128,6 +136,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 			call Downstream.downstream as mapping_mode_downstream {
 				input:
 					team_id = team_id,
+					dataset_id = dataset_id,
 					project_sample_ids = upstream.project_sample_ids,
 					output_files = select_all(
 						flatten([
@@ -143,7 +152,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					gene_ids_and_names_json = gene_ids_and_names_json,
 					salmon_mode = "mapping_mode",
 					salmon_quant_tar_gz = select_all(upstream.mapping_mode_quant_tar_gz),
-					workflow_name = workflow_name,
+					workflow_name = get_workflow_name.workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
 					run_timestamp = get_workflow_metadata.timestamp,
@@ -157,21 +166,29 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		Array[String] alignment_mode_downstream_output_file_paths = flatten([
 			select_all([
 				alignment_mode_downstream.dds_object_pkl,
-				alignment_mode_downstream.significant_genes_csv,
-				alignment_mode_downstream.volcano_plot_png,
 				alignment_mode_downstream.multiqc_report_html,
 				alignment_mode_downstream.multiqc_data_zip
-			])
+			]),
+			flatten(
+				select_all([
+					alignment_mode_downstream.significant_genes_csv,
+					alignment_mode_downstream.volcano_plot_png
+				])
+			)
 		]) #!StringCoercion
 
 		Array[String] mapping_mode_downstream_output_file_paths = flatten([
 			select_all([
 				mapping_mode_downstream.dds_object_pkl,
-				mapping_mode_downstream.significant_genes_csv,
-				mapping_mode_downstream.volcano_plot_png,
 				mapping_mode_downstream.multiqc_report_html,
 				mapping_mode_downstream.multiqc_data_zip
-			])
+			]),
+			flatten(
+				select_all([
+					mapping_mode_downstream.significant_genes_csv,
+					mapping_mode_downstream.volcano_plot_png
+				])
+			)
 		]) #!StringCoercion
 
 		if (project.run_project_cohort_analysis) {
@@ -186,7 +203,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						significant_genes_csv = [select_first([alignment_mode_downstream.significant_genes_csv])],
 						dds_object_pkl = [select_first([alignment_mode_downstream.dds_object_pkl])],
 						salmon_mode = "alignment_mode",
-						workflow_name = workflow_name,
+						workflow_name = get_workflow_name.workflow_name,
 						workflow_version = workflow_version,
 						workflow_release = workflow_release,
 						crn_release_version = crn_release_version,
@@ -210,7 +227,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 						significant_genes_csv = [select_first([mapping_mode_downstream.significant_genes_csv])],
 						dds_object_pkl = [select_first([mapping_mode_downstream.dds_object_pkl])],
 						salmon_mode = "mapping_mode",
-						workflow_name = workflow_name,
+						workflow_name = get_workflow_name.workflow_name,
 						workflow_version = workflow_version,
 						workflow_release = workflow_release,
 						crn_release_version = crn_release_version,
@@ -229,7 +246,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	Array[String] team_ids = team_id
 
 	if (run_cross_team_cohort_analysis) {
-		String cohort_raw_data_path_prefix = "~{cohort_raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
+		String cohort_raw_data_path_prefix = "~{cohort_raw_data_bucket}/~{workflow_execution_path}/~{get_workflow_name.workflow_name}"
 
 		if (run_alignment_quantification) {
 			call CohortAnalysis.cohort_analysis as alignment_mode_cross_team_cohort_analysis {
@@ -242,7 +259,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					significant_genes_csv = select_all(alignment_mode_downstream.significant_genes_csv),
 					dds_object_pkl = select_all(alignment_mode_downstream.dds_object_pkl),
 					salmon_mode = "alignment_mode",
-					workflow_name = workflow_name,
+					workflow_name = get_workflow_name.workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
 					crn_release_version = crn_release_version,
@@ -266,7 +283,7 @@ workflow pmdbs_bulk_rnaseq_analysis {
 					significant_genes_csv = select_all(mapping_mode_downstream.significant_genes_csv),
 					dds_object_pkl = select_all(mapping_mode_downstream.dds_object_pkl),
 					salmon_mode = "mapping_mode",
-					workflow_name = workflow_name,
+					workflow_name = get_workflow_name.workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
 					crn_release_version = crn_release_version,
@@ -320,13 +337,13 @@ workflow pmdbs_bulk_rnaseq_analysis {
 
 		## DGE analysis with Salmon alignment-mode counts
 		Array[File?] pydeseq2_alignment_mode_dds_object_pkl = alignment_mode_downstream.dds_object_pkl
-		Array[File?] pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_downstream.significant_genes_csv
-		Array[File?] pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_downstream.volcano_plot_png
+		Array[Array[File]?] pydeseq2_alignment_mode_significant_genes_csv = alignment_mode_downstream.significant_genes_csv
+		Array[Array[File]?] pydeseq2_alignment_mode_volcano_plot_png = alignment_mode_downstream.volcano_plot_png
 
 		## DGE analysis with Salmon mapping-mode counts
 		Array[File?] pydeseq2_mapping_mode_dds_object_pkl = mapping_mode_downstream.dds_object_pkl
-		Array[File?] pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_downstream.significant_genes_csv
-		Array[File?] pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_downstream.volcano_plot_png
+		Array[Array[File]?] pydeseq2_mapping_mode_significant_genes_csv = mapping_mode_downstream.significant_genes_csv
+		Array[Array[File]?] pydeseq2_mapping_mode_volcano_plot_png = mapping_mode_downstream.volcano_plot_png
 
 		# Project cohort analysis outputs
 		## List of samples included in the cohort. Both modes produce the same sample list
@@ -351,11 +368,11 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		File? cohort_sample_list = alignment_mode_cross_team_cohort_analysis.cohort_sample_list
 
 		## Overlapping DEGs and PCA plot for alignment-mode
-		File? cohort_alignment_mode_overlapping_significant_genes_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
+		Array[File]? cohort_alignment_mode_overlapping_significant_genes_csv = alignment_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
 		File? cohort_alignment_mode_pca_plot_png = alignment_mode_cross_team_cohort_analysis.pca_plot_png
 
 		## Overlapping DEGs and PCA plot for mapping-mode
-		File? cohort_mapping_mode_overlapping_significant_genes_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
+		Array[File]? cohort_mapping_mode_overlapping_significant_genes_csv = mapping_mode_cross_team_cohort_analysis.overlapping_significant_genes_csv
 		File? cohort_mapping_mode_pca_plot_png = mapping_mode_cross_team_cohort_analysis.pca_plot_png
 
 		Array[File]? cohort_alignment_mode_manifests = alignment_mode_cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
@@ -364,10 +381,11 @@ workflow pmdbs_bulk_rnaseq_analysis {
 	}
 
 	meta {
-		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) bulk RNA-seq workflow."
+		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) and in vitro bulk RNA-seq workflow."
 	}
 
 	parameter_meta {
+		organism: {help: "Source; used to select workflow name. Options: 'pmdbs' or 'invitro'. If human pmdbs, 'pmdbs_bulk_rnaseq' will be the workflow name (i.e., bucket folder name) and if invitro, 'invitro_bulk_rnaseq' will be selected."}
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
 		reference: {help: "The primary assembly FASTA, gene annotation GTF, transcripts FASTA from GENCODE, and a generated all transcripts FASTA."}
@@ -384,5 +402,45 @@ workflow pmdbs_bulk_rnaseq_analysis {
 		gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
 		zones: {help: "Space-delimited set of GCP zones to spin up compute in. ['us-central1-c us-central1-f']"}
+	}
+}
+
+task get_workflow_name {
+	input {
+		String source
+		String zones
+	}
+
+	command <<<
+		set -euo pipefail
+
+		if [[ ~{source} == "pmdbs" ]]; then
+			echo "Detected: [~{source}]"
+			workflow_name="pmdbs_bulk_rnaseq"
+			echo "${workflow_name}" > workflow_name.txt
+			echo "Running: [${workflow_name}]"
+		elif [[ ~{source} == "invitro" ]]; then
+			echo "Detected: [~{source}]"
+			workflow_name="invitro_bulk_rnaseq"
+			echo "${workflow_name}" > workflow_name.txt
+			echo "Running: [${workflow_name}]"
+		else
+			echo "[ERROR] Invalid source for bulk RNAseq: [~{source}]"
+			printf "Please select a valid source for bulk RNAseq:\n  human\n  invitro"
+			exit 1
+		fi
+	>>>
+
+	output {
+		String workflow_name = read_string("workflow_name.txt")
+	}
+
+	runtime {
+		docker: "gcr.io/google.com/cloudsdktool/google-cloud-cli:524.0.0-slim"
+		cpu: 2
+		memory: "4 GB"
+		disks: "local-disk 10 HDD"
+		preemptible: 3
+		zones: zones
 	}
 }

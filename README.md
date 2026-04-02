@@ -1,6 +1,6 @@
-# pmdbs-bulk-rnaseq-wf
+# bulk-rnaseq-wf
 
-Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human bulk RNA sequencing data.
+Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) and non-human workflow harmonized across ASAP with human and in vitro bulk RNA sequencing data.
 
 Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](https://github.com/ASAP-CRN/wf-common).
 
@@ -55,6 +55,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 
 | Type | Name | Description |
 | :- | :- | :- |
+| String | source | Source; used to select `workflow_name`. Options: 'pmdbs' or 'invitro'. If human pmdbs, `pmdbs_bulk_rnaseq` will be the workflow name (i.e., bucket folder name) and if invitro, `invitro_bulk_rnaseq` will be selected. |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team downstream analysis. |
 | Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis. |
 | Boolean? | run_alignment_quantification | Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true] |
@@ -139,7 +140,8 @@ Example usage:
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
-	--workflow-name pmdbs_bulk_rnaseq_analysis
+	--release-version v5.0.0 \
+	--workflow-name bulk_rnaseq_analysis
 ```
 
 # Outputs
@@ -203,7 +205,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 			├── cohort_analysis
 			│   └── ${salmon_mode}
 			│       ├── ${cohort_id}.sample_list.tsv
-			│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
+			│    	├──	${cohort_id}.${salmon_mode}.${condition}_vs_Control.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
 			│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
 			│    	└── MANIFEST.tsv
 			├── downstream
@@ -211,8 +213,8 @@ asap-dev-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 			│       ├── ${team_id}.${output_name}.html # Includes ${salmon_mode} in output_name
 			│       ├── ${team_id}.${output_name}_data.zip # Includes ${salmon_mode} in output_name
 			│       ├── ${team_id}.${salmon_mode}.dds.pkl
-			│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
-			│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
+			│       ├── ${team_id}.${salmon_mode}.${condition}_vs_Control.pydeseq2_significant_genes.csv
+			│       ├── ${team_id}.${salmon_mode}.${condition}_vs_Control.volcano_plot.png
 			│       └── MANIFEST.tsv
 			├── upstream
 			│	└── ${salmon_mode}
@@ -245,7 +247,7 @@ The script defaults to a dry run, printing out the files that would be copied or
 -h  Display this message and exit
 -l  List available teams
 -w  Workflow name used as a directory in bucket (e.g. 'pmdbs_bulk_rnaseq')
--v  Release version (e.g. v4.0.0)
+-v  Release version (e.g. v5.0.0)
 -p  Promote data. If this option is not selected, data that would be copied or deleted is printed out, but files are not actually changed (dry run)
 ```
 
@@ -253,13 +255,13 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 # List available teams
-./wf-common/util/promote_staging_data -l -w pmdbs_bulk_rnaseq -v v4.0.0
+./wf-common/util/promote_staging_data -l -w pmdbs_bulk_rnaseq -v v5.0.0
 
 # Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams' datasets processed through the bulk RNA-seq pipeline for a specific release version
-./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v4.0.0
+./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v5.0.0
 
 # Promote data for teams' datasets processed through the bulk RNA-seq pipeline for a specific release version
-./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v4.0.0 -p
+./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v5.0.0 -p
 ```
 
 # Docker images
@@ -315,17 +317,17 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 | Image | Major tool versions | Links |
 | :- | :- | :- |
 | fastqc | <ul><li>[fastqc v0.12.1](https://github.com/s-andrews/FastQC/releases/tag/v0.12.1)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/fastqc) |
-| fastp | <ul><li>[fastp v0.23.4](https://github.com/OpenGene/fastp/releases/tag/v0.23.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/fastp) |
-| star_samtools | <ul><li>[star 2.7.11b](https://github.com/alexdobin/STAR/releases/tag/2.7.11b)</li><li>[samtools 1.20](https://github.com/samtools/samtools/releases/tag/1.20)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/star_samtools) |
-| salmon | <ul><li>[salmon v1.10.3](https://github.com/COMBINE-lab/salmon/releases/tag/v1.10.3)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/salmon) |
-| pydeseq2 | Python (v3.12.5) libraries: <ul><li>[pydeseq2 v0.5.2](https://github.com/owkin/PyDESeq2/releases/tag/v0.5.2)</li><li>[scikit-learn 1.7.1](https://github.com/scikit-learn/scikit-learn/releases/tag/1.7.1)</li><li>[scipy v1.16.1](https://github.com/scipy/scipy/releases/tag/v1.16.1)</li><li>[pytximport 0.12.0](https://github.com/complextissue/pytximport/releases/tag/0.12.0)</li><li>[matplotlib v3.10.3](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.3)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/pydeseq2) |
+| fastp | <ul><li>[fastp v0.23.4](https://github.com/OpenGene/fastp/releases/tag/v0.23.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/bulk-rnaseq-wf/tree/main/docker/fastp) |
+| star_samtools | <ul><li>[star 2.7.11b](https://github.com/alexdobin/STAR/releases/tag/2.7.11b)</li><li>[samtools 1.20](https://github.com/samtools/samtools/releases/tag/1.20)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/bulk-rnaseq-wf/tree/main/docker/star_samtools) |
+| salmon | <ul><li>[salmon v1.10.3](https://github.com/COMBINE-lab/salmon/releases/tag/v1.10.3)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/bulk-rnaseq-wf/tree/main/docker/salmon) |
+| pydeseq2 | Python (v3.12.5) libraries: <ul><li>[pydeseq2 v0.5.2](https://github.com/owkin/PyDESeq2/releases/tag/v0.5.2)</li><li>[scikit-learn 1.7.1](https://github.com/scikit-learn/scikit-learn/releases/tag/1.7.1)</li><li>[scipy v1.16.1](https://github.com/scipy/scipy/releases/tag/v1.16.1)</li><li>[pytximport 0.12.0](https://github.com/complextissue/pytximport/releases/tag/0.12.0)</li><li>[matplotlib v3.10.3](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.3)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/bulk-rnaseq-wf/tree/main/docker/pydeseq2) |
 | multiqc | <ul><li>[multiqc v1.30](https://github.com/MultiQC/MultiQC/releases/tag/v1.30)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/multiqc) |
 | util | <ul><li>[google-cloud-cli 524.0.0](https://cloud.google.com/sdk/docs/release-notes#52400_2025-05-28)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) |
 
 
 # wdl-ci
 
-[`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [pmdbs-wdl-ci-custom-test-dir](./pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
+[`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [wdl-ci-custom-test-dir](./bulk-rnaseq-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
 
 In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the Differential Gene Expression Analysis task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the raw counts generated by PyDESeq2, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_pkl". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the dds.pkl file is still a valid PKL file.
 

@@ -15,7 +15,7 @@ workflow cohort_analysis {
 		Array[String] upstream_output_file_paths = []
 		Array[String] downstream_output_file_paths = []
 
-		Array[File] significant_genes_csv
+		Array[Array[File]] significant_genes_csv
 		Array[File] dds_object_pkl
 
 		String salmon_mode
@@ -59,7 +59,7 @@ workflow cohort_analysis {
 			cohort_id = cohort_id,
 			team_ids = team_ids,
 			n_teams = length(team_ids),
-			significant_genes_csv = significant_genes_csv,
+			significant_genes_csv = flatten(significant_genes_csv),
 			dds_object_pkl = dds_object_pkl,
 			salmon_mode = salmon_mode,
 			raw_data_path = raw_data_path,
@@ -91,9 +91,11 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
-		select_all([
-			degs_and_plot.overlapping_significant_genes_csv
-		]),
+		flatten(
+			select_all([
+				degs_and_plot.overlapping_significant_genes_csv
+			])
+		),
 		[
 			degs_and_plot.pca_plot_png
 		]
@@ -111,8 +113,8 @@ workflow cohort_analysis {
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
-		# Overlapping differentially expressed genes only for cross_team_cohort_analysis
-		File? overlapping_significant_genes_csv = degs_and_plot.overlapping_significant_genes_csv #!FileCoercion
+		# Overlapping differentially expressed genes per contrast, only for cross_team_cohort_analysis
+		Array[File]? overlapping_significant_genes_csv = degs_and_plot.overlapping_significant_genes_csv #!FileCoercion
 		# PCA plots
 		File pca_plot_png = degs_and_plot.pca_plot_png #!FileCoercion
 
@@ -131,7 +133,7 @@ workflow cohort_analysis {
 		project_sample_ids: {help: "Associated team ID, sample ID, and dataset DOI URL; used to generate a sample list."}
 		upstream_output_file_paths: {help: "Selected upstream output files to upload to the staging bucket alongside selected cohort analysis output files."}
 		downstream_output_file_paths: {help: "Selected downstream output files to upload to the staging bucket alongside selected cohort analysis output files."}
-		significant_genes_csv: {help: "Per-team CSV files of significantly differentially expressed genes from PyDESeq2."}
+		significant_genes_csv: {help: "Per-team, per-contrast CSV files of significantly differentially expressed genes from PyDESeq2."}
     	dds_object_pkl: {help: "Per-team pickled PyDESeq2 dataset objects used for cross-team PCA analysis."}
 	    salmon_mode: {help: "Salmon quantification mode; either 'alignment_mode' or 'mapping_mode'."}
 		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
@@ -165,7 +167,7 @@ task degs_and_plot {
 		String zones
 
 		# Purposefully unset
-		String? my_none
+		Array[String]? my_none
 	}
 
 	Int threads = 4
@@ -184,11 +186,14 @@ task degs_and_plot {
 			--salmon-mode ~{salmon_mode}
 
 		if [[ ~{n_teams} -gt 1 ]]; then
-			upload_outputs \
-				-b ~{billing_project} \
-				-d ~{raw_data_path} \
-				-i ~{write_tsv(workflow_info)} \
-				-o "~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv"
+			for f in *.overlapping_significant_genes.csv; do
+				upload_outputs \
+					-b ~{billing_project} \
+					-d ~{raw_data_path} \
+					-i ~{write_tsv(workflow_info)} \
+					-o "$f"
+				echo "~{raw_data_path}/$f" >> overlapping_significant_genes_csv_paths.txt
+			done
 		fi
 
 		upload_outputs \
@@ -199,11 +204,11 @@ task degs_and_plot {
 	>>>
 
 	output {
-		String? overlapping_significant_genes_csv = if (n_teams > 1) then "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.overlapping_significant_genes.csv" else my_none
+		Array[String]? overlapping_significant_genes_csv = if (n_teams > 1) then read_lines("overlapping_significant_genes_csv_paths.txt") else my_none
 		String pca_plot_png = "~{raw_data_path}/~{cohort_id}.~{salmon_mode}.pca_plot.png"
 	}
 	runtime {
-		docker: "~{container_registry}/pydeseq2:0.5.2"
+		docker: "~{container_registry}/pydeseq2:0.5.2_1"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -220,7 +225,7 @@ task degs_and_plot {
 		cohort_id: {help: "Name of the cohort; used to name output files."}
 		team_ids: {help: "Array of CRN Teams included in cohort analysis."}
 		n_teams: {help: "Number of CRN Teams in the cohort; overlapping DEG analysis only runs when greater than 1."}
-		significant_genes_csv: {help: "Per-team CSV files of significantly differentially expressed genes from PyDESeq2."}
+		significant_genes_csv: {help: "Per-team, per-contrast CSV files of significantly differentially expressed genes from PyDESeq2."}
     	dds_object_pkl: {help: "Per-team pickled PyDESeq2 dataset objects used for cross-team PCA analysis."}
 	    salmon_mode: {help: "Salmon quantification mode; either 'alignment_mode' or 'mapping_mode'."}
 		raw_data_path: {help: "Raw data bucket path for DGE outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<salmon_mode>/<run_timestamp>`)."}
