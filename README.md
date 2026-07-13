@@ -218,9 +218,9 @@ asap-dev-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 			│       └── MANIFEST.tsv
 			├── upstream
 			│	└── ${salmon_mode}
-			│		├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
+			│		├── ${dataset_id}.${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
 			│		├── ...
-			│		├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
+			│		├── ${dataset_id}.${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
 			│		└── MANIFEST.tsv
 			├── workflow_version # plain text file
             └── workflow_metadata
