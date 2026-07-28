@@ -6,6 +6,8 @@ import "../structs.wdl"
 
 workflow index_ref_genome {
 	input {
+		String source
+
 		ReferenceData reference
 
 		Boolean run_star_index_ref_genome
@@ -19,6 +21,7 @@ workflow index_ref_genome {
 	if (run_star_index_ref_genome) {
 		call star_index_ref_genome {
 		input:
+			source = source,
 			primary_assembly_fasta = reference.primary_assembly_fasta,
 			gene_annotation_gtf = reference.gene_annotation_gtf,
 			container_registry = container_registry,
@@ -37,6 +40,7 @@ workflow index_ref_genome {
 
 		call salmon_index_ref_genome {
 		input:
+			source = source,
 			gentrome_fasta = generate_decoy.gentrome_fasta,
 			decoys_txt = generate_decoy.decoys_txt,
 			container_registry = container_registry,
@@ -54,6 +58,7 @@ workflow index_ref_genome {
 	}
 
 	parameter_meta {
+		source: {help: "Source; used to select workflow name. Options: 'pmdbs', 'mouse', or 'invitro'. If human pmdbs, 'pmdbs_bulk_rnaseq' will be the workflow name (i.e., bucket folder name), if mouse, 'mouse_bulk_rnaseq' will be selected, and if invitro, 'invitro_bulk_rnaseq' will be selected."}
 	    reference: {help: "The primary assembly FASTA, gene annotation GTF, transcripts FASTA from GENCODE, and a generated all transcripts FASTA."}
 	    run_alignment_quantification: {help: "Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true]"}
 		run_star_index_ref_genome: {help: "Option to index reference genome with STAR. If set to false, 'star_genome_dir_tar_gz' must be provided. [false]"}
@@ -64,6 +69,7 @@ workflow index_ref_genome {
 
 task star_index_ref_genome {
 	input {
+		String source
 		File primary_assembly_fasta
 		File gene_annotation_gtf
 		String container_registry
@@ -91,11 +97,11 @@ task star_index_ref_genome {
 			--genomeFastaFiles "$ref_path"/~{primary_assembly_fasta_basename} \
 			--sjdbGTFfile "$ref_path"/~{gene_annotation_gtf_basename}
 
-		tar -czvf star_genome_dir.tar.gz star_genome_dir
+		tar -czvf "~{source}.star_genome_dir.tar.gz" star_genome_dir
 	>>>
 
 	output {
-		File star_genome_dir_tar_gz = "star_genome_dir.tar.gz"
+		File star_genome_dir_tar_gz = "~{source}.star_genome_dir.tar.gz"
 	}
 
 	runtime {
@@ -112,6 +118,7 @@ task star_index_ref_genome {
 	}
 
 	parameter_meta {
+		source: {help: "Source; used to select workflow name. Options: 'pmdbs', 'mouse', or 'invitro'. If human pmdbs, 'pmdbs_bulk_rnaseq' will be the workflow name (i.e., bucket folder name), if mouse, 'mouse_bulk_rnaseq' will be selected, and if invitro, 'invitro_bulk_rnaseq' will be selected."}
 	    primary_assembly_fasta: {help: "Nucleotide sequence of the GRCh38 primary genome assembly (chromosomes and scaffolds)."}
 	    gene_annotation_gtf: {help: "Comprehensive gene annotation on the reference chromosomes only."}
 	    container_registry: {help: "Container registry where workflow Docker images are hosted."}
@@ -169,6 +176,7 @@ task generate_decoy {
 
 task salmon_index_ref_genome {
 	input {
+		String source
 		File gentrome_fasta
 		File decoys_txt
 		String container_registry
@@ -190,11 +198,11 @@ task salmon_index_ref_genome {
 			--decoys ~{decoys_txt} \
 			--threads ~{threads}
 
-		tar -czvf salmon_genome_dir.tar.gz salmon_index
+		tar -czvf "~{source}.salmon_genome_dir.tar.gz" salmon_index
 	>>>
 
 	output {
-		File salmon_genome_dir_tar_gz = "salmon_genome_dir.tar.gz"
+		File salmon_genome_dir_tar_gz = "~{source}.salmon_genome_dir.tar.gz"
 	}
 
 	runtime {
@@ -211,6 +219,7 @@ task salmon_index_ref_genome {
 	}
 
 	parameter_meta {
+		source: {help: "Source; used to select workflow name. Options: 'pmdbs', 'mouse', or 'invitro'. If human pmdbs, 'pmdbs_bulk_rnaseq' will be the workflow name (i.e., bucket folder name), if mouse, 'mouse_bulk_rnaseq' will be selected, and if invitro, 'invitro_bulk_rnaseq' will be selected."}
 	    gentrome_fasta: {help: "Gzipped concatenated transcriptome and genome FASTA used as the Salmon index input."}
 	    decoys_txt: {help: "Text file listing chromosome names from the primary assembly to be used as decoy sequences."}
 	    container_registry: {help: "Container registry where workflow Docker images are hosted."}

@@ -57,6 +57,7 @@ workflow bulk_rnaseq_analysis {
 
 	call IndexRefGenome.index_ref_genome {
 		input:
+			source = source,
 			reference = reference,
 			run_star_index_ref_genome = run_star_index_ref_genome,
 			run_salmon_index_ref_genome = run_salmon_index_ref_genome,
@@ -386,7 +387,7 @@ workflow bulk_rnaseq_analysis {
 	}
 
 	parameter_meta {
-		organism: {help: "Source; used to select workflow name. Options: 'pmdbs' or 'invitro'. If human pmdbs, 'pmdbs_bulk_rnaseq' will be the workflow name (i.e., bucket folder name) and if invitro, 'invitro_bulk_rnaseq' will be selected."}
+		source: {help: "Source; used to select workflow name. Options: 'pmdbs', 'mouse', or 'invitro'. If human pmdbs, 'pmdbs_bulk_rnaseq' will be the workflow name (i.e., bucket folder name), if mouse, 'mouse_bulk_rnaseq' will be selected, and if invitro, 'invitro_bulk_rnaseq' will be selected."}
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
 		reference: {help: "The primary assembly FASTA, gene annotation GTF, transcripts FASTA from GENCODE, and a generated all transcripts FASTA."}
