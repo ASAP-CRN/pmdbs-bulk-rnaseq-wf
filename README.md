@@ -1,6 +1,6 @@
 # bulk-rnaseq-wf
 
-Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) and non-human workflow harmonized across ASAP with human and in vitro bulk RNA sequencing data.
+Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) and non-human workflow harmonized across ASAP with human, mouse, and in vitro bulk RNA sequencing data.
 
 Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](https://github.com/ASAP-CRN/wf-common).
 
@@ -55,7 +55,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | source | Source; used to select `workflow_name`. Options: 'pmdbs' or 'invitro'. If human pmdbs, `pmdbs_bulk_rnaseq` will be the workflow name (i.e., bucket folder name) and if invitro, `invitro_bulk_rnaseq` will be selected. |
+| String | source | Source; used to select `workflow_name`. Options: 'pmdbs', 'mouse', or 'invitro'. If human pmdbs, `pmdbs_bulk_rnaseq` will be the workflow name (i.e., bucket folder name), if mouse, `mouse_bulk_rnaseq` wil be selected, and if invitro, `invitro_bulk_rnaseq` will be selected. |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team downstream analysis. |
 | Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis. |
 | Boolean? | run_alignment_quantification | Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true] |
@@ -140,7 +140,7 @@ Example usage:
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
-	--release-version v5.0.0 \
+	--release-version v5.1.0 \
 	--workflow-name bulk_rnaseq_analysis
 ```
 
@@ -247,7 +247,7 @@ The script defaults to a dry run, printing out the files that would be copied or
 -h  Display this message and exit
 -l  List available teams
 -w  Workflow name used as a directory in bucket (e.g. 'pmdbs_bulk_rnaseq')
--v  Release version (e.g. v5.0.0)
+-v  Release version (e.g. v5.1.0)
 -p  Promote data. If this option is not selected, data that would be copied or deleted is printed out, but files are not actually changed (dry run)
 ```
 
@@ -255,13 +255,13 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 # List available teams
-./wf-common/util/promote_staging_data -l -w pmdbs_bulk_rnaseq -v v5.0.0
+./wf-common/util/promote_staging_data -l -w pmdbs_bulk_rnaseq -v v5.1.0
 
 # Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams' datasets processed through the bulk RNA-seq pipeline for a specific release version
-./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v5.0.0
+./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v5.1.0
 
 # Promote data for teams' datasets processed through the bulk RNA-seq pipeline for a specific release version
-./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v5.0.0 -p
+./wf-common/util/promote_staging_data -w pmdbs_bulk_rnaseq -v v5.1.0 -p
 ```
 
 # Docker images
@@ -336,23 +336,25 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 
 ## Reference data
 
-[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/) was used in this pipeline.
+[Release 46 (GRCh38.p14) on GENCODE](https://www.gencodegenes.org/human/release_46.html) and [Release M39 (GRCm39) on GENCODE](https://www.gencodegenes.org/mouse/release_M39.html) were used in this pipeline. The code below generates inputs for human data. When generating inputs for mouse data, replace the file name with the appropriate mouse files.
 
 The GENCODE gene annotation file was used to create a tx2gene dataframe in R:
 ```R
 library(GenomicFeatures)
 
-txdb <- makeTxDbFromGFF("gencode.v46.annotation.gtf", format="gtf", organism="Homo sapiens")
+txdb <- txdbmaker::makeTxDbFromGFF("gencode.v46.annotation.gtf", format="gtf", organism="Homo sapiens") # Change to Mus musculus for mouse data
 k <- keys(txdb, keytype = "TXNAME")
 # The column names do not matter but this column order must be used: 1) transcript ID and 2) gene ID
 tx2gene <- select(txdb, k, "GENEID", "TXNAME")
 write.csv(tx2gene, "tx2gene.gencode.v46.csv", row.names = FALSE)
 ```
 
-The GENCODE primary assembly and gene annotation files were used to create a transcriptome FASTA file with [GffRead](https://github.com/gpertea/gffread). This is used for `salmon quant` alignment-mode (see [issue](https://github.com/COMBINE-lab/salmon/issues/104) for full context):
+The GENCODE primary assembly and gene annotation files were used to create a transcriptome FASTA file with [GffRead](https://github.com/gpertea/gffread): `gencode.v46.all_transcripts.fa`. This is used for `salmon quant` alignment-mode (see [issue](https://github.com/COMBINE-lab/salmon/issues/104) for full context):
 ```bash
 # Install gffread
 gffread -w gencode.v46.all_transcripts.fa -g GRCh38.primary_assembly.genome.fa gencode.v46.annotation.gtf
+
+gzip gencode.v46.all_transcripts.fa
 ```
 
 The GENCODE gene annotation file was used to create a JSON that maps gene IDs and gene names for easier readability:

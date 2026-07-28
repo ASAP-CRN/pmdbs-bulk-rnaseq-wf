@@ -40,9 +40,9 @@ workflow bulk_rnaseq_analysis {
 	}
 
 	String workflow_execution_path = "workflow_execution"
-	String workflow_version = "v2.0.0"
+	String workflow_version = "v3.0.0"
 	String workflow_release = "https://github.com/ASAP-CRN/bulk-rnaseq-wf/releases/tag/bulk_rnaseq_analysis-~{workflow_version}"
-	String crn_release_version = "v5.0.0"
+	String crn_release_version = "v5.1.0"
 
 	call get_workflow_name {
 		input:
@@ -420,6 +420,11 @@ task get_workflow_name {
 			workflow_name="pmdbs_bulk_rnaseq"
 			echo "${workflow_name}" > workflow_name.txt
 			echo "Running: [${workflow_name}]"
+		elif [[ ~{source} == "mouse" ]]; then
+			echo "Detected: [~{source}]"
+			workflow_name="mouse_bulk_rnaseq"
+			echo "${workflow_name}" > workflow_name.txt
+			echo "Running: [${workflow_name}]"
 		elif [[ ~{source} == "invitro" ]]; then
 			echo "Detected: [~{source}]"
 			workflow_name="invitro_bulk_rnaseq"
@@ -427,7 +432,7 @@ task get_workflow_name {
 			echo "Running: [${workflow_name}]"
 		else
 			echo "[ERROR] Invalid source for bulk RNAseq: [~{source}]"
-			printf "Please select a valid source for bulk RNAseq:\n  human\n  invitro"
+			printf "Please select a valid source for bulk RNAseq:\n  human\n  mouse\n  invitro"
 			exit 1
 		fi
 	>>>
