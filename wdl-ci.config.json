@@ -325,6 +325,7 @@
           "tests": [
             {
               "inputs": {
+                "dataset_id": "${asap_dataset_id}",
                 "sample_id": "${sample_id}",
                 "fastq_R1s": [
                   "gs://asap-raw-team-lee-pmdbs-bulk-rnaseq-mfg/fastqs/1225HC_MFG_bulk_L000_R1_001.fastq.gz"
@@ -397,6 +398,7 @@
           "tests": [
             {
               "inputs": {
+                "dataset_id": "${asap_dataset_id}",
                 "sample_id": "${sample_id}",
                 "salmon_genome_dir_tar_gz": "${input_file_path}/salmon_genome_dir.tar.gz",
                 "trimmed_fastq_R1s": [
@@ -436,6 +438,7 @@
           "tests": [
             {
               "inputs": {
+                "dataset_id": "${asap_dataset_id}",
                 "sample_id": "${sample_id}",
                 "star_genome_dir_tar_gz": "${input_file_path}/star_genome_dir.tar.gz",
                 "trimmed_fastq_R1s": [
@@ -524,6 +527,7 @@
           "tests": [
             {
               "inputs": {
+                "dataset_id": "${asap_dataset_id}",
                 "sample_id": "${sample_id}",
                 "all_transcripts_fasta": "${reference.all_transcripts_fasta}",
                 "aligned_to_transcriptome_bam": "${input_resources_file_path}/${upstream_workflow_name}/${salmon_mode}/${sample_id}.Aligned.toTranscriptome.out.bam",
@@ -694,7 +698,7 @@
         "all_transcripts_fasta": "${input_file_path}/gencode.v46.all_transcripts.fa.gz"
       },
       "workflow_name": "pmdbs_bulk_rnaseq",
-      "workflow_version": "v1.0.0",
+      "workflow_version": "v3.0.0",
       "workflow_release": "https://github.com/ASAP-CRN/bulk-rnaseq-wf/releases/tag/bulk_rnaseq_analysis-${workflow_version}",
       "workflow_info": [
         [
@@ -705,22 +709,22 @@
         ]
       ],
       "upstream_workflow_name": "upstream",
-      "fastqc_task_version": "1.0.0",
-      "trim_and_qc_task_version": "1.0.1",
-      "alignment_quantification_workflow_version": "1.0.0",
-      "pseudo_mapping_quantification_workflow_version": "1.0.0",
+      "fastqc_task_version": "1.0.1",
+      "trim_and_qc_task_version": "1.0.2",
+      "alignment_quantification_workflow_version": "1.0.1",
+      "pseudo_mapping_quantification_workflow_version": "1.0.1",
       "fastqc_raw_reads_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/fastqc_raw_reads/${fastqc_task_version}",
       "fastp_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/trim_and_qc/${trim_and_qc_task_version}",
       "star_and_salmon_alignment_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/alignment_quantification/${alignment_quantification_workflow_version}",
       "salmon_mapping_mode_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${upstream_workflow_name}/mapping_quantification/${pseudo_mapping_quantification_workflow_version}",
       "salmon_mode": "alignment_mode",
       "downstream_workflow_name": "downstream",
-      "downstream_workflow_version": "1.0.0",
+      "downstream_workflow_version": "2.0.0",
       "downstream_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${downstream_workflow_name}/${downstream_workflow_version}/${salmon_mode}/${run_timestamp}",
       "cohort_workflow_name": "cohort_analysis",
-      "cohort_workflow_version": "1.0.0",
+      "cohort_workflow_version": "2.0.0",
       "cohort_raw_data_path": "gs://asap-wdl-ci/workflow_execution/pmdbs_bulk_rnaseq/${cohort_workflow_name}/${cohort_workflow_version}/${salmon_mode}/${run_timestamp}",
-      "run_timestamp": "2024-11-06T00-00-00Z",
+      "run_timestamp": "2026-08-07T00-00-00Z",
       "billing_project": "dnastack-asap-parkinsons",
       "container_registry": "us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images",
       "zones": "us-central1-c us-central1-f"
