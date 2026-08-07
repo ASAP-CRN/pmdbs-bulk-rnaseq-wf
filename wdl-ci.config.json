@@ -400,7 +400,7 @@
               "inputs": {
                 "dataset_id": "${asap_dataset_id}",
                 "sample_id": "${sample_id}",
-                "salmon_genome_dir_tar_gz": "${input_file_path}/salmon_genome_dir.tar.gz",
+                "salmon_genome_dir_tar_gz": "${input_file_path}/human.salmon_genome_dir.tar.gz",
                 "trimmed_fastq_R1s": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R1_001.trimmed.fastq.gz"
                 ],
@@ -440,7 +440,7 @@
               "inputs": {
                 "dataset_id": "${asap_dataset_id}",
                 "sample_id": "${sample_id}",
-                "star_genome_dir_tar_gz": "${input_file_path}/star_genome_dir.tar.gz",
+                "star_genome_dir_tar_gz": "${input_file_path}/human.star_genome_dir.tar.gz",
                 "trimmed_fastq_R1s": [
                   "${input_resources_file_path}/${upstream_workflow_name}/qc/1225HC_MFG_bulk_L000_R1_001.trimmed.fastq.gz"
                 ],
