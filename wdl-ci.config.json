@@ -111,6 +111,7 @@
           "tests": [
             {
               "inputs": {
+                "dataset_id": "${asap_dataset_id}",
                 "sample_id": "${sample_id}",
                 "fastq_R1s": [
                   "gs://asap-raw-team-lee-pmdbs-bulk-rnaseq-mfg/fastqs/1225HC_MFG_bulk_L000_R1_001.fastq.gz"
