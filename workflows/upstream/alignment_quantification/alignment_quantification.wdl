@@ -4,7 +4,7 @@ version 1.0
 
 workflow alignment_quantification {
 	input {
-		String dataset_id
+		String dataset_sample_id
 		String sample_id
 
 		File all_transcripts_fasta
@@ -22,8 +22,7 @@ workflow alignment_quantification {
 
 	call alignment {
 		input:
-			dataset_id = dataset_id,
-			sample_id = sample_id,
+			dataset_sample_id = dataset_sample_id,
 			star_genome_dir_tar_gz = star_genome_dir_tar_gz,
 			trimmed_fastq_R1s = trimmed_fastq_R1s,
 			trimmed_fastq_R2s = trimmed_fastq_R2s,
@@ -36,7 +35,7 @@ workflow alignment_quantification {
 
 	call quantification {
 		input:
-			dataset_id = dataset_id,
+			dataset_sample_id = dataset_sample_id,
 			sample_id = sample_id,
 			all_transcripts_fasta = all_transcripts_fasta,
 			aligned_to_transcriptome_bam = alignment.aligned_to_transcriptome_bam, #!FileCoercion
@@ -68,7 +67,7 @@ workflow alignment_quantification {
 	}
 
 	parameter_meta {
-		dataset_id: {help: "Generated ASAP dataset ID; used to name output files."}
+		dataset_sample_id: {help: "Generated ASAP dataset ID and sample ID; used to name output files."}
 		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
 		all_transcripts_fasta: {help: "Manually generated all transcripts on the reference chromosomes with the `primary_assembly_fasta` and `gene_annotation_gtf`."}
 		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
@@ -84,8 +83,7 @@ workflow alignment_quantification {
 
 task alignment {
 	input {
-		String dataset_id
-		String sample_id
+		String dataset_sample_id
 
 		File star_genome_dir_tar_gz
 
@@ -115,7 +113,7 @@ task alignment {
 			--genomeDir star_genome_dir \
 			--readFilesIn ~{sep=',' trimmed_fastq_R1s} ~{sep=',' trimmed_fastq_R2s} \
 			--readFilesCommand zcat \
-			--outFileNamePrefix ~{dataset_id}.~{sample_id}. \
+			--outFileNamePrefix ~{dataset_sample_id}. \
 			--outReadsUnmapped Fastx \
 			--outSAMtype BAM SortedByCoordinate \
 			--outFilterType BySJout \
@@ -126,38 +124,38 @@ task alignment {
 			--limitBAMsortRAM ~{sort_bam_mem_bytes}
 
 		echo "Validating aligned and sorted BAM"
-		samtools quickcheck "~{dataset_id}.~{sample_id}.Aligned.sortedByCoord.out.bam"
+		samtools quickcheck "~{dataset_sample_id}.Aligned.sortedByCoord.out.bam"
 
 		echo "Indexing aligned and sorted BAM"
 		samtools index \
 			-@ ~{threads} \
-			~{dataset_id}.~{sample_id}.Aligned.sortedByCoord.out.bam
+			~{dataset_sample_id}.Aligned.sortedByCoord.out.bam
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{dataset_id}.~{sample_id}.Aligned.sortedByCoord.out.bam" \
-			-o "~{dataset_id}.~{sample_id}.Aligned.sortedByCoord.out.bam.bai" \
-			-o "~{dataset_id}.~{sample_id}.Aligned.toTranscriptome.out.bam" \
-			-o "~{dataset_id}.~{sample_id}.Unmapped.out.mate1" \
-			-o "~{dataset_id}.~{sample_id}.Unmapped.out.mate2" \
-			-o "~{dataset_id}.~{sample_id}.Log.out" \
-			-o "~{dataset_id}.~{sample_id}.Log.final.out" \
-			-o "~{dataset_id}.~{sample_id}.Log.progress.out" \
-			-o "~{dataset_id}.~{sample_id}.SJ.out.tab"
+			-o "~{dataset_sample_id}.Aligned.sortedByCoord.out.bam" \
+			-o "~{dataset_sample_id}.Aligned.sortedByCoord.out.bam.bai" \
+			-o "~{dataset_sample_id}.Aligned.toTranscriptome.out.bam" \
+			-o "~{dataset_sample_id}.Unmapped.out.mate1" \
+			-o "~{dataset_sample_id}.Unmapped.out.mate2" \
+			-o "~{dataset_sample_id}.Log.out" \
+			-o "~{dataset_sample_id}.Log.final.out" \
+			-o "~{dataset_sample_id}.Log.progress.out" \
+			-o "~{dataset_sample_id}.SJ.out.tab"
 	>>>
 
 	output {
-		String aligned_bam = "~{raw_data_path}/~{dataset_id}.~{sample_id}.Aligned.sortedByCoord.out.bam"
-		String aligned_bam_index = "~{raw_data_path}/~{dataset_id}.~{sample_id}.Aligned.sortedByCoord.out.bam.bai"
-		String aligned_to_transcriptome_bam = "~{raw_data_path}/~{dataset_id}.~{sample_id}.Aligned.toTranscriptome.out.bam"
-		String unmapped_mate1 = "~{raw_data_path}/~{dataset_id}.~{sample_id}.Unmapped.out.mate1"
-		String unmapped_mate2 = "~{raw_data_path}/~{dataset_id}.~{sample_id}.Unmapped.out.mate2"
-		String log = "~{raw_data_path}/~{dataset_id}.~{sample_id}.Log.out"
-		String final_log = "~{raw_data_path}/~{dataset_id}.~{sample_id}.Log.final.out"
-		String progress_log = "~{raw_data_path}/~{dataset_id}.~{sample_id}.Log.progress.out"
-		String sj_out_tab = "~{raw_data_path}/~{dataset_id}.~{sample_id}.SJ.out.tab"
+		String aligned_bam = "~{raw_data_path}/~{dataset_sample_id}.Aligned.sortedByCoord.out.bam"
+		String aligned_bam_index = "~{raw_data_path}/~{dataset_sample_id}.Aligned.sortedByCoord.out.bam.bai"
+		String aligned_to_transcriptome_bam = "~{raw_data_path}/~{dataset_sample_id}.Aligned.toTranscriptome.out.bam"
+		String unmapped_mate1 = "~{raw_data_path}/~{dataset_sample_id}.Unmapped.out.mate1"
+		String unmapped_mate2 = "~{raw_data_path}/~{dataset_sample_id}.Unmapped.out.mate2"
+		String log = "~{raw_data_path}/~{dataset_sample_id}.Log.out"
+		String final_log = "~{raw_data_path}/~{dataset_sample_id}.Log.final.out"
+		String progress_log = "~{raw_data_path}/~{dataset_sample_id}.Log.progress.out"
+		String sj_out_tab = "~{raw_data_path}/~{dataset_sample_id}.SJ.out.tab"
 	}
 
 	runtime {
@@ -174,8 +172,7 @@ task alignment {
 	}
 
 	parameter_meta {
-		dataset_id: {help: "Generated ASAP dataset ID; used to name output files."}
-		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		dataset_sample_id: {help: "Generated ASAP dataset ID and sample ID; used to name output files."}
 		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
 		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
     	trimmed_fastq_R2s: {help: "Adapter-trimmed reverse (R2) FASTQ files for the sample."}
@@ -189,7 +186,7 @@ task alignment {
 
 task quantification {
 	input {
-		String dataset_id
+		String dataset_sample_id
 		String sample_id
 
 		File all_transcripts_fasta
@@ -220,17 +217,17 @@ task quantification {
 
 		# Outputs must remain in folder and unmodified for downstream analysis
 		# Outputs include: quant.sf, cmd_info.json, and aux_info folder
-		tar -czvf "~{dataset_id}.~{sample_id}.alignment_mode.salmon_quant.tar.gz" "~{sample_id}_salmon_quant"
+		tar -czvf "~{dataset_sample_id}.alignment_mode.salmon_quant.tar.gz" "~{sample_id}_salmon_quant"
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{dataset_id}.~{sample_id}.alignment_mode.salmon_quant.tar.gz"
+			-o "~{dataset_sample_id}.alignment_mode.salmon_quant.tar.gz"
 	>>>
 
 	output {
-		String quant_tar_gz = "~{raw_data_path}/~{dataset_id}.~{sample_id}.alignment_mode.salmon_quant.tar.gz"
+		String quant_tar_gz = "~{raw_data_path}/~{dataset_sample_id}.alignment_mode.salmon_quant.tar.gz"
 	}
 
 	runtime {
@@ -247,7 +244,7 @@ task quantification {
 	}
 
 	parameter_meta {
-		dataset_id: {help: "Generated ASAP dataset ID; used to name output files."}
+		dataset_sample_id: {help: "Generated ASAP dataset ID and sample ID; used to name output files."}
 		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
 		all_transcripts_fasta: {help: "Manually generated all transcripts on the reference chromosomes with the `primary_assembly_fasta` and `gene_annotation_gtf`."}
 		aligned_to_transcriptome_bam: {help: "BAM file aligned to the transcriptome, output from STAR with --quantMode TranscriptomeSAM."}
