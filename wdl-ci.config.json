@@ -321,7 +321,7 @@
         },
         "trim_and_qc": {
           "key": "trim_and_qc",
-          "digest": "2ucfs6ase3tbghqnaxkn5cc7tumkakx4",
+          "digest": "sib4wdi5334hbs3fhonocszwuiofmtuv",
           "tests": [
             {
               "inputs": {
@@ -394,7 +394,7 @@
       "tasks": {
         "mapping_quantification": {
           "key": "mapping_quantification",
-          "digest": "mjlciofngjs5qdxr3how6axaoekxupnk",
+          "digest": "ltp5oaqbg5p66qlgde36klvpybygisk3",
           "tests": [
             {
               "inputs": {
@@ -434,7 +434,7 @@
       "tasks": {
         "alignment": {
           "key": "alignment",
-          "digest": "fep5ndsqnrgtwsrai5cskdqrtf26kz7y",
+          "digest": "53jehcrkkhbj6gba72plt2hnzpgy5nuz",
           "tests": [
             {
               "inputs": {
@@ -522,7 +522,7 @@
         },
         "quantification": {
           "key": "quantification",
-          "digest": "gsljoel2hbrih75ftvqyrrmbvr5rr5x3",
+          "digest": "r272afyrucwpzbhb745ab5ttll2275ll",
           "tests": [
             {
               "inputs": {
