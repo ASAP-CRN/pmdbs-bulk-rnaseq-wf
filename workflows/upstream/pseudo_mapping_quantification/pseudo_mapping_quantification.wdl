@@ -4,6 +4,7 @@ version 1.0
 
 workflow pseudo_mapping_quantification {
 	input {
+		String dataset_sample_id
 		String sample_id
 
 		File salmon_genome_dir_tar_gz
@@ -20,6 +21,7 @@ workflow pseudo_mapping_quantification {
 
 	call mapping_quantification {
 		input:
+			dataset_sample_id = dataset_sample_id,
 			sample_id = sample_id,
 			salmon_genome_dir_tar_gz = salmon_genome_dir_tar_gz,
 			trimmed_fastq_R1s = trimmed_fastq_R1s,
@@ -41,6 +43,7 @@ workflow pseudo_mapping_quantification {
 	}
 
 	parameter_meta {
+		dataset_sample_id: {help: "Generated ASAP dataset ID and sample ID; used to name output files."}
 		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
 		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
 		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
@@ -55,6 +58,7 @@ workflow pseudo_mapping_quantification {
 
 task mapping_quantification {
 	input {
+		String dataset_sample_id
 		String sample_id
 
 		File salmon_genome_dir_tar_gz
@@ -91,17 +95,17 @@ task mapping_quantification {
 
 		# Outputs must remain in folder and unmodified for downstream analysis
 		# Outputs include: quant.sf, cmd_info.json, and aux_info folder
-		tar -czvf "~{sample_id}.mapping_mode.salmon_quant.tar.gz" "~{sample_id}_salmon_quant"
+		tar -czvf "~{dataset_sample_id}.mapping_mode.salmon_quant.tar.gz" "~{sample_id}_salmon_quant"
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.mapping_mode.salmon_quant.tar.gz"
+			-o "~{dataset_sample_id}.mapping_mode.salmon_quant.tar.gz"
 	>>>
 
 	output {
-		String quant_tar_gz = "~{raw_data_path}/~{sample_id}.mapping_mode.salmon_quant.tar.gz"
+		String quant_tar_gz = "~{raw_data_path}/~{dataset_sample_id}.mapping_mode.salmon_quant.tar.gz"
 	}
 
 	runtime {
@@ -118,6 +122,7 @@ task mapping_quantification {
 	}
 
 	parameter_meta {
+		dataset_sample_id: {help: "Generated ASAP dataset ID and sample ID; used to name output files."}
 		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
 		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
 		trimmed_fastq_R1s: {help: "Adapter-trimmed forward (R1) FASTQ files for the sample."}
